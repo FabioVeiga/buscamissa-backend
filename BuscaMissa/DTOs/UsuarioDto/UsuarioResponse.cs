@@ -1,3 +1,5 @@
+using BuscaMissa.Models;
+
 namespace BuscaMissa.DTOs.UsuarioDto
 {
     public class UsuarioResponse
@@ -6,5 +8,14 @@ namespace BuscaMissa.DTOs.UsuarioDto
         public string Nome { get; set; } = default!;
         public string Email { get; set; } = default!;
         public AcessToken? AcessToken { get; set; }
+
+        public static explicit operator UsuarioResponse(Usuario usuario)
+        {
+            return new UsuarioResponse{
+                Id = usuario.Id,
+                Nome = usuario.Nome,
+                Email = usuario.Email
+            };
+        }
     }
 }

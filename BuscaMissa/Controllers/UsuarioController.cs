@@ -1,6 +1,7 @@
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BuscaMissa.Controllers
@@ -14,6 +15,7 @@ namespace BuscaMissa.Controllers
         private readonly IgrejaService _igrejaService = igrejaService;
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Inserir([FromBody] CriacaoUsuarioRequest request)
         {
             try
@@ -36,6 +38,7 @@ namespace BuscaMissa.Controllers
 
         [HttpPost]
         [Route("inserir-igreja")]
+        [Authorize(Roles = "Admin,App")]
         public async Task<IActionResult> InserirUsuarioPorIgreja([FromBody] IgrejaCriacaoUsuarioRequest request)
         {
             try
@@ -56,6 +59,7 @@ namespace BuscaMissa.Controllers
 
         [HttpPost]
         [Route("autenticar")]
+        [AllowAnonymous]
         public async Task<IActionResult> Autenticar([FromBody] LoginRequest request)
         {
             try
@@ -77,29 +81,30 @@ namespace BuscaMissa.Controllers
         }
 
 
-        // [HttpGet]
-        // [Route("buscar-por-codigo/{codigo}")]
-        // public async Task<IActionResult> BuscarPorCodigoAsync(int codigo)
-        // {
-        //     try
-        //     {
+        [HttpGet]
+        [Route("{codigo}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BuscarPorCodigoAsync(int codigo)
+        {
+            try
+            {
 
-        //         var usuario = await _usuarioService.BuscarPorCodigo(codigo);
-        //         if (usuario == null)
-        //             return NotFound();
-        //         UsuarioResponse usuarioResponse = (UsuarioResponse)usuario;
-        //         return Ok(new ApiResponse<dynamic>(new
-        //         {
-        //             usuario = usuarioResponse
-        //         }));
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError("{Ex}", ex);
-        //         var response = new ApiResponse<dynamic>(ex.Message);
-        //         return StatusCode(StatusCodes.Status500InternalServerError, response);
-        //     }
-        // }
+                var usuario = await _usuarioService.BuscarPorCodigo(codigo);
+                if (usuario == null)
+                    return NotFound();
+                UsuarioResponse usuarioResponse = (UsuarioResponse)usuario;
+                return Ok(new ApiResponse<dynamic>(new
+                {
+                    usuario = usuarioResponse
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
     }
 
 }
