@@ -1,5 +1,6 @@
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace BuscaMissa.Context
 {
@@ -14,6 +15,30 @@ namespace BuscaMissa.Context
         public DbSet<MissaTemporaria> MissasTemporarias { get; set; }
         public DbSet<RedeSocial> RedesSociais { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+    }
+
+    public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+    {
+        public ApplicationDbContext CreateDbContext(string[] args)
+        {
+             IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            }
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 23)));
+
+            return new ApplicationDbContext(optionsBuilder.Options);
+        }
     }
 }
 

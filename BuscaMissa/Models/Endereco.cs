@@ -8,7 +8,7 @@ namespace BuscaMissa.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public int Cep { get; set; } = default!;
+        public string Cep { get; set; } = default!;
         [Required]
         public string Logradouro { get; set; } = default!;
         public string? Complemento { get; set; }

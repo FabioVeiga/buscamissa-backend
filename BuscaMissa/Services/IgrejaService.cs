@@ -1,6 +1,6 @@
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
-using BuscaMissa.Helpers;
+using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,11 +32,27 @@ namespace BuscaMissa.Services
                 return await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
-                    .FirstOrDefaultAsync(x => x.Endereco.Cep == CepHelper.FormatarCep(cep));
+                    .FirstOrDefaultAsync(x => x.Endereco.Cep == cep);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while fetching Igreja with CEP {Cep}", cep);
+                throw;
+            }
+        }
+
+        public async Task<Igreja> InserirAsync(CriacaoIgrejaRequest request)
+        {
+            try
+            {
+                Igreja model = (Igreja)request;
+                _context.Igrejas.Add(model);
+                await _context.SaveChangesAsync();
+                return model;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while insering Igreja {IgrejaRequest}", request);
                 throw;
             }
         }

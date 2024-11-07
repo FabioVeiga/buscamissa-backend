@@ -1,5 +1,6 @@
 using System.Text;
 using BuscaMissa.Context;
+using BuscaMissa.DTOs;
 using BuscaMissa.Services;
 using MailerSendNetCore.Common;
 using MailerSendNetCore.Common.Extensions;
@@ -10,7 +11,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var stringConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+var stringConnection = Environment.GetEnvironmentVariable("MYSQLCONNSTR_WebApiDatabase");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(stringConnection, 
         new MySqlServerVersion(new Version(8, 0, 23))));
@@ -104,7 +105,7 @@ builder.Services.AddSwaggerGen();
     clientBuilder.AddBlobServiceClient(builder.Configuration["AzureStorage:ConnectionString"]);
 }); */
 
-//builder.Services.Configure<MailerSendEmailSetting>(builder.Configuration.GetSection("MailerSendEmailSetting"));
+builder.Services.Configure<MailerSendEmailSetting>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 
 var app = builder.Build();
 

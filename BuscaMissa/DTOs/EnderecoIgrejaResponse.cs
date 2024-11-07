@@ -20,7 +20,7 @@ namespace BuscaMissa.DTOs
         {
             return new EnderecoIgrejaResponse{
                 Id = endereco.Id,
-                Cep = endereco.Cep,
+                Cep = 1,
                 Logradouro = endereco.Logradouro,
                 Complemento = endereco.Complemento,
                 Bairro = endereco.Bairro,

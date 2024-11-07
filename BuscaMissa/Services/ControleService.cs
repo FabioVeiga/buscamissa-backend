@@ -9,23 +9,17 @@ namespace BuscaMissa.Services
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<ControleService> _logger = logger;
 
-        public async Task<Controle> InserirAsync(Igreja igreja)
+        public async Task<Controle> InserirAsync(Controle model)
         {
             try
             {
-                var model = new Controle()
-                {
-                    Igreja = igreja,
-                    IgrejaId = igreja.Id,
-                    Status = Enums.StatusEnum.Inserido
-                };
                 _context.Controles.Add(model);
                 await _context.SaveChangesAsync();
                 return model;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while insering COntrile {Igreja}", igreja);
+                _logger.LogError(ex, "An error occurred while insering COntrile {ccontrole}", model);
                 throw;
             }
         }
