@@ -1,3 +1,4 @@
+using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Models;
 
 namespace BuscaMissa.DTOs
@@ -11,7 +12,7 @@ namespace BuscaMissa.DTOs
         public bool Ativo { get; set; }
         public DateTime Criacao { get; set; }
         public DateTime Alteracao { get; set; }
-        //public UsuarioDtoResponse Usuario { get; set; } = default!;
+        public UsuarioDtoResponse Usuario { get; set; } = default!;
         public EnderecoIgrejaResponse Endereco { get; set; } = default!;
 
         //TODO: ver quais dados deve retornar
@@ -25,7 +26,7 @@ namespace BuscaMissa.DTOs
                 Ativo = igreja.Ativo,
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,
-                //Usuario = (UsuarioDtoResponse)igreja.Usuario,
+                Usuario = (UsuarioDtoResponse)igreja.Usuario,
                 Endereco = (EnderecoIgrejaResponse)igreja.Endereco
             };
         }

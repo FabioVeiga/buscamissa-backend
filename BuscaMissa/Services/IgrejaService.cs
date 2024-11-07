@@ -57,20 +57,22 @@ namespace BuscaMissa.Services
             }
         }
 
-        public async Task<Igreja> InserirAsync(IgrejaRequest request, Usuario usuario)
+        public async Task<IgrejaResponse> AtivarAsync(Controle model, Usuario usuario)
         {
             try
             {
-                Igreja model = (Igreja)request;
-                model.Usuario = usuario;
-                model.UsuarioId = usuario.Id;
-                _context.Igrejas.Add(model);
+                model.Igreja.Ativo = true;
+                model.Igreja.Alteracao = DateTime.Now;
+                model.Igreja.Usuario = usuario;
+                model.Igreja.UsuarioId = usuario.Id;
+                model.Status = Enums.StatusEnum.Finalizado;
+                _context.Controles.Update(model);
                 await _context.SaveChangesAsync();
-                return model;
+                return (IgrejaResponse)model.Igreja;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while insering Igreja {IgrejaRequest}", request);
+                _logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", model);
                 throw;
             }
         }

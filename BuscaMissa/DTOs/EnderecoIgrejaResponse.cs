@@ -5,7 +5,7 @@ namespace BuscaMissa.DTOs
     public class EnderecoIgrejaResponse
     {
         public int Id { get; set; }
-        public int Cep { get; set; } = default!;
+        public string Cep { get; set; } = default!;
         public string Logradouro { get; set; } = default!;
         public string? Complemento { get; set; }
         public string Bairro { get; set; } = default!;
@@ -20,7 +20,7 @@ namespace BuscaMissa.DTOs
         {
             return new EnderecoIgrejaResponse{
                 Id = endereco.Id,
-                Cep = 1,
+                Cep = endereco.Cep,
                 Logradouro = endereco.Logradouro,
                 Complemento = endereco.Complemento,
                 Bairro = endereco.Bairro,

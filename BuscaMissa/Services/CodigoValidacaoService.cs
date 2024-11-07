@@ -1,5 +1,6 @@
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.ControleDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
@@ -94,15 +95,15 @@ namespace BuscaMissa.Services
             }
         }
         
-        public string Validar(CodigoPermissao codigoPermissao, ValidarCriacaoIgrejaRequest request, Usuario usuario)
+        public string Validar(CodigoValidadorRequest request, CodigoPermissao codigo)
         {
             try
             {
-                if(codigoPermissao?.Controle?.IgrejaId != request.IgrejaId)
+                if(codigo.ControleId != request.ControleId)
                     return "Este código de validação é inválido";
-                if (codigoPermissao.CodigoToken != request.CodigoToken)
+                if (codigo.CodigoToken != request.CodigoValidador)
                     return "Código de validação invalido";
-                if(codigoPermissao.ValidoAte <= DateTime.Now)
+                if(codigo.ValidoAte <= DateTime.Now)
                     return "Enviado email com o código para validação porque a data foi expirada";
                 
                 return string.Empty;

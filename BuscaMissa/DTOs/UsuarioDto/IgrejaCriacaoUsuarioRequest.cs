@@ -10,7 +10,7 @@ namespace BuscaMissa.DTOs.UsuarioDto
         [Required(ErrorMessage =  "O campo {0} é obrigatório!")]
         public string Nome { get; set; } = null!;
         [Required(ErrorMessage =  "O campo {0} é obrigatório!")]
-        public int IgrejaId { get; set; }
+        public int ControleId { get; set; }
         [Required(ErrorMessage =  "O campo {0} é obrigatório!")]
         public bool AceitarTermo { get; set; }
 

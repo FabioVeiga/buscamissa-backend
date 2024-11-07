@@ -39,17 +39,18 @@ namespace BuscaMissa.Services
             }
         }
 
-        public async Task<Controle?> BuscarPorIgrejaIdAsync(int igrajeId)
+        public async Task<Controle?> BuscarPorIdAsync(int id)
         {
             try
             {
                 return await _context.Controles
                 .Include(x => x.Igreja)
-                .FirstOrDefaultAsync(x => x.IgrejaId == igrajeId);
+                .ThenInclude(x => x.Endereco)
+                .FirstOrDefaultAsync(x => x.Id == id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching Controle {Controle}", igrajeId);
+                _logger.LogError(ex, "An error occurred while fetching Controle {Controle}", id);
                 throw;
             }
         }

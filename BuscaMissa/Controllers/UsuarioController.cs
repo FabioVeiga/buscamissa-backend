@@ -8,11 +8,15 @@ namespace BuscaMissa.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, IgrejaService igrejaService) : ControllerBase
+    public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, IgrejaService igrejaService, ControleService controleService,
+    CodigoValidacaoService codigoValidacaoService) : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger = logger;
         private readonly UsuarioService _usuarioService = usuarioService;
         private readonly IgrejaService _igrejaService = igrejaService;
+        private readonly ControleService _controleService = controleService;
+        private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
+
 
         [HttpPost]
         [AllowAnonymous]
@@ -37,17 +41,27 @@ namespace BuscaMissa.Controllers
         }
 
         [HttpPost]
-        [Route("inserir-igreja")]
+        [Route("inserir-controle")]
         [Authorize(Roles = "Admin,App")]
         public async Task<IActionResult> InserirUsuarioPorIgreja([FromBody] IgrejaCriacaoUsuarioRequest request)
         {
             try
             {
                 if (!ModelState.IsValid) BadRequest();
-                var temIgreja = await _igrejaService.BuscarPorIdAsync(request.IgrejaId);
-                if (temIgreja == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Igreja não encontrada!" }));
+                var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
+                if (controle == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Controle não encontrada!" }));
                 var usuarioCriado = await _usuarioService.InserirAsync(request);
-                return Ok();
+                var codigoValidador = await _codigoValidacaoService.InserirAsync(controle);
+                controle.Status = Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador;
+                await _controleService.EditarAsync(controle);
+                //enviar email
+                return Ok(new ApiResponse<dynamic>(new
+                {
+                    mensagemTela = "Usuário criado com sucesso e enviado código para o email!",
+                    #if DEBUG
+                    codigoValidador = codigoValidador.CodigoToken
+                    #endif
+                }));
             }
             catch (Exception ex)
             {
