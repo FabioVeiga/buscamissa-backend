@@ -32,7 +32,7 @@ namespace BuscaMissa.Controllers
             {
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
                 var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
-                if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, mensagemInterno = "Carregar página com dados da igreja!" }));
+                if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Carregar página com dados da igreja!" }));
                 var igreja = await _igrejaService.InserirAsync(request);
                 var controle = new Controle(){Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);
@@ -46,36 +46,36 @@ namespace BuscaMissa.Controllers
             }
         }
 
-        // [HttpGet]
-        // [Route("buscar-por-cep")]
-        // public async Task<ActionResult> BuscarPorCep(string cep)
-        // {
-        //     try
-        //     {
-        //         var igreja = await _igrejaService.BuscarPorCepAsync(cep);
-        //         if (igreja == null)
-        //         {
-        //             var endereco = await _viaCepService.ConsultarCepAsync(CepHelper.FormatarCep(cep).ToString());
-        //             if(endereco is null)
-        //                 return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
-        //             return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
-        //         }
-        //         var messagemAplicacao = string.Empty;
-        //         IgrejaResponse modelResponse = (IgrejaResponse)igreja;
-        //         if (!igreja.Ativo)
-        //             messagemAplicacao = "Habilitar para usuario editar e validar!";
-        //         return Ok(new ApiResponse<dynamic>(new {
-        //             modelResponse,
-        //             messagemAplicacao
-        //         }));
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError("{Ex}", ex);
-        //         var response = new ApiResponse<dynamic>(ex.Message);
-        //         return StatusCode(StatusCodes.Status500InternalServerError, response);
-        //     }
-        // }
+        [HttpGet]
+        [Route("buscar-por-cep")]
+        public async Task<ActionResult> BuscarPorCep(string cep)
+        {
+            try
+            {
+                var temIgreja = await _igrejaService.BuscarPorCepAsync(cep);
+                if (temIgreja == null)
+                {
+                    var endereco = await _viaCepService.ConsultarCepAsync(CepHelper.FormatarCep(cep).ToString());
+                    if(endereco is null)
+                        return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
+                    return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
+                }
+                var messagemAplicacao = string.Empty;
+                IgrejaResponse igreja = temIgreja;
+                if (!temIgreja.Ativo)
+                    messagemAplicacao = "Habilitar para usuario editar e validar!";
+                return Ok(new ApiResponse<dynamic>(new {
+                    igreja,
+                    messagemAplicacao
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
 
         // [HttpPost]
         // public async Task<IActionResult> InserirIgreja([FromBody] IgrejaRequest request)

@@ -1,6 +1,7 @@
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
+using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,7 @@ namespace BuscaMissa.Services
                 var model = await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
-                    .FirstOrDefaultAsync(x => x.Endereco.Cep == cep);
+                    .FirstOrDefaultAsync(x => x.Endereco.Cep == CepHelper.FormatarCep(cep));
                     if (model == null)
                     {
                         return null;
