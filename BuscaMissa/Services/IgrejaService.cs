@@ -25,14 +25,19 @@ namespace BuscaMissa.Services
             }
         }
 
-        public async Task<Igreja?> BuscarPorCepAsync(string cep)
+        public async Task<IgrejaResponse?> BuscarPorCepAsync(string cep)
         {
             try
             {
-                return await _context.Igrejas
+                var model = await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
                     .FirstOrDefaultAsync(x => x.Endereco.Cep == cep);
+                    if (model == null)
+                    {
+                        return null;
+                        }
+                return (IgrejaResponse)model;
             }
             catch (Exception ex)
             {

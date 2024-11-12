@@ -40,7 +40,7 @@ namespace BuscaMissa.Services
             return usuario;
         }
 
-        public async Task<bool> AutenticarAsync(LoginRequest request, Usuario usuario)
+        public bool Autenticar(LoginRequest request, Usuario usuario)
         {
             if(!request.Email.Contains(usuario.Email))
                 return false;

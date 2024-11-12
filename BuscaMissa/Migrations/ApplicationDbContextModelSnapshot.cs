@@ -43,7 +43,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("ControleId");
 
-                    b.ToTable("CodigoPermissoes");
+                    b.ToTable("CodigoPermissoes", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Contato", b =>
@@ -85,7 +85,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("IgrejaId");
 
-                    b.ToTable("Contatos");
+                    b.ToTable("Contatos", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Controle", b =>
@@ -106,7 +106,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("IgrejaId");
 
-                    b.ToTable("Controles");
+                    b.ToTable("Controles", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Endereco", b =>
@@ -156,7 +156,7 @@ namespace BuscaMissa.Migrations
                     b.HasIndex("IgrejaId")
                         .IsUnique();
 
-                    b.ToTable("Enderecos");
+                    b.ToTable("Enderecos", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Igreja", b =>
@@ -193,7 +193,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Igrejas");
+                    b.ToTable("Igrejas", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Missa", b =>
@@ -217,7 +217,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("IgrejaId");
 
-                    b.ToTable("Missas");
+                    b.ToTable("Missas", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.MissaTemporaria", b =>
@@ -242,7 +242,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("IgrejaId");
 
-                    b.ToTable("MissasTemporarias");
+                    b.ToTable("MissasTemporarias", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.RedeSocial", b =>
@@ -269,7 +269,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasIndex("IgrejaId");
 
-                    b.ToTable("RedesSociais");
+                    b.ToTable("RedesSociais", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Usuario", b =>
@@ -303,7 +303,7 @@ namespace BuscaMissa.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", (string)null);
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.CodigoPermissao", b =>

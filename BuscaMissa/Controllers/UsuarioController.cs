@@ -50,6 +50,7 @@ namespace BuscaMissa.Controllers
                 if (!ModelState.IsValid) BadRequest();
                 var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
                 if (controle == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Controle não encontrada!" }));
+                if(controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela= "Igreja já ativada!" }));
                 var usuarioCriado = await _usuarioService.InserirAsync(request);
                 var codigoValidador = await _codigoValidacaoService.InserirAsync(controle);
                 controle.Status = Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador;
@@ -81,7 +82,7 @@ namespace BuscaMissa.Controllers
                 if (!ModelState.IsValid) BadRequest();
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 if (usuario == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não existe!" }));
-                var autenticado = await _usuarioService.AutenticarAsync(request, usuario);
+                var autenticado = _usuarioService.Autenticar(request, usuario);
                 if (!autenticado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "E-mail ou Senha invalido!" }));
                 var usuarioResponse = _usuarioService.GerarTokenAsync(usuario);
                 return Ok(new ApiResponse<dynamic>(new { usuario = usuarioResponse }));

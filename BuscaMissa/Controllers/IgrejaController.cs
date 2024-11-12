@@ -31,9 +31,9 @@ namespace BuscaMissa.Controllers
             try
             {
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
-                var igreja = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
-                if (igreja is not null) return NotFound(new ApiResponse<dynamic>(new { igreja, mensagemInterno = "Carregar página com dados da igreja!" }));
-                igreja = await _igrejaService.InserirAsync(request);
+                var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
+                if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, mensagemInterno = "Carregar página com dados da igreja!" }));
+                var igreja = await _igrejaService.InserirAsync(request);
                 var controle = new Controle(){Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);
                 var response = new CriacaoIgrejaReponse(){ControleId = controle.Id};
