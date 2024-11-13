@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;

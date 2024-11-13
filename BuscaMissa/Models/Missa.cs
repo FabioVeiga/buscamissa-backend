@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.Enums;
 
 namespace BuscaMissa.Models
@@ -24,6 +24,7 @@ namespace BuscaMissa.Models
 
             if (!TimeSpan.TryParse(request.Horario, out var horario))
             {
+                
                 throw new FormatException($"Invalid time format: {request.Horario}");
             }
             return new Missa{

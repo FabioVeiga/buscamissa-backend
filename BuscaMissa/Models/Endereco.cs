@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.Helpers;
 namespace BuscaMissa.Models
 {

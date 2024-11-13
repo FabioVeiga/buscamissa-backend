@@ -1,5 +1,5 @@
 using System.Text.Json;
-using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.EnderecoDto;
 
 namespace BuscaMissa.Services
 {

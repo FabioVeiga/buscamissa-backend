@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using BuscaMissa.Enums;
 
-namespace BuscaMissa.DTOs
+namespace BuscaMissa.DTOs.MissaDto
 {
     public class MissaRequest
     {

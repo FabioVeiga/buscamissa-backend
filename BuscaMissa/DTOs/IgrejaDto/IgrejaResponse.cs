@@ -1,8 +1,9 @@
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Models;
 
-namespace BuscaMissa.DTOs
+namespace BuscaMissa.DTOs.IgrejaDto
 {
     public class IgrejaResponse
     {

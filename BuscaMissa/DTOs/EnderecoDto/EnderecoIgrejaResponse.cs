@@ -1,6 +1,6 @@
 using BuscaMissa.Models;
 
-namespace BuscaMissa.DTOs
+namespace BuscaMissa.DTOs.EnderecoDto
 {
     public class EnderecoIgrejaResponse
     {

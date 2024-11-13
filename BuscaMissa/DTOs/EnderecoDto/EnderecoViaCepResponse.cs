@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BuscaMissa.DTOs
+namespace BuscaMissa.DTOs.EnderecoDto
 {
     public class EnderecoViaCepResponse
     {

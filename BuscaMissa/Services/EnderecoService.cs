@@ -1,5 +1,5 @@
 using BuscaMissa.Context;
-using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.Models;
 
 namespace BuscaMissa.Services

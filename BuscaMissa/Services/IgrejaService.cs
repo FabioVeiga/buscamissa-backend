@@ -1,10 +1,9 @@
 using BuscaMissa.Context;
-using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
-using BuscaMissa.Enums;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;

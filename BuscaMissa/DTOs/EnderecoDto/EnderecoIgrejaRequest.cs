@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace BuscaMissa.DTOs
+namespace BuscaMissa.DTOs.EnderecoDto
 {
     public class EnderecoIgrejaRequest
     {
