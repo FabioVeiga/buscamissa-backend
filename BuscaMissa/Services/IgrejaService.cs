@@ -36,6 +36,7 @@ namespace BuscaMissa.Services
                 var model = await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
+                    .Include(x => x.Missas)
                     .FirstOrDefaultAsync(x => x.Endereco.Cep == CepHelper.FormatarCep(cep));
                 if (model == null)
                 {

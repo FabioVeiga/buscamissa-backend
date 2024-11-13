@@ -58,14 +58,6 @@ namespace BuscaMissa.Services
             await _context.SaveChangesAsync();
             return usuario;
         }
-        public async Task<Usuario> InserirAsync(ValidarCriacaoIgrejaRequest request)
-        {
-            Usuario usuario = (Usuario)request;
-            usuario.Senha = SenhaHelper.GerarSenhaTemporariaString();
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-            return usuario;
-        }
         public async Task<Usuario?> BuscarPorCodigo(int id)
         {
             return await _context.Usuarios

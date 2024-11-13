@@ -53,14 +53,6 @@ namespace BuscaMissa.Models
                 Email = request.EmailUsuario
             };
         }
-
-        public static explicit operator Usuario(ValidarCriacaoIgrejaRequest request)
-        {
-            return new Usuario{
-                Nome = request.Nome,
-                Email = request.Email
-            };
-        }
         
     }
 
