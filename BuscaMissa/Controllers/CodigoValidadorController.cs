@@ -1,7 +1,5 @@
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.ControleDto;
-using BuscaMissa.DTOs.IgrejaDto;
-using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -24,6 +22,7 @@ namespace BuscaMissa.Controllers
         private readonly AzureBlobStorageService _azureBlobStorageService = azureBlobStorageService;
 
         [HttpPost]
+        [Route("validar-igreja")]
         [Authorize(Roles = "App")]
         public async Task<IActionResult> Validar([FromBody] CodigoValidadorRequest request)
         {
@@ -44,7 +43,7 @@ namespace BuscaMissa.Controllers
                     {
                         case Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador:
                             var response = await _igrejaService.AtivarAsync(controle, usuario);
-                            return Ok(new ApiResponse<dynamic>(new { response }));
+                            return Ok(new ApiResponse<dynamic>(new { mensagemTela = "Igreja ativada com sucesso!" }));
                         default:
                             break;
                     }

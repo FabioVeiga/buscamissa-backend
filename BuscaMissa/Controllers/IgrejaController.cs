@@ -1,5 +1,6 @@
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
+using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services;
@@ -48,6 +49,7 @@ namespace BuscaMissa.Controllers
 
         [HttpGet]
         [Route("buscar-por-cep")]
+        [Authorize(Roles = "App")]
         public async Task<ActionResult> BuscarPorCep(string cep)
         {
             try
@@ -68,6 +70,25 @@ namespace BuscaMissa.Controllers
                     igreja,
                     messagemAplicacao
                 }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpGet]
+        [Route("buscar-por-filtro")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> BuscarPorFiltro([FromQuery] FiltroIgrejaRequest filtro)
+        {
+            try
+            {
+                var resultado = await _igrejaService.BuscarPorFiltros(filtro);
+                if(resultado.TotalItems == 0) return NotFound();
+                return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
             {

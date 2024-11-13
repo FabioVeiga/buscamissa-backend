@@ -1,3 +1,4 @@
+using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Models;
 
@@ -14,6 +15,7 @@ namespace BuscaMissa.DTOs
         public DateTime Alteracao { get; set; }
         public UsuarioDtoResponse Usuario { get; set; } = default!;
         public EnderecoIgrejaResponse Endereco { get; set; } = default!;
+        public IList<MissaResponse> Missas { get; set; } = [];
 
         //TODO: ver quais dados deve retornar
         public static explicit operator IgrejaResponse(Igreja igreja)
@@ -27,7 +29,8 @@ namespace BuscaMissa.DTOs
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,
                 Usuario = (UsuarioDtoResponse)igreja.Usuario,
-                Endereco = (EnderecoIgrejaResponse)igreja.Endereco
+                Endereco = (EnderecoIgrejaResponse)igreja.Endereco,
+                Missas = igreja.Missas.Select(m => (MissaResponse)m).ToList()
             };
         }
     }
