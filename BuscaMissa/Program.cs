@@ -24,6 +24,7 @@ builder.Services.AddScoped<IgrejaService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddScoped<AzureBlobStorageService>();
+builder.Services.AddScoped<IgrejaTemporariaService>();
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddMailerSendEmailClient(options =>
 {

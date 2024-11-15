@@ -11,9 +11,9 @@ namespace BuscaMissa.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, UsuarioService usuarioService, 
+    public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, UsuarioService usuarioService,
     IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, EnderecoService enderecoService,
-    ViaCepService viaCepService, AzureBlobStorageService azureBlobStorageService) : ControllerBase
+    ViaCepService viaCepService, AzureBlobStorageService azureBlobStorageService, IgrejaTemporariaService igrejaTemporariaService) : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
         private readonly EmailService _emailService = emailService;
@@ -24,6 +24,7 @@ namespace BuscaMissa.Controllers
         private readonly EnderecoService _enderecoService = enderecoService;
         private readonly ViaCepService _viaCepService = viaCepService;
         private readonly AzureBlobStorageService _azureBlobStorageService = azureBlobStorageService;
+        private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
 
         [HttpPost]
         [Authorize(Roles = "Admin,App")]
@@ -35,14 +36,14 @@ namespace BuscaMissa.Controllers
                 var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
                 if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Carregar página com dados da igreja!" }));
                 var igreja = await _igrejaService.InserirAsync(request);
-                var controle = new Controle(){Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
+                var controle = new Controle() { Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);
-                var response = new CriacaoIgrejaReponse(){ControleId = controle.Id};
-                return Ok(new ApiResponse<dynamic>(new { response }));
+                var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
+                return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar códifgo validador!" }));
             }
             catch (Exception)
             {
-                
+
                 throw;
             }
         }
@@ -58,16 +59,17 @@ namespace BuscaMissa.Controllers
                 if (temIgreja == null)
                 {
                     var endereco = await _viaCepService.ConsultarCepAsync(CepHelper.FormatarCep(cep).ToString());
-                    if(endereco is null)
+                    if (endereco is null)
                         return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
                     return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
                 }
                 var messagemAplicacao = string.Empty;
-                IgrejaResponse igreja = temIgreja;
+                IgrejaResponse response = temIgreja;
                 if (!temIgreja.Ativo)
                     messagemAplicacao = "Habilitar para usuario editar e validar!";
-                return Ok(new ApiResponse<dynamic>(new {
-                    igreja,
+                return Ok(new ApiResponse<dynamic>(new
+                {
+                    response,
                     messagemAplicacao
                 }));
             }
@@ -87,7 +89,7 @@ namespace BuscaMissa.Controllers
             try
             {
                 var resultado = await _igrejaService.BuscarPorFiltros(filtro);
-                if(resultado.TotalItems == 0) return NotFound();
+                if (resultado.TotalItems == 0) return NotFound();
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
@@ -97,6 +99,52 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
+        [HttpPut]
+        [Authorize(Roles = "App,Admin")]
+        public async Task<IActionResult> Atualizar([FromBody] AtualicaoIgrejaRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest();
+                var temIgreja = await _igrejaService.BuscarPorIdAsync(request.Id);
+                if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
+                var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
+                if (controle == null) return NotFound();
+                var resultado = await _igrejaTemporariaService.InserirAsync(request);
+                if (!resultado) return UnprocessableEntity();
+                controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
+                await _controleService.EditarAsync(controle);
+                var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
+                return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar códifgo validador!" }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+    
+        [HttpGet]
+        [Route("buscar-por-atualizacoes/{igrejaId}")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> BuscarPorIgrejaIdAsync(int igrejaId)
+        {
+            try
+            {
+                var resultado = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(igrejaId);
+                if (resultado is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Não tem nenhuma atualização!" }));
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
     }
 }
 

@@ -43,26 +43,6 @@ namespace BuscaMissa.Models
             retorno.Endereco = (Endereco)request.Endereco;
             return retorno;
         }
-
-        public static explicit operator Igreja(IgrejaRequest request)
-        {
-            var retorno = new Igreja{
-                Nome = request.Nome,
-                Paroco = request.Paroco,
-            };
-            foreach (var item in request.Missas)
-            {
-                Missa missa = (Missa)item;
-                retorno.Missas.Add(missa);
-            }
-            //removendo missas iguais
-                retorno.Missas = retorno.Missas
-                .GroupBy(m => new { m.DiaSemana, m.Horario })
-                .Select(g => g.First())
-                .ToList();
-            retorno.Endereco = (Endereco)request.Endereco;
-            return retorno;
-        }
     }
 
 }

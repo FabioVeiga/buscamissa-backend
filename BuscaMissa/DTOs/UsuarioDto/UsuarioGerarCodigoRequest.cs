@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BuscaMissa.DTOs.UsuarioDto
 {
-    public class IgrejaCriacaoUsuarioRequest : IValidatableObject
+    public class UsuarioGerarCodigoRequest : IValidatableObject
     {
         [Required(ErrorMessage =  "O campo {0} é obrigatório!")]
         [EmailAddress(ErrorMessage = "Formado invalido!")]

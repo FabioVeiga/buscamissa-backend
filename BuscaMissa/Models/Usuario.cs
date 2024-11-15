@@ -24,7 +24,7 @@ namespace BuscaMissa.Models
         public DateTime Criacao { get; set; } = DateTime.Now;
         public ICollection<Igreja> Igrejas { get; set; } = [];
 
-        public static explicit operator Usuario(IgrejaCriacaoUsuarioRequest request)
+        public static explicit operator Usuario(UsuarioGerarCodigoRequest request)
         {
             return new Usuario{
                 Nome = request.Nome,
@@ -43,14 +43,6 @@ namespace BuscaMissa.Models
                 Email = request.Email,
                 Senha = Helpers.SenhaHelper.Encriptar(request.Senha),
                 AceitarTermo = request.AceitarTermo,
-            };
-        }
-
-        public static explicit operator Usuario(IgrejaRequest request)
-        {
-            return new Usuario{
-                Nome = request.NomeUsuario,
-                Email = request.EmailUsuario
             };
         }
         

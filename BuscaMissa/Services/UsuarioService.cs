@@ -33,7 +33,7 @@ namespace BuscaMissa.Services
             return usuario;
         }
 
-        public async Task<Usuario> InserirAsync(IgrejaCriacaoUsuarioRequest request)
+        public async Task<Usuario> InserirAsync(UsuarioGerarCodigoRequest request)
         {
             Usuario usuario = (Usuario)request;
             _context.Usuarios.Add(usuario);
@@ -50,14 +50,6 @@ namespace BuscaMissa.Services
             return true;
         }
 
-        public async Task<Usuario> InserirAsync(IgrejaRequest request)
-        {
-            Usuario usuario = (Usuario)request;
-            usuario.Senha = SenhaHelper.GerarSenhaTemporariaString();
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-            return usuario;
-        }
         public async Task<Usuario?> BuscarPorCodigo(int id)
         {
             return await _context.Usuarios

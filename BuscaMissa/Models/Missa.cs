@@ -28,7 +28,7 @@ namespace BuscaMissa.Models
                 throw new FormatException($"Invalid time format: {request.Horario}");
             }
             return new Missa{
-                DiaSemana = request.DiaSemana,
+                DiaSemana = request.DiaDaSemana,
                 Horario = horario            
             };
         }

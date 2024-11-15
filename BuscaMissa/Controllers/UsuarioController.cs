@@ -41,38 +41,6 @@ namespace BuscaMissa.Controllers
         }
 
         [HttpPost]
-        [Route("inserir-controle")]
-        [Authorize(Roles = "Admin,App")]
-        public async Task<IActionResult> InserirUsuarioPorIgreja([FromBody] IgrejaCriacaoUsuarioRequest request)
-        {
-            try
-            {
-                if (!ModelState.IsValid) BadRequest();
-                var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
-                if (controle == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Controle não encontrada!" }));
-                if(controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela= "Igreja já ativada!" }));
-                var usuarioCriado = await _usuarioService.InserirAsync(request);
-                var codigoValidador = await _codigoValidacaoService.InserirAsync(controle);
-                controle.Status = Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador;
-                await _controleService.EditarAsync(controle);
-                //enviar email
-                return Ok(new ApiResponse<dynamic>(new
-                {
-                    mensagemTela = "Usuário criado com sucesso e enviado código para o email!",
-                    #if DEBUG
-                    codigoValidador = codigoValidador.CodigoToken
-                    #endif
-                }));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
-
-        [HttpPost]
         [Route("autenticar")]
         [AllowAnonymous]
         public async Task<IActionResult> Autenticar([FromBody] LoginRequest request)
@@ -94,7 +62,6 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-
 
         [HttpGet]
         [Route("{codigo}")]
@@ -120,6 +87,54 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+    
+        [HttpPost]
+        [Route("gerar-codigo-validador")]
+        [Authorize(Roles = "Admin,App")]
+        public async Task<IActionResult> GerarCodigoValidador([FromBody] UsuarioGerarCodigoRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) BadRequest();
+                var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
+                if (controle == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Controle não encontrada!" }));
+                if(controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela= "Igreja já ativada!" }));
+                var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
+                usuario ??= await _usuarioService.InserirAsync(request);
+                var codigoValidador = await _codigoValidacaoService.BuscarPorControleIdAsync(request.ControleId);
+                if(codigoValidador is not null)
+                    codigoValidador = await _codigoValidacaoService.EditarAsync(codigoValidador);
+                else
+                    codigoValidador = await _codigoValidacaoService.InserirAsync(controle);
+                
+                switch (controle.Status)
+                {
+                    case Enums.StatusEnum.Igreja_Criacao:
+                        controle.Status = Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador;
+                    break;
+                    case Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido:
+                        controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador;
+                    break;
+                }
+                
+                await _controleService.EditarAsync(controle);
+                //enviar email
+                return Ok(new ApiResponse<dynamic>(new
+                {
+                    mensagemTela = "Usuário criado com sucesso e enviado código para o email!",
+                    #if DEBUG
+                    codigoValidador = codigoValidador.CodigoToken
+                    #endif
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+    
     }
 
 }

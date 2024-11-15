@@ -24,38 +24,38 @@ namespace BuscaMissa.Controllers
             _viaCepService = viaCepService;
         }
 
-        [HttpGet("{cep}")]
-        public async Task<IActionResult> GetEndereco(string cep)
-        {
-            try
-            {
-                var cepFormatado = CepHelper.FormatarCep(cep);
-                var temIgrejaComEsteCep = await _context.Enderecos.AnyAsync(x => x.Cep == cepFormatado);
-                if (temIgrejaComEsteCep)
-                {
-                    var igreja = await _context.Enderecos.Where(x => x.Cep == cepFormatado).FirstOrDefaultAsync();
-                    return Ok("Sucesso ao buscar o endereço"); //montar URL do GET
-                }
-                var endereco = await _viaCepService.ConsultarCepAsync(cepFormatado.ToString());
+        // [HttpGet("{cep}")]
+        // public async Task<IActionResult> GetEndereco(string cep)
+        // {
+        //     try
+        //     {
+        //         var cepFormatado = CepHelper.FormatarCep(cep);
+        //         var temIgrejaComEsteCep = await _context.Enderecos.AnyAsync(x => x.Cep == cepFormatado);
+        //         if (temIgrejaComEsteCep)
+        //         {
+        //             var igreja = await _context.Enderecos.Where(x => x.Cep == cepFormatado).FirstOrDefaultAsync();
+        //             return Ok("Sucesso ao buscar o endereço");
+        //         }
+        //         var endereco = await _viaCepService.ConsultarCepAsync(cepFormatado.ToString());
 
-                if (endereco == null)
-                {
-                    return NotFound(new { Message = "CEP não encontrado" });
-                }
+        //         if (endereco == null)
+        //         {
+        //             return NotFound(new { Message = "CEP não encontrado" });
+        //         }
 
-                return Ok(new ApiResponse<dynamic>(
-                        endereco
-                    ));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("{Ex}",ex);
-                var response = new ApiResponse<dynamic>(
-                    ex.Message
-                    );
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+        //         return Ok(new ApiResponse<dynamic>(
+        //                 endereco
+        //             ));
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError("{Ex}",ex);
+        //         var response = new ApiResponse<dynamic>(
+        //             ex.Message
+        //             );
+        //         return StatusCode(StatusCodes.Status500InternalServerError, response);
+        //     }
             
-        }
+        // }
     }
 }

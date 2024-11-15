@@ -20,7 +20,7 @@ namespace BuscaMissa.Services
                     Controle = controle,
                     ControleId = controle?.Id,
                     CodigoToken = await GerarCodigo(),
-                    ValidoAte = DataHoraHelper.AdicionarHoraEArredondarParaCima(DateTime.Now, 1)
+                    ValidoAte = DateTime.Now.AddMinutes(30)
                 };
                 _context.CodigoPermissoes.Add(model);
                 await _context.SaveChangesAsync();
@@ -38,7 +38,7 @@ namespace BuscaMissa.Services
             try
             {
                 model.CodigoToken = await GerarCodigo();
-                model.ValidoAte = DataHoraHelper.AdicionarHoraEArredondarParaCima(DateTime.Now, 1);
+                model.ValidoAte = DateTime.Now.AddMinutes(30);
                 _context.CodigoPermissoes.Update(model);
                 await _context.SaveChangesAsync();
                 return model;

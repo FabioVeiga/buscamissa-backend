@@ -18,5 +18,14 @@ namespace BuscaMissa.DTOs.MissaDto
                 Horario = missa.Horario.ToString()
             };
         }
+
+        public static explicit operator MissaResponse(MissaTemporaria missa)
+        {
+            return new MissaResponse{
+                Id = missa.Id,
+                DiaSemana = missa.DiaSemana,
+                Horario = missa.Horario.ToString()
+            };
+        }
     }
 }

@@ -45,12 +45,27 @@ namespace BuscaMissa.Services
             {
                 return await _context.Controles
                 .Include(x => x.Igreja)
-                .ThenInclude(x => x.Endereco)
+                .ThenInclude(x => x.Missas)
                 .FirstOrDefaultAsync(x => x.Id == id);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while fetching Controle {Controle}", id);
+                throw;
+            }
+        }
+
+        public async Task<Controle?> BuscarPorIgrejaIdAsync(int igrejaId)
+        {
+            try
+            {
+                return await _context.Controles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching Controle {Controle}", igrejaId);
                 throw;
             }
         }
