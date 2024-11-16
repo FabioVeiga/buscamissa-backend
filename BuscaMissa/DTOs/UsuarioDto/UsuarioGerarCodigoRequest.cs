@@ -13,6 +13,7 @@ namespace BuscaMissa.DTOs.UsuarioDto
         public int ControleId { get; set; }
         [Required(ErrorMessage =  "O campo {0} é obrigatório!")]
         public bool AceitarTermo { get; set; }
+        public bool? AceitarPromocao { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

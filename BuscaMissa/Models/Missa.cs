@@ -12,6 +12,7 @@ namespace BuscaMissa.Models
         public DiaDaSemanaEnum DiaSemana { get; set; }
         [Required]
         public TimeSpan Horario { get; set; }
+        public string? Observacao { get; set; }
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
 
@@ -29,7 +30,8 @@ namespace BuscaMissa.Models
             }
             return new Missa{
                 DiaSemana = request.DiaDaSemana,
-                Horario = horario            
+                Horario = horario,
+                Observacao = request.Observacao,
             };
         }
     }

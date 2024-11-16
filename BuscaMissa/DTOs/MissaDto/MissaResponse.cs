@@ -9,13 +9,15 @@ namespace BuscaMissa.DTOs.MissaDto
         public int Id { get; set; }
         public DiaDaSemanaEnum DiaSemana { get; set; }
         public string Horario { get; set; } = default!;
+        public string? Observacao { get; set; }
 
         public static explicit operator MissaResponse(Missa missa)
         {
             return new MissaResponse{
                 Id = missa.Id,
                 DiaSemana = missa.DiaSemana,
-                Horario = missa.Horario.ToString()
+                Horario = missa.Horario.ToString(),
+                Observacao = missa.Observacao
             };
         }
 
@@ -24,7 +26,8 @@ namespace BuscaMissa.DTOs.MissaDto
             return new MissaResponse{
                 Id = missa.Id,
                 DiaSemana = missa.DiaSemana,
-                Horario = missa.Horario.ToString()
+                Horario = missa.Horario.ToString(),
+                Observacao = missa.Observacao
             };
         }
     }

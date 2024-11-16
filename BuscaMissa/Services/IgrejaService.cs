@@ -161,7 +161,8 @@ namespace BuscaMissa.Services
                 _context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa(){
                     DiaSemana = x.DiaSemana,
                     Horario = TimeSpan.Parse(x.Horario),
-                    IgrejaId = igreja.Id
+                    IgrejaId = igreja.Id,
+                    Observacao = x.Observacao
                 }));
                 igreja.Paroco = atualizacao.Paroco;
                 igreja.ImagemUrl = atualizacao.ImagemUrl;

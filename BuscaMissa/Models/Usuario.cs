@@ -20,6 +20,7 @@ namespace BuscaMissa.Models
         public string Senha { get; set; } = null!;
         [Required]
         public bool AceitarTermo { get; set; }
+        public bool? AceitarPromocao { get; set; }
         [Required]
         public DateTime Criacao { get; set; } = DateTime.Now;
         public ICollection<Igreja> Igrejas { get; set; } = [];
@@ -30,6 +31,7 @@ namespace BuscaMissa.Models
                 Nome = request.Nome,
                 Email = request.Email,
                 AceitarTermo = request.AceitarTermo,
+                AceitarPromocao = request.AceitarPromocao,
                 Perfil = PerfilEnum.Regular,
                 Senha = Helpers.SenhaHelper.Encriptar(Helpers.SenhaHelper.GerarSenhaTemporariaString())
             };
@@ -43,6 +45,7 @@ namespace BuscaMissa.Models
                 Email = request.Email,
                 Senha = Helpers.SenhaHelper.Encriptar(request.Senha),
                 AceitarTermo = request.AceitarTermo,
+                AceitarPromocao = request.AceitarPromocao
             };
         }
         

@@ -11,6 +11,7 @@ namespace BuscaMissa.DTOs.MissaDto
         [Required]
         public string Horario { get; set; } = default!;
         internal TimeSpan HorarioMissa { get; set; } = default!;
+        public string? Observacao { get; set; }
         internal int IgrejaId { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
