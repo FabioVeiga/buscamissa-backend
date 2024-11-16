@@ -2,8 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BuscaMissa.Context;
-using BuscaMissa.DTOs;
-using BuscaMissa.DTOs.IgrejaDto;
+using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
@@ -60,7 +59,6 @@ namespace BuscaMissa.Services
             return await _context.Usuarios
             .FirstOrDefaultAsync(x => x.Email.ToUpper() == email.ToUpper());
         }
-
         public UsuarioResponse GerarTokenAsync(Usuario usuario)
         {
             var expiracao = usuario.Perfil == Enums.PerfilEnum.App ? DateTime.UtcNow.AddYears(10) : DateTime.UtcNow.AddHours(2);
@@ -95,6 +93,29 @@ namespace BuscaMissa.Services
                 throw;
             }
         }
+    
+        public async Task<Paginacao<Usuario>> BuscarPorFiltroAsync(UsuarioFiltroRequest filtro)
+        {
+            var query = _context.Usuarios
+            .Select(x => new Usuario{
+                Id = x.Id,
+                Nome = x.Nome,
+                Email = x.Email,
+                Perfil = x.Perfil,
+                Criacao = x.Criacao,
+                AceitarPromocao = x.AceitarPromocao,
+                AceitarTermo = x.AceitarTermo
+            })
+            .AsQueryable();
+            if (filtro.Nome != null)
+            query = query.Where(x => x.Nome.Contains(filtro.Nome));
+            if (filtro.Email != null)
+            query = query.Where(x => x.Email.Contains(filtro.Email));
+
+            var resultado = await query.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+            return resultado;
+        }
+    
     }
 }
 
