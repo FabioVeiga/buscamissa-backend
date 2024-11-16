@@ -140,6 +140,24 @@ namespace BuscaMissa.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("infos")]
+        [Authorize(Roles = "App")]
+        public ActionResult InformacoesGerais()
+        {
+            try
+            {
+                var resultado = _igrejaService.InformacoesGeraisResponse();
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
     }
 }
 

@@ -181,5 +181,22 @@ namespace BuscaMissa.Services
             }
 
         }
+    
+        public InformacoesGeraisResponse InformacoesGeraisResponse()
+        {
+            try
+            {
+                return new InformacoesGeraisResponse{
+                    QuantidadesIgrejas = _context.Igrejas.Count(x => x.Ativo),
+                    QuantidadeMissas = _context.Missas.Count()
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting InformacoesGeraisResponse");
+                throw;
+            }
+        }
+    
     }
 }
