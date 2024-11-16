@@ -1,6 +1,5 @@
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
-using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services;
@@ -11,19 +10,15 @@ namespace BuscaMissa.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, UsuarioService usuarioService,
-    IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, EnderecoService enderecoService,
-    ViaCepService viaCepService, AzureBlobStorageService azureBlobStorageService, IgrejaTemporariaService igrejaTemporariaService) : ControllerBase
+    public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
+    ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService) 
+    : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
         private readonly EmailService _emailService = emailService;
-        private readonly UsuarioService _usuarioService = usuarioService;
         private readonly IgrejaService _igrejaService = igrejaService;
         private readonly ControleService _controleService = controleService;
-        private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
-        private readonly EnderecoService _enderecoService = enderecoService;
         private readonly ViaCepService _viaCepService = viaCepService;
-        private readonly AzureBlobStorageService _azureBlobStorageService = azureBlobStorageService;
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
 
         [HttpPost]

@@ -8,15 +8,15 @@ namespace BuscaMissa.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, IgrejaService igrejaService, ControleService controleService,
-    CodigoValidacaoService codigoValidacaoService) : ControllerBase
+    public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, ControleService controleService,
+    CodigoValidacaoService codigoValidacaoService, EmailService emailService) 
+    : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger = logger;
         private readonly UsuarioService _usuarioService = usuarioService;
-        private readonly IgrejaService _igrejaService = igrejaService;
         private readonly ControleService _controleService = controleService;
         private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
-
+        private readonly EmailService _emailService = emailService;
 
         [HttpPost]
         [AllowAnonymous]
@@ -118,7 +118,15 @@ namespace BuscaMissa.Controllers
                 }
                 
                 await _controleService.EditarAsync(controle);
-                //enviar email
+                
+                #if DEBUG
+                    Console.WriteLine("DEBUG");
+                #else
+                    var enviarEmail = await _emailService.EnviarCodigoValidador(usuario.Nome, codigoValidador.CodigoToken, codigoValidador.ValidoAte, usuario.Email);
+                    if (!enviarEmail) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no emil do email" }));
+                #endif
+                
+
                 return Ok(new ApiResponse<dynamic>(new
                 {
                     mensagemTela = "Usuário criado com sucesso e enviado código para o email!",

@@ -6,12 +6,12 @@ using Microsoft.Extensions.Options;
 
 namespace BuscaMissa.Services
 {
-    public class EmailService(IOptions<MailerSendEmailSetting> options, IMailerSendEmailClient mailerSendEmailClient)
+    public class EmailService(IOptions<SettingCodigoValidacao> options, IMailerSendEmailClient mailerSendEmailClient)
     {
         private readonly IMailerSendEmailClient _mailerSendEmailClient = mailerSendEmailClient;
-        private readonly MailerSendEmailSetting _mailerSendEmailSetting = options.Value;
+        private readonly SettingCodigoValidacao _mailerSendEmailSetting = options.Value;
 
-        public async Task<string?> EnviarCodigoValidacao(string[] to, string subject, MailerSendEmailAttachment[] attachments, IDictionary<string, string>? variables, CancellationToken cancellationToken = default)
+        public async Task<string?> EnviarEmail(string[] to, string subject, MailerSendEmailAttachment[] attachments, IDictionary<string, string>? variables, CancellationToken cancellationToken = default)
         {
             var parameters = new MailerSendEmailParameters();
             parameters
@@ -38,14 +38,23 @@ namespace BuscaMissa.Services
             return response.MessageId;
         }
 
-        public static IDictionary<string,string> DicionarioParaEnvioDoCodigo(string nome, int codigo, DateTime validoAte)
+        public async Task<bool> EnviarCodigoValidador(string nome, int codigo, DateTime validoAte, string emailPara)
         {
-            return new Dictionary<string,string>{
-                {"nome", nome},
-                {"codigo", codigo.ToString()},
-                {"validoAte", DataHoraHelper.Formatar(validoAte)}
-            };
-
+            try
+            {
+                var dict = new Dictionary<string,string>{
+                    {"nome", nome},
+                    {"codigo", codigo.ToString()},
+                    {"validoAte", DataHoraHelper.Formatar(validoAte)}
+                };
+                var enviado = await EnviarEmail([emailPara], "Código para Validação", null, dict);
+                return enviado != null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
     }
 }

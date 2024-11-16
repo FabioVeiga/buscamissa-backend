@@ -23,8 +23,8 @@ builder.Services.AddScoped<EnderecoService>();
 builder.Services.AddScoped<IgrejaService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddHttpClient<ViaCepService>();
-builder.Services.AddScoped<AzureBlobStorageService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
+builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddMailerSendEmailClient(options =>
 {
@@ -106,7 +106,7 @@ builder.Services.AddSwaggerGen();
     clientBuilder.AddBlobServiceClient(builder.Configuration["AzureStorage:ConnectionString"]);
 }); */
 
-builder.Services.Configure<MailerSendEmailSetting>(builder.Configuration.GetSection("MailerSendEmailSetting"));
+builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 
 var app = builder.Build();
 

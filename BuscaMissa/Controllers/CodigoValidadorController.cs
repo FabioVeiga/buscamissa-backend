@@ -10,8 +10,7 @@ namespace BuscaMissa.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class CodigoValidadorController(ILogger<CodigoValidadorController> logger, EmailService emailService, UsuarioService usuarioService, 
-    IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService,  AzureBlobStorageService azureBlobStorageService,
-    IgrejaTemporariaService igrejaTemporariaService) 
+    IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, IgrejaTemporariaService igrejaTemporariaService) 
     : ControllerBase
     {
         private readonly ILogger<CodigoValidadorController> _logger = logger;
@@ -20,7 +19,6 @@ namespace BuscaMissa.Controllers
         private readonly IgrejaService _igrejaService = igrejaService;
         private readonly ControleService _controleService = controleService;
         private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
-        private readonly AzureBlobStorageService _azureBlobStorageService = azureBlobStorageService;
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
 
         [HttpPost]
@@ -60,8 +58,19 @@ namespace BuscaMissa.Controllers
                 if(codigoValidador.Contains("Enviado email com o código"))
                 {
                     codigo = await _codigoValidacaoService.EditarAsync(codigo);
-                    //enviar email
-                    return Ok();
+                    #if DEBUG
+                        Console.WriteLine("DEBUG");
+                    #else
+                        var enviarEmail = await _emailService.EnviarCodigoValidador(usuario.Nome, codigoValidador.CodigoToken, codigoValidador.ValidoAte, usuario.Email);
+                        if (!enviarEmail) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no emil do email" }));
+                    #endif
+                    return Ok(new ApiResponse<dynamic>(new
+                    {
+                        mensagemTela = "Novo código validador enviado código para o email!",
+                        #if DEBUG
+                        codigoValidador = codigo.CodigoToken
+                        #endif
+                    }));
                 }
                 controle.Status = Enums.StatusEnum.Finalizado;
                 await _controleService.EditarAsync(controle);
@@ -79,16 +88,6 @@ namespace BuscaMissa.Controllers
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
-        }
-
-
-        private async Task<string?> EnviarEmailComCodigoToken(CodigoPermissao codigo, Usuario usuario)
-        {
-            var dic = EmailService.DicionarioParaEnvioDoCodigo(usuario.Nome,codigo.CodigoToken, codigo.ValidoAte);
-            #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-            var enviarEmail = await _emailService.EnviarCodigoValidacao([usuario.Email], "BuscaMissa - Código para validar", null, dic);
-            #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-            return enviarEmail;
         }
     }
 }

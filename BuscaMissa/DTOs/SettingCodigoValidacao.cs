@@ -1,6 +1,6 @@
 namespace BuscaMissa.DTOs
 {
-    public class MailerSendEmailSetting
+    public class SettingCodigoValidacao
     {
         public string RemetenteNome { get; set; } = default!;
         public string RemetenteEmail { get; set; } = default!;
