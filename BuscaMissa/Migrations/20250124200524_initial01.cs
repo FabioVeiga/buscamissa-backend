@@ -7,12 +7,30 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BuscaMissa.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicial01 : Migration
+    public partial class initial01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "IgrejaTemporarias",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Paroco = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ImagemUrl = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IgrejaId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IgrejaTemporarias", x => x.Id);
+                })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -29,6 +47,7 @@ namespace BuscaMissa.Migrations
                     Senha = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     AceitarTermo = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AceitarPromocao = table.Column<bool>(type: "tinyint(1)", nullable: true),
                     Criacao = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
@@ -124,7 +143,8 @@ namespace BuscaMissa.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Cep = table.Column<int>(type: "int", nullable: false),
+                    Cep = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Logradouro = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Complemento = table.Column<string>(type: "longtext", nullable: true)
@@ -161,6 +181,8 @@ namespace BuscaMissa.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     DiaSemana = table.Column<int>(type: "int", nullable: false),
                     Horario = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    Observacao = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -181,9 +203,10 @@ namespace BuscaMissa.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    DiaSemana = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DiaSemana = table.Column<int>(type: "int", nullable: false),
                     Horario = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    Observacao = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -297,6 +320,9 @@ namespace BuscaMissa.Migrations
 
             migrationBuilder.DropTable(
                 name: "Enderecos");
+
+            migrationBuilder.DropTable(
+                name: "IgrejaTemporarias");
 
             migrationBuilder.DropTable(
                 name: "Missas");

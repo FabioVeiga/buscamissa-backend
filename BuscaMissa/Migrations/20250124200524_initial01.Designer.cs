@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BuscaMissa.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241106210026_Inicial01")]
-    partial class Inicial01
+    [Migration("20250124200524_initial01")]
+    partial class initial01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -124,8 +124,9 @@ namespace BuscaMissa.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Cep")
-                        .HasColumnType("int");
+                    b.Property<string>("Cep")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Complemento")
                         .HasColumnType("longtext");
@@ -198,6 +199,28 @@ namespace BuscaMissa.Migrations
                     b.ToTable("Igrejas");
                 });
 
+            modelBuilder.Entity("BuscaMissa.Models.IgrejaTemporaria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IgrejaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagemUrl")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Paroco")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("IgrejaTemporarias");
+                });
+
             modelBuilder.Entity("BuscaMissa.Models.Missa", b =>
                 {
                     b.Property<int>("Id")
@@ -215,6 +238,9 @@ namespace BuscaMissa.Migrations
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Observacao")
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IgrejaId");
@@ -230,15 +256,17 @@ namespace BuscaMissa.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("DiaSemana")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("DiaSemana")
+                        .HasColumnType("int");
 
                     b.Property<TimeSpan>("Horario")
                         .HasColumnType("time(6)");
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -281,6 +309,9 @@ namespace BuscaMissa.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("AceitarPromocao")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("AceitarTermo")
                         .HasColumnType("tinyint(1)");

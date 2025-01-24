@@ -25,7 +25,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Id = igreja.Id,
                 Nome = igreja.Nome,
                 Paroco = igreja.Paroco,
-                ImagemUrl = igreja.ImagemUrl,
+                ImagemUrl = igreja.ImagemUrl ?? string.Empty,
                 Ativo = igreja.Ativo,
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,

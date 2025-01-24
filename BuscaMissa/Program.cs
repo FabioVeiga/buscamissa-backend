@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var stringConnection = Environment.GetEnvironmentVariable("MYSQLCONNSTR_WebApiDatabase");
+var stringConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(stringConnection, 
         new MySqlServerVersion(new Version(8, 0, 23))));
@@ -108,7 +108,21 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 
+// Adicione o serviço CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost4200", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+// Use o CORS
+app.UseCors("AllowLocalhost4200");
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>
