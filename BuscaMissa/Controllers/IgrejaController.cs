@@ -11,7 +11,7 @@ namespace BuscaMissa.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
-    ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService) 
+    ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService) 
     : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
@@ -20,6 +20,7 @@ namespace BuscaMissa.Controllers
         private readonly ControleService _controleService = controleService;
         private readonly ViaCepService _viaCepService = viaCepService;
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
+        private readonly ImagemService _imagemService = imagemService;
 
         [HttpPost]
         [Authorize(Roles = "Admin,App")]
@@ -30,11 +31,19 @@ namespace BuscaMissa.Controllers
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
                 var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
                 if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Carregar página com dados da igreja!" }));
+                
                 var igreja = await _igrejaService.InserirAsync(request);
                 var controle = new Controle() { Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);
+                
+                if (request.Imagem != null){
+                    igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+                    var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", igreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
+                    await _igrejaService.EditarAsync(igreja);
+                }
+
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
-                return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar códifgo validador!" }));
+                return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
             }
             catch (Exception)
             {
@@ -58,10 +67,15 @@ namespace BuscaMissa.Controllers
                         return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
                     return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
                 }
+                if(temIgreja.ImagemUrl != string.Empty)
+                {
+                    temIgreja.ImagemUrl = _imagemService.ObterPreVisualizacao($"igreja/{temIgreja.ImagemUrl}");
+                }
                 var messagemAplicacao = string.Empty;
                 IgrejaResponse response = temIgreja;
                 if (!temIgreja.Ativo)
                     messagemAplicacao = "Habilitar para usuario editar e validar!";
+                
                 return Ok(new ApiResponse<dynamic>(new
                 {
                     response,
@@ -104,6 +118,12 @@ namespace BuscaMissa.Controllers
                 if (!ModelState.IsValid) return BadRequest();
                 var temIgreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
+
+                if (request.Imagem != null){
+                    temIgreja.ImagemUrl= $"{temIgreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+                    var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", temIgreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
+                }
+
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
                 if (controle == null) return NotFound();
                 var resultado = await _igrejaTemporariaService.InserirAsync(request);

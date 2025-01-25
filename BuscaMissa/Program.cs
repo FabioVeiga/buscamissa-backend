@@ -22,6 +22,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<EnderecoService>();
 builder.Services.AddScoped<IgrejaService>();
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<ImagemService>();
 builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
