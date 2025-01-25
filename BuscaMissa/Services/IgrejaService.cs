@@ -10,11 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BuscaMissa.Services
 {
-    public class IgrejaService(ApplicationDbContext context, ILogger<IgrejaService> logger, IgrejaTemporariaService igrejaTemporariaService)
+    public class IgrejaService(ApplicationDbContext context, ILogger<IgrejaService> logger, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService)
     {
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<IgrejaService> _logger = logger;
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
+        private readonly ImagemService _imagemService = imagemService;
 
         public async Task<Igreja?> BuscarPorIdAsync(int id)
         {
@@ -121,7 +122,7 @@ namespace BuscaMissa.Services
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl,
+                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterPreVisualizacao($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList()
                 });
@@ -165,8 +166,8 @@ namespace BuscaMissa.Services
                     Observacao = x.Observacao
                 }));
                 igreja.Paroco = atualizacao.Paroco;
-                igreja.ImagemUrl = atualizacao.ImagemUrl;
                 igreja.Alteracao = DateTime.Now;
+
                 await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
                 await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
                 await _context.SaveChangesAsync();

@@ -10,7 +10,8 @@ namespace BuscaMissa.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class CodigoValidadorController(ILogger<CodigoValidadorController> logger, EmailService emailService, UsuarioService usuarioService, 
-    IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, IgrejaTemporariaService igrejaTemporariaService) 
+    IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, IgrejaTemporariaService igrejaTemporariaService,
+    ImagemService imagemService) 
     : ControllerBase
     {
         private readonly ILogger<CodigoValidadorController> _logger = logger;
@@ -20,6 +21,7 @@ namespace BuscaMissa.Controllers
         private readonly ControleService _controleService = controleService;
         private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
+        private readonly ImagemService _imagemService = imagemService;
 
         [HttpPost]
         [Route("validar-igreja")]
@@ -49,6 +51,11 @@ namespace BuscaMissa.Controllers
                         case Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador:
                             var temporaria = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(controle.Igreja.Id);
                             var alterado = await _igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria);
+                            if(temporaria.ImagemUrl != string.Empty)
+                            {
+                                var nome = $"{controle.Igreja.Id}{Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
+                                await _imagemService.UploadAsync(temporaria.ImagemUrl!, "igreja", nome, Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!));
+                            }
                             mensagemTela = "Igreja atualizada com sucesso!";
                             break;
                         default:

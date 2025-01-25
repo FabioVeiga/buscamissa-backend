@@ -118,12 +118,6 @@ namespace BuscaMissa.Controllers
                 if (!ModelState.IsValid) return BadRequest();
                 var temIgreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
-
-                if (request.Imagem != null){
-                    temIgreja.ImagemUrl= $"{temIgreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", temIgreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
-                }
-
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
                 if (controle == null) return NotFound();
                 var resultado = await _igrejaTemporariaService.InserirAsync(request);

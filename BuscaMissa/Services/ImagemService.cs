@@ -2,6 +2,8 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using BuscaMissa.DTOs.SettingsDto;
+using Microsoft.Extensions.Options;
 
 namespace BuscaMissa.Services
 {
@@ -9,11 +11,13 @@ namespace BuscaMissa.Services
     {
         private readonly ILogger<ImagemService> _logger;
         private readonly AmazonS3Client _s3Client;
-        private const string _bucketName = "buscamissadev";
-        public ImagemService(ILogger<ImagemService> logger)
+        private readonly S3BucketSetting _s3BucketSetting;
+        
+        public ImagemService(ILogger<ImagemService> logger, IOptions<S3BucketSetting> options)
         {
             _logger = logger;
-            _s3Client = new AmazonS3Client("AKIAZOZQFTWQU2KVC45E", "dwNpEfQheWodfbrJgo0/tizDyONoAhU/X7ULAZvh", RegionEndpoint.USEast1);
+            _s3BucketSetting = options.Value;
+            _s3Client = new AmazonS3Client(_s3BucketSetting.AwsAccessKeyId, _s3BucketSetting.AwsSecretAccessKey, _s3BucketSetting.RegionDefault);
         }
 
         public async Task<string> UploadAsync(string base64Image, string pasta, string nomeArquivo, string extensao){
@@ -26,7 +30,7 @@ namespace BuscaMissa.Services
                 {
                     InputStream = stream,
                     Key = key,
-                    BucketName = _bucketName,
+                    BucketName = _s3BucketSetting.BucketName,
                     ContentType = $"image/{extensao}",
                 };
                 var transferUtility = new TransferUtility(_s3Client);
@@ -46,7 +50,7 @@ namespace BuscaMissa.Services
             {
                 var request = new GetPreSignedUrlRequest
                 {
-                    BucketName = _bucketName,
+                    BucketName = _s3BucketSetting.BucketName,
                     Key = key,
                     Expires = DateTime.UtcNow.AddHours(1)
                 };
