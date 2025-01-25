@@ -1,6 +1,7 @@
 using System.Text;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.SettingsDto;
 using BuscaMissa.Services;
 using MailerSendNetCore.Common;
 using MailerSendNetCore.Common.Extensions;
@@ -22,6 +23,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<EnderecoService>();
 builder.Services.AddScoped<IgrejaService>();
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<ImagemService>();
 builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
@@ -107,6 +109,7 @@ builder.Services.AddSwaggerGen();
 }); */
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
+builder.Services.Configure<S3BucketSetting>(builder.Configuration.GetSection("S3BucketSetting"));
 
 // Adicione o serviço CORS
 builder.Services.AddCors(options =>

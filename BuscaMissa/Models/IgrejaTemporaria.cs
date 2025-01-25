@@ -16,7 +16,7 @@ namespace BuscaMissa.Models
         {
             return new IgrejaTemporaria{
                 Paroco = request.Paroco,
-                ImagemUrl = request.ImagemUrl,
+                ImagemUrl = request.Imagem,
                 IgrejaId = request.Id
             };
         }

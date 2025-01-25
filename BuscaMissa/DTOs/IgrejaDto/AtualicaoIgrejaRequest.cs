@@ -8,7 +8,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         [Required]
         public int Id { get; set; }
         public string? Paroco { get; set; }
-        public string? ImagemUrl { get; set; }
+        public string? Imagem { get; set; }
         [Required]
         public ICollection<MissaRequest> Missas { get; set; } = [];
     }
