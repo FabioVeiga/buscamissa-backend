@@ -9,6 +9,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         [Required]
         public string Uf { get; set; } = default!;
         public string? Localidade { get; set; }
+        public string? Bairro { get; set; }
         public string? Nome { get; set; }
         public bool Ativo { get; set; } = true;
         public DiaDaSemanaEnum? DiaDaSemana { get; set; }

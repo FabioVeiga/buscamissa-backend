@@ -103,6 +103,9 @@ namespace BuscaMissa.Services
                 if (!string.IsNullOrEmpty(filtro.Localidade))
                     query = query.Where(x => x.Endereco.Localidade == filtro.Localidade);
 
+                if (!string.IsNullOrEmpty(filtro.Bairro))
+                    query = query.Where(x => x.Endereco.Bairro == filtro.Bairro);
+
                 if (!string.IsNullOrEmpty(filtro.Nome))
                     query = query.Where(x => x.Nome == filtro.Nome.ToUpper());
 
