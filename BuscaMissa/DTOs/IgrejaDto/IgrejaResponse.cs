@@ -29,7 +29,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Ativo = igreja.Ativo,
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,
-                Usuario = (UsuarioDtoResponse)igreja.Usuario,
+                Usuario = (UsuarioDtoResponse)igreja.Usuario!,
                 Endereco = (EnderecoIgrejaResponse)igreja.Endereco,
                 Missas = igreja.Missas.Select(m => (MissaResponse)m).ToList()
             };

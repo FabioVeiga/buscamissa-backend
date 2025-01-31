@@ -71,7 +71,7 @@ namespace BuscaMissa.Services
             {
                 return await _context.CodigoPermissoes
                 .Include(x => x.Controle)
-                .FirstOrDefaultAsync(x => x.Controle.IgrejaId == IgrejaId);
+                .FirstOrDefaultAsync(x => x.Controle!.IgrejaId == IgrejaId);
             }
             catch (Exception ex)
             {

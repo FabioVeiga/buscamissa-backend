@@ -1,4 +1,5 @@
 using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
@@ -11,7 +12,8 @@ namespace BuscaMissa.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
-    ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService) 
+    ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
+    EnderecoService enderecoService) 
     : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
@@ -21,6 +23,7 @@ namespace BuscaMissa.Controllers
         private readonly ViaCepService _viaCepService = viaCepService;
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
         private readonly ImagemService _imagemService = imagemService;
+        private readonly EnderecoService _enderecoService = enderecoService;
 
         [HttpPost]
         [Authorize(Roles = "Admin,App")]
@@ -172,6 +175,25 @@ namespace BuscaMissa.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("obter-enderecos")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> ObterDadosDeBuscaAsync([FromQuery] EnderecoIgrejaBuscaRequest request)
+        {   
+            try
+            {
+                if(!ModelState.IsValid) return BadRequest();
+                var resultado = await _enderecoService.BuscarDadosBuscaAsync(request);
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+    
     }
 }
 

@@ -121,7 +121,7 @@ namespace BuscaMissa.Services
                     Id = x.Id,
                     Nome = x.Nome,
                     Endereco = (EnderecoIgrejaResponse)x.Endereco,
-                    Usuario = (UsuarioDtoResponse)x.Usuario,
+                    Usuario = (UsuarioDtoResponse)x.Usuario!,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
