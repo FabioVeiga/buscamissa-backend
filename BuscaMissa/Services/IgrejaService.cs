@@ -72,7 +72,7 @@ namespace BuscaMissa.Services
         {
             try
             {
-                model.Igreja.Ativo = true;
+                model.Igreja!.Ativo = true;
                 model.Igreja.Alteracao = DateTime.Now;
                 model.Igreja.Usuario = usuario;
                 model.Igreja.UsuarioId = usuario.Id;

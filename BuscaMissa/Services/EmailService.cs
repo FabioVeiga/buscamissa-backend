@@ -11,14 +11,13 @@ namespace BuscaMissa.Services
         private readonly IMailerSendEmailClient _mailerSendEmailClient = mailerSendEmailClient;
         private readonly SettingCodigoValidacao _mailerSendEmailSetting = options.Value;
 
-        public async Task<string?> EnviarEmail(string[] to, string subject, MailerSendEmailAttachment[] attachments, IDictionary<string, string>? variables, CancellationToken cancellationToken = default)
+        public async Task<string?> EnviarEmail(string[] to, string subject, IDictionary<string, string>? variables, CancellationToken cancellationToken = default)
         {
             var parameters = new MailerSendEmailParameters();
             parameters
                 .WithTemplateId(_mailerSendEmailSetting.TemplateIdCodigoValidacao)
                 .WithFrom(_mailerSendEmailSetting.RemetenteEmail, _mailerSendEmailSetting.RemetenteNome)
                 .WithTo(to)
-                .WithAttachment(attachments)
                 .WithSubject(subject);
 
             if (variables is { Count: > 0 })
@@ -47,7 +46,7 @@ namespace BuscaMissa.Services
                     {"codigo", codigo.ToString()},
                     {"validoAte", DataHoraHelper.Formatar(validoAte)}
                 };
-                var enviado = await EnviarEmail([emailPara], "Código para Validação", null, dict);
+                var enviado = await EnviarEmail([emailPara], "Código para Validação", dict);
                 return enviado != null;
             }
             catch (Exception ex)

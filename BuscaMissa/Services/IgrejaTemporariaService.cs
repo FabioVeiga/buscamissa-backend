@@ -25,7 +25,7 @@ namespace BuscaMissa.Services
 
                 var response = new AtualizacaoIgrejaResponse
                 {
-                    Id = model.Id,
+                    Id = model!.Id,
                     ImagemUrl = model.ImagemUrl,
                     Paroco = model.Paroco,
                     MissasTemporaria = missasTemp.Select(item => (MissaResponse)item).ToList()
