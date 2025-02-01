@@ -6,6 +6,7 @@ using BuscaMissa.Models;
 using BuscaMissa.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BuscaMissa.Controllers
 {
@@ -34,7 +35,9 @@ namespace BuscaMissa.Controllers
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
                 var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
                 if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Carregar página com dados da igreja!" }));
-                
+
+                if(!ModelState.IsValid) return BadRequest();
+
                 var igreja = await _igrejaService.InserirAsync(request);
                 var controle = new Controle() { Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);

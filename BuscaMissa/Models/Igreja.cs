@@ -24,6 +24,8 @@ namespace BuscaMissa.Models
 
         public Endereco Endereco { get; set; } = null!;
 
+        public Contato? Contato {get; set;}
+
         public static explicit operator Igreja(CriacaoIgrejaRequest request)
         {
             var retorno = new Igreja{
@@ -36,11 +38,13 @@ namespace BuscaMissa.Models
                 retorno.Missas.Add(missa);
             }
             //removendo missas iguais
-                retorno.Missas = retorno.Missas
+                retorno.Missas = [.. retorno.Missas
                 .GroupBy(m => new { m.DiaSemana, m.Horario })
-                .Select(g => g.First())
-                .ToList();
+                .Select(g => g.First())];
             retorno.Endereco = (Endereco)request.Endereco;
+            if(request.Contato is not null)
+                retorno.Contato = (Contato)request.Contato;
+
             return retorno;
         }
     }

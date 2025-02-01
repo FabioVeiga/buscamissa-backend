@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BuscaMissa.DTOs.IgrejaDto;
 
 namespace BuscaMissa.Models
 {
@@ -18,5 +19,16 @@ namespace BuscaMissa.Models
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
 
+        public static explicit operator Contato(CriacaoIgrejaContatoRequest request)
+        {
+            return new Contato(){
+                DDD = request.DDD,
+                Telefone = request.Telefone,
+                EmailContato = request.EmailContato,
+                DDDWhatsApp = request.DDDWhatsApp,
+                TelefoneWhatsApp = request.TelefoneWhatsApp
+
+            };
+        }
     }
 }
