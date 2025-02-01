@@ -12,6 +12,6 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string? Imagem { get; set; }
         public ICollection<MissaRequest> Missas { get; set; } = [];
         public EnderecoIgrejaRequest Endereco { get; set; } = default!;
-        public CriacaoIgrejaContatoRequest? Contato { get; set; }
+        public IgrejaContatoRequest? Contato { get; set; }
     }
 }

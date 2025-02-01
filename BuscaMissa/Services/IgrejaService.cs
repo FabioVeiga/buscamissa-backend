@@ -24,6 +24,7 @@ namespace BuscaMissa.Services
                 return await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(Igreja => Igreja.Contato)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(igreja => igreja.Id == id);
             }
             catch (Exception ex)

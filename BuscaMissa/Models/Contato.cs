@@ -19,7 +19,7 @@ namespace BuscaMissa.Models
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
 
-        public static explicit operator Contato(CriacaoIgrejaContatoRequest request)
+        public static explicit operator Contato(IgrejaContatoRequest request)
         {
             return new Contato(){
                 DDD = request.DDD,
@@ -27,7 +27,6 @@ namespace BuscaMissa.Models
                 EmailContato = request.EmailContato,
                 DDDWhatsApp = request.DDDWhatsApp,
                 TelefoneWhatsApp = request.TelefoneWhatsApp
-
             };
         }
     }

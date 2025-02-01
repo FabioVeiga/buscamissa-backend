@@ -13,7 +13,7 @@ namespace BuscaMissa.Controllers
     [Route("api/[controller]")]
     public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
     ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
-    EnderecoService enderecoService) 
+    EnderecoService enderecoService, ContatoService contatoService) 
     : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
@@ -24,6 +24,7 @@ namespace BuscaMissa.Controllers
         private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
         private readonly ImagemService _imagemService = imagemService;
         private readonly EnderecoService _enderecoService = enderecoService;
+        private readonly ContatoService _contatoService = contatoService;
 
         [HttpPost]
         [Authorize(Roles = "Admin,App")]
@@ -129,6 +130,17 @@ namespace BuscaMissa.Controllers
                 if (!resultado) return UnprocessableEntity();
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
                 await _controleService.EditarAsync(controle);
+                if(request.Contato is not null)
+                {
+                    var contato = (Contato)request.Contato;
+                    contato.IgrejaId = temIgreja.Id;
+                    if(temIgreja.Contato is not null){
+                        contato.Id = temIgreja.Contato!.Id;
+                        await _contatoService.EditarAsync(contato); 
+                    }
+                    else
+                        await _contatoService.InserirAsync(contato);
+                }
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
                 return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
             }

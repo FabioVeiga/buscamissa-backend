@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BuscaMissa.DTOs.IgrejaDto
 {
-    public class CriacaoIgrejaContatoRequest : IValidatableObject
+    public class IgrejaContatoRequest : IValidatableObject
     {
         public string? EmailContato { get; set; }
         public string? DDD { get; set; }
