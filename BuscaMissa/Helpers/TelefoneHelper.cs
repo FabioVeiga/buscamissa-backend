@@ -10,6 +10,12 @@ namespace BuscaMissa.Helpers
             return Regex.IsMatch(telefone, pattern);
         }
 
+        public static bool ValidarTelefone(string telefone)
+        {
+            string pattern = @"^\d{10}$";
+            return Regex.IsMatch(telefone, pattern);
+        }
+
         public static string NormalizarTelefone(string telefone)
         {
             return Regex.Replace(telefone, @"[^\d]", "");

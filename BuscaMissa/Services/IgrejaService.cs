@@ -23,6 +23,7 @@ namespace BuscaMissa.Services
             {
                 return await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
+                    .Include(Igreja => Igreja.Contato)
                     .FirstOrDefaultAsync(igreja => igreja.Id == id);
             }
             catch (Exception ex)
@@ -40,6 +41,7 @@ namespace BuscaMissa.Services
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
                     .Include(x => x.Missas)
+                    .Include(Igreja => Igreja.Contato)
                     .FirstOrDefaultAsync(x => x.Endereco.Cep == CepHelper.FormatarCep(cep));
 
                 if (model == null) return null;
@@ -95,6 +97,7 @@ namespace BuscaMissa.Services
                 var query = _context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
+                .Include(Igreja => Igreja.Contato)
                 .Where(x =>
                     x.Endereco.Uf == filtro.Uf.ToUpper()
                     && x.Ativo == filtro.Ativo)
@@ -120,14 +123,15 @@ namespace BuscaMissa.Services
                 {
                     Id = x.Id,
                     Nome = x.Nome,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
-                    Usuario = (UsuarioDtoResponse)x.Usuario!,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
                     ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterPreVisualizacao($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
-                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList()
+                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);

@@ -6,7 +6,6 @@ using BuscaMissa.Models;
 using BuscaMissa.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BuscaMissa.Controllers
 {
@@ -42,7 +41,7 @@ namespace BuscaMissa.Controllers
                 var controle = new Controle() { Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);
                 
-                if (request.Imagem != null){
+                if (!string.IsNullOrEmpty(request.Imagem)){
                     igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", igreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
                     await _igrejaService.EditarAsync(igreja);
@@ -131,7 +130,7 @@ namespace BuscaMissa.Controllers
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
                 await _controleService.EditarAsync(controle);
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
-                return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar códifgo validador!" }));
+                return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
             }
             catch (Exception ex)
             {
