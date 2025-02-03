@@ -4,8 +4,7 @@ namespace BuscaMissa.Enums
     {
         Facebook = 1,
         Instagram = 2,
-        Twitter = 3,
-        YouTube = 4,
-        TikTok = 5
+        YouTube = 3,
+        TikTok = 4
     }
 }

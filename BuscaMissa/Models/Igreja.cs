@@ -26,6 +26,8 @@ namespace BuscaMissa.Models
 
         public Contato? Contato {get; set;}
 
+        public ICollection<RedeSocial>? RedesSociais { get; set; }
+
         public static explicit operator Igreja(CriacaoIgrejaRequest request)
         {
             var retorno = new Igreja{
@@ -45,6 +47,14 @@ namespace BuscaMissa.Models
             if(request.Contato is not null)
                 retorno.Contato = (Contato)request.Contato;
 
+            if(request.RedeSociais is not null)
+            {
+                retorno.RedesSociais = [];
+                foreach (var item in request.RedeSociais)
+                {
+                    retorno.RedesSociais!.Add((RedeSocial)item);
+                }
+            }
             return retorno;
         }
     }
