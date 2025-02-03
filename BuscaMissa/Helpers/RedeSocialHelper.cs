@@ -1,8 +1,5 @@
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.Enums;
-using HtmlAgilityPack;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace BuscaMissa.Helpers
 {
@@ -17,6 +14,18 @@ namespace BuscaMissa.Helpers
                 TipoRedeSocialEnum.TikTok => await ValidarPerfilTikTok(request.NomeDoPerfil),
                 TipoRedeSocialEnum.YouTube => await ValidarPerfilYouTubePersonalizado(request.NomeDoPerfil),
                 _ => false,
+            };
+        }
+
+        public static string ObterURlRedesSociais(TipoRedeSocialEnum tipoRedeSocialEnum, string nomeDoPerfil)
+        {
+            return tipoRedeSocialEnum switch
+            {
+                TipoRedeSocialEnum.Facebook => $"https://www.facebook.com/{nomeDoPerfil}",
+                TipoRedeSocialEnum.Instagram => $"https://www.instagram.com/{nomeDoPerfil}/",
+                TipoRedeSocialEnum.TikTok => $"https://www.youtube.com/c/{nomeDoPerfil}",
+                TipoRedeSocialEnum.YouTube => $"https://www.tiktok.com/@{nomeDoPerfil}",
+                _ => string.Empty,
             };
         }
 
@@ -65,7 +74,7 @@ namespace BuscaMissa.Helpers
                     if (response.IsSuccessStatusCode)
                     {
                         // Verifica se a URL foi redirecionada para a página de login
-                        if (response.RequestMessage.RequestUri.ToString().Contains("login"))
+                        if (response.RequestMessage!.RequestUri!.ToString().Contains("login"))
                         {
                             return false; // Redirecionado para a página de login
                         }

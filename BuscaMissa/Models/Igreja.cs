@@ -18,7 +18,7 @@ namespace BuscaMissa.Models
         public bool Ativo { get; set; } = false;
         
         public int? UsuarioId { get; set; }
-        public Usuario? Usuario { get; set; } = null!;
+        public Usuario? Usuario { get; set; }
         
         public ICollection<Missa> Missas { get; set; } = [];
 

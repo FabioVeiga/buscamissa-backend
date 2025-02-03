@@ -24,6 +24,7 @@ namespace BuscaMissa.Services
                 return await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(Igreja => Igreja.Contato)
+                    .Include(Igreja => Igreja.RedesSociais)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(igreja => igreja.Id == id);
             }
@@ -43,6 +44,7 @@ namespace BuscaMissa.Services
                     .Include(x => x.Usuario)
                     .Include(x => x.Missas)
                     .Include(Igreja => Igreja.Contato)
+                    .Include(Igreja => Igreja.RedesSociais)
                     .FirstOrDefaultAsync(x => x.Endereco.Cep == CepHelper.FormatarCep(cep));
 
                 if (model == null) return null;
@@ -99,6 +101,7 @@ namespace BuscaMissa.Services
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
                 .Include(Igreja => Igreja.Contato)
+                .Include(Igreja => Igreja.RedesSociais)
                 .Where(x =>
                     x.Endereco.Uf == filtro.Uf.ToUpper()
                     && x.Ativo == filtro.Ativo)
@@ -132,7 +135,9 @@ namespace BuscaMissa.Services
                     ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterPreVisualizacao($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
-                    Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato
+                    Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
+                    RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList()
+                    
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);

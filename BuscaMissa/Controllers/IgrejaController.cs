@@ -26,12 +26,6 @@ namespace BuscaMissa.Controllers
         private readonly EnderecoService _enderecoService = enderecoService;
         private readonly ContatoService _contatoService = contatoService;
 
-        /// <summary>
-        /// Criar uma nova igreja para as missa
-        /// Redes Sociais: Facebook = 1, Instagram = 2, YouTube = 3 e TikTok = 4
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = "Admin,App")]
         public async Task<IActionResult> CriarIgreja([FromBody] CriacaoIgrejaRequest request)

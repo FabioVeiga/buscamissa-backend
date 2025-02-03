@@ -9,6 +9,7 @@ namespace BuscaMissa.DTOs.UsuarioDto
 
         public static explicit operator UsuarioDtoResponse(Usuario usuario)
         {
+            if(usuario is null) return new UsuarioDtoResponse();
             return new UsuarioDtoResponse()
             {
                 Id = usuario.Id,
