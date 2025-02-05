@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.Enums;
+using BuscaMissa.Filters;
 
 namespace BuscaMissa.DTOs.IgrejaDto
 {
@@ -10,6 +11,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string Uf { get; set; } = default!;
         public string? Localidade { get; set; }
         public string? Bairro { get; set; }
+        [NoProfanity]
         public string? Nome { get; set; }
         public bool Ativo { get; set; } = true;
         public DiaDaSemanaEnum? DiaDaSemana { get; set; }

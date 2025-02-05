@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using BuscaMissa.Filters;
 
 namespace BuscaMissa.DTOs.IgrejaDto
 {
     public class IgrejaContatoRequest : IValidatableObject
     {
+        [NoProfanity]
         public string? EmailContato { get; set; }
         public string? DDD { get; set; }
         public string? Telefone { get; set; }

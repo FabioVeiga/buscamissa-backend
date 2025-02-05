@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using BuscaMissa.Enums;
+using BuscaMissa.Filters;
 
 namespace BuscaMissa.DTOs.MissaDto
 {
@@ -11,6 +12,7 @@ namespace BuscaMissa.DTOs.MissaDto
         [Required]
         public string Horario { get; set; } = default!;
         internal TimeSpan HorarioMissa { get; set; } = default!;
+        [NoProfanity]
         public string? Observacao { get; set; }
         internal int IgrejaId { get; set; }
 

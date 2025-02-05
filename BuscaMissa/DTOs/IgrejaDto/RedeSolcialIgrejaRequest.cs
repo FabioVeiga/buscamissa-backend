@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using BuscaMissa.Enums;
+using BuscaMissa.Filters;
 using BuscaMissa.Helpers;
 
 namespace BuscaMissa.DTOs.IgrejaDto
@@ -7,6 +8,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
     public class RedeSolcialIgrejaRequest : IValidatableObject
     {
         public TipoRedeSocialEnum TipoRedeSocial { get; set; }
+        [NoProfanity]
         public string NomeDoPerfil { get; set; } = null!;
         internal bool isValido = false;
 

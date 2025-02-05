@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BuscaMissa.Filters;
 
 namespace BuscaMissa.DTOs.ControleDto
 {
@@ -10,6 +11,7 @@ namespace BuscaMissa.DTOs.ControleDto
         public int CodigoValidador { get; set; }
         [Required(ErrorMessage =  "O campo {0} é obrigatório!")]
         [EmailAddress(ErrorMessage = "Formado invalido!")]
+        [NoProfanity]
         public string Email { get; set; } = null!;
     }
 }
