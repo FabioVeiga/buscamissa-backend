@@ -27,7 +27,7 @@ namespace BuscaMissa.Controllers
         private readonly ContatoService _contatoService = contatoService;
 
         [HttpPost]
-        [Authorize(Roles = "Admin,App")]
+        [Authorize(Roles = "App")]
         public async Task<IActionResult> CriarIgreja([FromBody] CriacaoIgrejaRequest request)
         {
             try
@@ -98,7 +98,7 @@ namespace BuscaMissa.Controllers
 
         [HttpGet]
         [Route("buscar-por-filtro")]
-        [Authorize(Roles = "App")]
+        [Authorize(Roles = "App,Admin")]
         public async Task<ActionResult> BuscarPorFiltro([FromQuery] FiltroIgrejaRequest filtro)
         {
             try
@@ -116,7 +116,7 @@ namespace BuscaMissa.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "App,Admin")]
+        [Authorize(Roles = "App")]
         public async Task<IActionResult> Atualizar([FromBody] AtualicaoIgrejaRequest request)
         {
             try

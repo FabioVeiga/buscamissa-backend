@@ -20,7 +20,7 @@ namespace BuscaMissa.Models
         {
             return new MissaTemporaria
             {
-                DiaSemana = request.DiaDaSemana,
+                DiaSemana = request.DiaSemana,
                 Horario = request.HorarioMissa,
                 IgrejaId = request.IgrejaId,
                 Observacao = request.Observacao

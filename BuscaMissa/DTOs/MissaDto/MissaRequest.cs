@@ -8,7 +8,7 @@ namespace BuscaMissa.DTOs.MissaDto
     {
         public int? Id { get; set; }
         [Required]
-        public DiaDaSemanaEnum DiaDaSemana { get; set; }
+        public DiaDaSemanaEnum DiaSemana { get; set; }
         [Required]
         public string Horario { get; set; } = default!;
         internal TimeSpan HorarioMissa { get; set; } = default!;
@@ -27,9 +27,9 @@ namespace BuscaMissa.DTOs.MissaDto
                     HorarioMissa = horario;
             }
             
-            if(!Enum.IsDefined(typeof(DiaDaSemanaEnum), DiaDaSemana))
+            if(!Enum.IsDefined(typeof(DiaDaSemanaEnum), DiaSemana))
             {
-                results.Add(new ValidationResult("Dia da semana invalido.", [nameof(DiaDaSemana)]));
+                results.Add(new ValidationResult("Dia da semana invalido.", [nameof(DiaSemana)]));
             }
             return results;
         }

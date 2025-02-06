@@ -19,28 +19,6 @@ namespace BuscaMissa.Controllers
         private readonly EmailService _emailService = emailService;
 
         [HttpPost]
-        [AllowAnonymous]
-        public async Task<IActionResult> Inserir([FromBody] CriacaoUsuarioRequest request)
-        {
-            try
-            {
-                if (!ModelState.IsValid) BadRequest();
-
-                var usuarioCriado = await _usuarioService.InserirAsync(request);
-                return Ok(new ApiResponse<dynamic>(new
-                {
-                    usuario = usuarioCriado
-                }));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
-
-        [HttpPost]
         [Route("autenticar")]
         [AllowAnonymous]
         public async Task<IActionResult> Autenticar([FromBody] LoginRequest request)

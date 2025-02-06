@@ -23,6 +23,8 @@ namespace BuscaMissa.Services
             {
                 return await _context.Igrejas
                     .Include(igreja => igreja.Endereco)
+                    .Include(x => x.Usuario)
+                    .Include(x => x.Missas)
                     .Include(Igreja => Igreja.Contato)
                     .Include(Igreja => Igreja.RedesSociais)
                     .AsNoTracking()
@@ -154,6 +156,7 @@ namespace BuscaMissa.Services
         {
             try
             {
+                model.Alteracao = DateTime.Now;
                 _context.Igrejas.Update(model);
                 await _context.SaveChangesAsync();
                 return model;
@@ -163,6 +166,49 @@ namespace BuscaMissa.Services
                 _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
                 throw;
             }
+        }
+
+        public async Task<Igreja> EditarAsync(Igreja model, AtualicaoIgrejaRequest request)
+        {
+            try
+            {
+                model.Alteracao = DateTime.Now;
+                if(request.Paroco is not null) 
+                    model.Paroco = request.Paroco;
+
+                var listExcluir = model.Missas.Where(x => !request.Missas.Any(y => y.Id == x.Id)).ToList();
+                //listExcluir.ToList().ForEach(x => model.Missas.Remove(x));
+
+                await RemoverMissaAsync(listExcluir);
+
+                foreach (var item in request.Missas)
+                {
+                    var temMissa = model.Missas.FirstOrDefault(x => x.Id == item.Id);
+                    if(temMissa is not null)
+                    {
+                        temMissa.DiaSemana = item.DiaSemana;
+                        temMissa.Horario = item.HorarioMissa;
+                        temMissa.Observacao = item.Observacao;
+                    }else{
+                        model.Missas.Add((Missa)item!);
+                    }
+                }
+
+                _context.Igrejas.Update(model);
+                await _context.SaveChangesAsync();
+                return model;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
+                throw;
+            }
+        }
+
+        private async Task RemoverMissaAsync(IList<Missa> missas)
+        {
+            _context.Missas.RemoveRange(missas);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> EditarPorTemporariaAsync(Igreja igreja, AtualizacaoIgrejaResponse atualizacao)
