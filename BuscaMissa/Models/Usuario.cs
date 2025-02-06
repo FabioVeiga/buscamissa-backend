@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using BuscaMissa.DTOs;
-using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Enums;
 

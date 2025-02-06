@@ -16,14 +16,6 @@ namespace BuscaMissa.Services
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<UsuarioService> _logger = logger;
 
-        public async Task<Usuario> InserirAsync(Usuario usuario)
-        {
-            usuario.Senha = SenhaHelper.GerarSenhaTemporariaString();
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-            return usuario;
-        }
-
         public async Task<Usuario> InserirAsync(CriacaoUsuarioRequest request)
         {
             Usuario usuario = (Usuario)request;
@@ -66,9 +58,7 @@ namespace BuscaMissa.Services
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-#pragma warning disable CS8604 // Possible null reference argument.
-                var key = Encoding.ASCII.GetBytes(secret);
-#pragma warning restore CS8604 // Possible null reference argument.
+                var key = Encoding.ASCII.GetBytes(secret!);
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(
