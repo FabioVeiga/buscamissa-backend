@@ -125,7 +125,7 @@ namespace BuscaMissa.Controllers
                 
                 if (!string.IsNullOrEmpty(request.Imagem)){
                     igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", igreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
+                    var urlTemp2 = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await _igrejaService.EditarAsync(igreja);
                 }
                 var response = (IgrejaResponse)igreja;
@@ -165,7 +165,7 @@ namespace BuscaMissa.Controllers
 
                 if (!string.IsNullOrEmpty(request.Imagem)){
                     igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", igreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
+                    var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await _igrejaService.EditarAsync(igreja);
                 }
                 var response = (IgrejaResponse)igreja;
@@ -178,6 +178,25 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+        
+        [HttpGet]
+        [Route("igreja/infos")]
+        [Authorize(Roles = "Admin")]
+        public ActionResult InformacoesGerais()
+        {
+            try
+            {
+                var resultado = _igrejaService.InformacoesGeraisResponse();
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+        
         #endregion
     }
 }

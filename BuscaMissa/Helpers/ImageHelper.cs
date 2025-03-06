@@ -20,6 +20,10 @@ namespace BuscaMissa.Helpers
             }
             return ".jpg"; 
         }
+
+        public static MemoryStream ConvertermemoryStream(byte[] imageBase64){
+            return new MemoryStream(imageBase64);
+        }
     }
     
 }

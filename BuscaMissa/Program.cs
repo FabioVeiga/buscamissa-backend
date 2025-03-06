@@ -111,6 +111,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 builder.Services.Configure<S3BucketSetting>(builder.Configuration.GetSection("S3BucketSetting"));
+builder.Services.Configure<AzureBlobStorage>(builder.Configuration.GetSection("AzureBlobStorage"));
 
 // Adicione o serviço CORS
 builder.Services.AddCors(options =>

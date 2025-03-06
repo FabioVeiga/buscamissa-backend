@@ -116,7 +116,7 @@ namespace BuscaMissa.Services
                     query = query.Where(x => x.Endereco.Bairro == filtro.Bairro);
 
                 if (!string.IsNullOrEmpty(filtro.Nome))
-                    query = query.Where(x => x.Nome == filtro.Nome.ToUpper());
+                    query = query.Where(x => x.Nome.ToUpper().Contains(filtro.Nome.ToUpper()));
 
                 if (filtro.DiaDaSemana is not null)
                     query = query.Where(x => x.Missas.Any(y => y.DiaSemana == filtro.DiaDaSemana));
@@ -134,7 +134,7 @@ namespace BuscaMissa.Services
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterPreVisualizacao($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterPreVisualizacaoBucketS3($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,

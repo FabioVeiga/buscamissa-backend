@@ -44,7 +44,7 @@ namespace BuscaMissa.Controllers
                 
                 if (!string.IsNullOrEmpty(request.Imagem)){
                     igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = await _imagemService.UploadAsync(request.Imagem, "igreja", igreja.ImagemUrl, ImageHelper.BuscarExtensao(request.Imagem));
+                    var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await _igrejaService.EditarAsync(igreja);
                 }
 
@@ -60,7 +60,7 @@ namespace BuscaMissa.Controllers
 
         [HttpGet]
         [Route("buscar-por-cep")]
-        [Authorize(Roles = "App")]
+        [Authorize(Roles = "App,Admin")]
         public async Task<ActionResult> BuscarPorCep(string cep)
         {
             try
@@ -75,7 +75,8 @@ namespace BuscaMissa.Controllers
                 }
                 if(temIgreja.ImagemUrl != string.Empty)
                 {
-                    temIgreja.ImagemUrl = _imagemService.ObterPreVisualizacao($"igreja/{temIgreja.ImagemUrl}");
+                    //temIgreja.ImagemUrl = _imagemService.ObterPreVisualizacaoBucketS3($"igreja/{temIgreja.ImagemUrl}");
+                    temIgreja.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{temIgreja.ImagemUrl}");
                 }
                 var messagemAplicacao = string.Empty;
                 IgrejaResponse response = temIgreja;

@@ -54,7 +54,7 @@ namespace BuscaMissa.Controllers
                             if(temporaria.ImagemUrl != string.Empty)
                             {
                                 var nome = $"{controle.Igreja.Id}{Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
-                                await _imagemService.UploadAsync(temporaria.ImagemUrl!, "igreja", nome, Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!));
+                                _imagemService.UploadAzure(temporaria.ImagemUrl!, "igreja", nome);
                             }
                             mensagemTela = "Igreja atualizada com sucesso!";
                             break;
