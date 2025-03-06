@@ -134,7 +134,7 @@ namespace BuscaMissa.Services
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterPreVisualizacaoBucketS3($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,

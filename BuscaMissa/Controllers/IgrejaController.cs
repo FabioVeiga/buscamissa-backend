@@ -75,7 +75,6 @@ namespace BuscaMissa.Controllers
                 }
                 if(temIgreja.ImagemUrl != string.Empty)
                 {
-                    //temIgreja.ImagemUrl = _imagemService.ObterPreVisualizacaoBucketS3($"igreja/{temIgreja.ImagemUrl}");
                     temIgreja.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{temIgreja.ImagemUrl}");
                 }
                 var messagemAplicacao = string.Empty;
