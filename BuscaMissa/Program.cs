@@ -12,11 +12,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// var stringConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseMySql(stringConnection, 
-//         new MySqlServerVersion(new Version(8, 0, 23))));
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
 
@@ -79,9 +74,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 var secret = Environment.GetEnvironmentVariable("SecretApp");
-#pragma warning disable CS8604 // Possible null reference argument.
-var key = Encoding.ASCII.GetBytes(secret);
-#pragma warning restore CS8604 // Possible null reference argument.
+var key = Encoding.ASCII.GetBytes(secret!);
 
 builder.Services.AddAuthentication(x =>
 {
@@ -108,11 +101,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-/* builder.Services.AddAzureClients(clientBuilder =>
-{
-    clientBuilder.AddBlobServiceClient(builder.Configuration["AzureStorage:ConnectionString"]);
-}); */
-
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 builder.Services.Configure<S3BucketSetting>(builder.Configuration.GetSection("S3BucketSetting"));
 builder.Services.Configure<AzureBlobStorage>(builder.Configuration.GetSection("AzureBlobStorage"));
@@ -133,6 +121,16 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Aplica migrações automaticamente (opcional)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
+    DatabaseSeeder.Seed(context);
+}
+
 
 // Use o CORS
 app.UseCors("AllowLocalhost4200");
