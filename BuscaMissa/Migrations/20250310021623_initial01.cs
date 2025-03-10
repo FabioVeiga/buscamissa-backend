@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -12,65 +11,52 @@ namespace BuscaMissa.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("MySql:CharSet", "utf8mb4");
-
             migrationBuilder.CreateTable(
                 name: "IgrejaTemporarias",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Paroco = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ImagemUrl = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Paroco = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImagemUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IgrejaTemporarias", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Usuarios",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Nome = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Perfil = table.Column<int>(type: "int", nullable: false),
-                    Email = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Senha = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AceitarTermo = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    AceitarPromocao = table.Column<bool>(type: "tinyint(1)", nullable: true),
-                    Criacao = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Senha = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AceitarTermo = table.Column<bool>(type: "bit", nullable: false),
+                    AceitarPromocao = table.Column<bool>(type: "bit", nullable: true),
+                    Criacao = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Igrejas",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Nome = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Paroco = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ImagemUrl = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Criacao = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Alteracao = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Ativo = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Paroco = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImagemUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Criacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Alteracao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Ativo = table.Column<bool>(type: "bit", nullable: false),
                     UsuarioId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -81,28 +67,22 @@ namespace BuscaMissa.Migrations
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
                         principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Contatos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    EmailContato = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    EmailContatoValidado = table.Column<bool>(type: "tinyint(1)", nullable: true),
-                    DDD = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Telefone = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TelefoneValidado = table.Column<bool>(type: "tinyint(1)", nullable: true),
-                    DDDWhatsApp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TelefoneWhatsApp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TelefoneWhatsAppValidado = table.Column<bool>(type: "tinyint(1)", nullable: true),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmailContato = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmailContatoValidado = table.Column<bool>(type: "bit", nullable: true),
+                    DDD = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Telefone = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TelefoneValidado = table.Column<bool>(type: "bit", nullable: true),
+                    DDDWhatsApp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TelefoneWhatsApp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TelefoneWhatsAppValidado = table.Column<bool>(type: "bit", nullable: true),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -114,15 +94,14 @@ namespace BuscaMissa.Migrations
                         principalTable: "Igrejas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Controles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Status = table.Column<int>(type: "int", nullable: false),
                     IgrejaId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -134,31 +113,22 @@ namespace BuscaMissa.Migrations
                         column: x => x.IgrejaId,
                         principalTable: "Igrejas",
                         principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Enderecos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Cep = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Logradouro = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Complemento = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Bairro = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Localidade = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Uf = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Estado = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Regiao = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Cep = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Logradouro = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Complemento = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bairro = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Localidade = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Uf = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Regiao = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -170,19 +140,17 @@ namespace BuscaMissa.Migrations
                         principalTable: "Igrejas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Missas",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     DiaSemana = table.Column<int>(type: "int", nullable: false),
-                    Horario = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    Observacao = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Horario = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Observacao = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -194,19 +162,17 @@ namespace BuscaMissa.Migrations
                         principalTable: "Igrejas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "MissasTemporarias",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     DiaSemana = table.Column<int>(type: "int", nullable: false),
-                    Horario = table.Column<TimeSpan>(type: "time(6)", nullable: false),
-                    Observacao = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Horario = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Observacao = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -218,20 +184,17 @@ namespace BuscaMissa.Migrations
                         principalTable: "Igrejas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "RedesSociais",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TipoRedeSocial = table.Column<int>(type: "int", nullable: true),
-                    Url = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Site = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TipoRedeSocial = table.Column<int>(type: "int", nullable: false),
+                    NomeDoPerfil = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Verificado = table.Column<bool>(type: "bit", nullable: false),
                     IgrejaId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -243,17 +206,16 @@ namespace BuscaMissa.Migrations
                         principalTable: "Igrejas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "CodigoPermissoes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CodigoToken = table.Column<int>(type: "int", nullable: false),
-                    ValidoAte = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ValidoAte = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ControleId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -264,8 +226,7 @@ namespace BuscaMissa.Migrations
                         column: x => x.ControleId,
                         principalTable: "Controles",
                         principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CodigoPermissoes_ControleId",
@@ -275,7 +236,8 @@ namespace BuscaMissa.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Contatos_IgrejaId",
                 table: "Contatos",
-                column: "IgrejaId");
+                column: "IgrejaId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Controles_IgrejaId",

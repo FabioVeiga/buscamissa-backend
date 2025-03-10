@@ -12,10 +12,14 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var stringConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+// var stringConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseMySql(stringConnection, 
+//         new MySqlServerVersion(new Version(8, 0, 23))));
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(stringConnection, 
-        new MySqlServerVersion(new Version(8, 0, 23))));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
+
 
 builder.Services.AddScoped<CodigoValidacaoService>();
 builder.Services.AddScoped<ControleService>();
