@@ -1,4 +1,5 @@
 using System.Text;
+using Azure.Identity;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.SettingsDto;
@@ -12,9 +13,15 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
+string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
 
+builder.Configuration.AddAzureKeyVault(
+    new Uri(keyVaultUri),
+    new DefaultAzureCredential()
+);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration["AzureSqlConnection"]));
 
 builder.Services.AddScoped<CodigoValidacaoService>();
 builder.Services.AddScoped<ControleService>();
@@ -31,13 +38,13 @@ builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("Mail
 builder.Services.AddMailerSendEmailClient(options =>
 {
     options.ApiUrl = builder.Configuration["MailerSend:ApiUrl"];
-    options.ApiToken = builder.Configuration["MailerSend:ApiToken"];
+    options.ApiToken = builder.Configuration["MailerSendApiToken"];
 });
-builder.Services.AddMailerSendEmailClient(new MailerSendEmailClientOptions
+/* builder.Services.AddMailerSendEmailClient(new MailerSendEmailClientOptions
 {
     ApiUrl = builder.Configuration["MailerSend:ApiUrl"],
     ApiToken = builder.Configuration["MailerSend:ApiToken"]
-});
+}); */
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -129,7 +136,6 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
     DatabaseSeeder.Seed(context);
 }
-
 
 // Use o CORS
 app.UseCors("AllowLocalhost4200");

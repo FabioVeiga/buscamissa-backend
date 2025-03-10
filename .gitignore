@@ -397,7 +397,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 BuscaMissa/appsettings.Development.json
-BuscaMissa/appsettings.json
 BuscaMissa/Properties/launchSettings.json
 BuscaMissa/BuscaMissa.pem
 BuscaMissa/importantes/*
