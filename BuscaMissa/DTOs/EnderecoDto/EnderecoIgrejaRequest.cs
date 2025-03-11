@@ -20,5 +20,7 @@ namespace BuscaMissa.DTOs.EnderecoDto
         public string Estado { get; set; } = default!;
         [Required]
         public string Regiao { get; set; } = default!;
+        [Required]
+        public int Numero { get; set; }
     }
 }

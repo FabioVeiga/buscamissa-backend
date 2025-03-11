@@ -23,6 +23,8 @@ namespace BuscaMissa.Models
         public string Estado { get; set; } = default!;
         [Required]
         public string Regiao { get; set; } = default!;
+        [Required]
+        public int Numero { get; set; }
 
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
@@ -38,7 +40,8 @@ namespace BuscaMissa.Models
                 Localidade = request.Localidade,
                 Logradouro = request.Logradouro,
                 Regiao = request.Regiao,
-                Uf = request.Uf
+                Uf = request.Uf,
+                Numero = request.Numero,
             };
         }
     }

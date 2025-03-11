@@ -13,6 +13,7 @@ namespace BuscaMissa.DTOs.EnderecoDto
         public string Uf { get; set; } = default!;
         public string Estado { get; set; } = default!;
         public string Regiao { get; set; } = default!;
+        public int Numero { get; set; }
         public int IgrejaId { get; set; }
 
 
@@ -28,6 +29,7 @@ namespace BuscaMissa.DTOs.EnderecoDto
                 Uf = endereco.Uf,
                 Estado = endereco.Estado,
                 Regiao = endereco.Regiao,
+                Numero = endereco.Numero,
                 IgrejaId = endereco.IgrejaId
             };
         }
