@@ -14,6 +14,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string? Paroco { get; set; }
         public string? Imagem { get; set; }
         public ICollection<MissaRequest> Missas { get; set; } = [];
+        [Required]
         public EnderecoIgrejaRequest Endereco { get; set; } = default!;
         public IgrejaContatoRequest? Contato { get; set; }
         public IList<RedeSolcialIgrejaRequest>? RedeSociais { get; set; }

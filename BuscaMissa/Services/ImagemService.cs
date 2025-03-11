@@ -21,6 +21,7 @@ namespace BuscaMissa.Services
             _s3BucketSetting = options.Value;
             _s3Client = new AmazonS3Client(_s3BucketSetting.AwsAccessKeyId, _s3BucketSetting.AwsSecretAccessKey, _s3BucketSetting.RegionDefault);
             _azureBlobStorage = optionsAzure.Value;
+            _azureBlobStorage.ConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorage")!;
         }
 
         public async Task<string> UploadBucketAsync(string base64Image, string pasta, string nomeArquivo, string extensao)

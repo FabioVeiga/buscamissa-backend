@@ -40,11 +40,6 @@ builder.Services.AddMailerSendEmailClient(options =>
     options.ApiUrl = builder.Configuration["MailerSend:ApiUrl"];
     options.ApiToken = builder.Configuration["MailerSendApiToken"];
 });
-/* builder.Services.AddMailerSendEmailClient(new MailerSendEmailClientOptions
-{
-    ApiUrl = builder.Configuration["MailerSend:ApiUrl"],
-    ApiToken = builder.Configuration["MailerSend:ApiToken"]
-}); */
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -111,6 +106,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 builder.Services.Configure<S3BucketSetting>(builder.Configuration.GetSection("S3BucketSetting"));
 builder.Services.Configure<AzureBlobStorage>(builder.Configuration.GetSection("AzureBlobStorage"));
+Environment.SetEnvironmentVariable("AzureBlobStorage",builder.Configuration["AzureBlobStorage"]);
 
 // Adicione o serviço CORS
 builder.Services.AddCors(options =>
