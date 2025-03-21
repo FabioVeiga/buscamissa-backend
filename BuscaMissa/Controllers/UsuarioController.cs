@@ -1,6 +1,7 @@
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.Helpers;
 using BuscaMissa.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -80,13 +81,12 @@ namespace BuscaMissa.Controllers
                             $"Código para Validação", 
                             Contant.EmailValidacaoToken
                             .Replace("{nome}",usuario.Nome)
-                            .Replace("{token}",codigo.CodigoToken.ToString())
+                            .Replace("{token}",codigoValidador.CodigoToken.ToString())
                             .Replace("{ano}",DataHoraHelper.Ano())
                         );
                     Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                     if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
                 #endif
-                
 
                 return Ok(new ApiResponse<dynamic>(new
                 {
