@@ -8,7 +8,8 @@ namespace BuscaMissa.Context
 {
     public static void Seed(ApplicationDbContext context)
     {
-        if (!context.Usuarios.Any(u => u.Email == "droidbinho@gmail.com")){
+        var temUsuarioAdmin = context.Usuarios.Any(u => u.Email == "droidbinho@gmail.com" && u.Perfil == PerfilEnum.Admin);
+        if (!temUsuarioAdmin){
             var usuario = new Usuario
             {
                 AceitarPromocao = true,

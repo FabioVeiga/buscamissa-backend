@@ -211,8 +211,16 @@ namespace BuscaMissa.Controllers
                 model.AcaoRealizada = request.Solucao;
                 var response = await _igrejaDenunciaService.SolucaoAsync(model);
                 if(request.EnviarEmailDenunciador){
-                    var responseEmail = await _emailService.EnviarEmail([model.EmailDenunciador], $"Resposta da denuncia - {model.Igreja.Nome}", Contant.EmailDenuncia.Replace("{denuncia}",model.Descricao).Replace("{solução}",request.Solucao));
-                    Console.WriteLine(responseEmail ?? "Email não enviado!");
+                    var responseEmail = await _emailService.EnviarEmail(
+                        [model.EmailDenunciador], 
+                        $"Resposta da denuncia - {model.Igreja.Nome}", 
+                        Contant.EmailDenuncia
+                        .Replace("{nomeDenunciador}",model.NomeDenunciador)
+                        .Replace("{denuncia}",model.Descricao)
+                        .Replace("{solução}",request.Solucao)
+                        .Replace("{ano}",DataHoraHelper.Ano())
+                        );
+                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
                 return Ok(response);
             }

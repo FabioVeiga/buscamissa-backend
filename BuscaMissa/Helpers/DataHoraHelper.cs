@@ -6,5 +6,10 @@ namespace BuscaMissa.Helpers
         {
             return dateTime.ToString("dd/MM/yyyy HH:mm");
         }
+
+        public static string Ano()
+        {
+            return DateTime.Now.Year.ToString();
+        }
     }
 }
