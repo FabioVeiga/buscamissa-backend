@@ -1,3 +1,4 @@
+using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.UsuarioDto;
@@ -12,12 +13,9 @@ namespace BuscaMissa.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class AdminController(
-        ILogger<AdminController> logger,
-        UsuarioService usuarioService,
-        IgrejaService igrejaService,
-        ImagemService imagemService,
-        ViaCepService viaCepService,
-        ContatoService contatoService
+        ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
+        ImagemService imagemService, ViaCepService viaCepService, ContatoService contatoService, 
+        IgrejaDenunciaService igrejaDenunciaService, EmailService emailService
         ) : ControllerBase
     {
         private readonly ILogger<AdminController> _logger = logger;
@@ -26,7 +24,8 @@ namespace BuscaMissa.Controllers
         private readonly ImagemService _imagemService = imagemService;
         private readonly ViaCepService _viaCepService = viaCepService;
         private readonly ContatoService _contatoService = contatoService;
-
+        private readonly IgrejaDenunciaService _igrejaDenunciaService = igrejaDenunciaService;
+        private readonly EmailService _emailService = emailService;
 
         #region Usuario
         [HttpGet]
@@ -87,7 +86,7 @@ namespace BuscaMissa.Controllers
             {
                 if (!ModelState.IsValid) BadRequest();
                 var temUsuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
-                if(temUsuario is not null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Email já cadastrado!" }));
+                if (temUsuario is not null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Email já cadastrado!" }));
 
                 var usuarioCriado = await _usuarioService.InserirAsync(request);
                 return Ok(new ApiResponse<dynamic>(new
@@ -102,7 +101,7 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-        
+
         #endregion
 
         #region Igreja
@@ -117,14 +116,15 @@ namespace BuscaMissa.Controllers
                 var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
                 if (igrejaResponse is not null) return BadRequest(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Igreja já cadastrada!" }));
 
-                if(!ModelState.IsValid) return BadRequest();
+                if (!ModelState.IsValid) return BadRequest();
 
                 var igreja = await _igrejaService.InserirAsync(request);
                 igreja.Ativo = true;
                 igreja = await _igrejaService.EditarAsync(igreja);
-                
-                if (!string.IsNullOrEmpty(request.Imagem)){
-                    igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+
+                if (!string.IsNullOrEmpty(request.Imagem))
+                {
+                    igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp2 = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await _igrejaService.EditarAsync(igreja);
                 }
@@ -151,20 +151,22 @@ namespace BuscaMissa.Controllers
 
                 await _igrejaService.EditarAsync(igreja, request);
 
-                if(request.Contato is not null)
+                if (request.Contato is not null)
                 {
                     var contato = (Contato)request.Contato;
                     contato.IgrejaId = igreja.Id;
-                    if(igreja.Contato is not null){
+                    if (igreja.Contato is not null)
+                    {
                         contato.Id = igreja.Contato!.Id;
-                        await _contatoService.EditarAsync(contato); 
+                        await _contatoService.EditarAsync(contato);
                     }
                     else
                         await _contatoService.InserirAsync(contato);
                 }
 
-                if (!string.IsNullOrEmpty(request.Imagem)){
-                    igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+                if (!string.IsNullOrEmpty(request.Imagem))
+                {
+                    igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await _igrejaService.EditarAsync(igreja);
                 }
@@ -178,7 +180,7 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-        
+
         [HttpGet]
         [Route("igreja/infos")]
         [Authorize(Roles = "Admin")]
@@ -196,7 +198,32 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-        
+
+        [HttpPut]
+        [Route("igreja/denunciar/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> DenunciarIgreja(int id, [FromBody] DenunciarIgrejaAdminRequest request)
+        {
+            try
+            {
+                var model = await _igrejaDenunciaService.BuscarPorIdAsync(id);
+                if (model == null) return NotFound(new ApiResponse<dynamic>("Denuncia não encontrada"));
+                model.AcaoRealizada = request.Solucao;
+                var response = await _igrejaDenunciaService.SolucaoAsync(model);
+                if(request.EnviarEmailDenunciador){
+                    var responseEmail = await _emailService.EnviarEmail([model.EmailDenunciador], $"Resposta da denuncia - {model.Igreja.Nome}", Contant.EmailDenuncia.Replace("{denuncia}",model.Descricao).Replace("{solução}",request.Solucao));
+                    Console.WriteLine(responseEmail ?? "Email não enviado!");
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         #endregion
     }
 }

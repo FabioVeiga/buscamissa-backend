@@ -16,16 +16,18 @@ namespace BuscaMissa.Context
         public DbSet<IgrejaTemporaria> IgrejaTemporarias { get; set; }
         public DbSet<RedeSocial> RedesSociais { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<IgrejaDenuncia> IgrejaDenuncias { get; set; }
     }
 
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-             IConfigurationRoot configuration = new ConfigurationBuilder()
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            Console.WriteLine(env);
+            IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddJsonFile($"appsettings.{env}.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 

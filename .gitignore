@@ -399,4 +399,4 @@ FodyWeavers.xsd
 BuscaMissa/appsettings.Development.json
 BuscaMissa/Properties/launchSettings.json
 BuscaMissa/BuscaMissa.pem
-BuscaMissa/importantes/*
+importantes/*

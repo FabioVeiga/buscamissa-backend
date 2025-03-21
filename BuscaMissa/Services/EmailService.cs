@@ -11,11 +11,29 @@ namespace BuscaMissa.Services
         private readonly IMailerSendEmailClient _mailerSendEmailClient = mailerSendEmailClient;
         private readonly SettingCodigoValidacao _mailerSendEmailSetting = options.Value;
 
-        public async Task<string?> EnviarEmail(string[] to, string subject, IDictionary<string, string>? variables, CancellationToken cancellationToken = default)
+        public async Task<string?> EnviarEmail(string[] to, string subject, string html, CancellationToken cancellationToken = default)
         {
             var parameters = new MailerSendEmailParameters();
             parameters
-                .WithTemplateId(_mailerSendEmailSetting.TemplateIdCodigoValidacao)
+                .WithFrom(_mailerSendEmailSetting.RemetenteEmail, _mailerSendEmailSetting.RemetenteNome)
+                .WithTo(to)
+                .WithSubject(subject)
+                .WithHtmlBody(html);
+
+            var response = await _mailerSendEmailClient.SendEmailAsync(parameters, cancellationToken);
+            if (response is { Errors.Count: > 0 })
+            {
+                Console.WriteLine(response);
+            }
+
+            return response.MessageId;
+        }
+
+        public async Task<string?> EnviarEmailComTemplate(string[] to, string subject, IDictionary<string, string>? variables, string templateId, CancellationToken cancellationToken = default)
+        {
+            var parameters = new MailerSendEmailParameters();
+            parameters
+                .WithTemplateId(templateId)
                 .WithFrom(_mailerSendEmailSetting.RemetenteEmail, _mailerSendEmailSetting.RemetenteNome)
                 .WithTo(to)
                 .WithSubject(subject);
@@ -31,7 +49,7 @@ namespace BuscaMissa.Services
             var response = await _mailerSendEmailClient.SendEmailAsync(parameters, cancellationToken);
             if (response is { Errors.Count: > 0 })
             {
-                Console.WriteLine(response);         
+                Console.WriteLine(response);
             }
 
             return response.MessageId;
@@ -41,12 +59,12 @@ namespace BuscaMissa.Services
         {
             try
             {
-                var dict = new Dictionary<string,string>{
+                var dict = new Dictionary<string, string>{
                     {"nome", nome},
                     {"codigo", codigo.ToString()},
                     {"validoAte", DataHoraHelper.Formatar(validoAte)}
                 };
-                var enviado = await EnviarEmail([emailPara], "Código para Validação", dict);
+                var enviado = await EnviarEmailComTemplate([emailPara], "Código para Validação", dict, _mailerSendEmailSetting.TemplateIdCodigoValidacao);
                 return enviado != null;
             }
             catch (Exception ex)

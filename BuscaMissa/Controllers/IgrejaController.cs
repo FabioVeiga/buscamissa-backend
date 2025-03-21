@@ -13,7 +13,7 @@ namespace BuscaMissa.Controllers
     [Route("api/[controller]")]
     public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
     ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
-    EnderecoService enderecoService, ContatoService contatoService) 
+    EnderecoService enderecoService, ContatoService contatoService, IgrejaDenunciaService igrejaDenunciaService) 
     : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
@@ -25,6 +25,7 @@ namespace BuscaMissa.Controllers
         private readonly ImagemService _imagemService = imagemService;
         private readonly EnderecoService _enderecoService = enderecoService;
         private readonly ContatoService _contatoService = contatoService;
+        private readonly IgrejaDenunciaService _igrejaDenunciaService = igrejaDenunciaService;
 
         [HttpPost]
         [Authorize(Roles = "App")]
@@ -208,6 +209,26 @@ namespace BuscaMissa.Controllers
             }
         }
     
+        [HttpPost]
+        [Route("denunciar/{igrejaId}")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> Denunciar(int igrejaId, [FromBody] DenunciarIgrejaRequest request){
+            try
+            {
+                if(!ModelState.IsValid) return BadRequest();
+                var resultado = await _igrejaService.BuscarPorIdAsync(igrejaId);
+                if(resultado == null) return NotFound();
+                request.IgrejaId = igrejaId;
+                var resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
+                return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
     }
 }
 
