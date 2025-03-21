@@ -1,3 +1,4 @@
+using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Services;
@@ -71,7 +72,6 @@ namespace BuscaMissa.Controllers
                 }
                 
                 await _controleService.EditarAsync(controle);
-                
                 #if DEBUG
                     Console.WriteLine("DEBUG");
                 #else
