@@ -17,7 +17,6 @@ namespace BuscaMissa.Services
             try
             {
                 var model = new CodigoPermissao(){
-                    Controle = controle,
                     ControleId = controle?.Id,
                     CodigoToken = await GerarCodigo(),
                     ValidoAte = DateTime.Now.AddMinutes(30)
