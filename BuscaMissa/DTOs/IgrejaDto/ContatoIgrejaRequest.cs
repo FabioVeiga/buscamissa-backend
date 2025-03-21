@@ -7,9 +7,13 @@ namespace BuscaMissa.DTOs.IgrejaDto
     {
         [NoProfanity]
         public string? EmailContato { get; set; }
+        [RegularExpression(@"^\d{2}$", ErrorMessage = "DDD deve conter apenas números e ter 2 dígitos.")]
         public string? DDD { get; set; }
+        [RegularExpression(@"^\d{8}$", ErrorMessage = "O Telefone deve conter apenas números e ter 9 dígitos.")]
         public string? Telefone { get; set; }
+        [RegularExpression(@"^\d{2}$", ErrorMessage = "DDDWhatsApp deve conter apenas números e ter 2 dígitos.")]
         public string? DDDWhatsApp { get; set; }
+        [RegularExpression(@"^\d{9}$", ErrorMessage = "O TelefoneWhatsApp deve conter apenas números e ter 9 dígitos.")]
         public string? TelefoneWhatsApp { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
