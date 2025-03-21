@@ -13,7 +13,11 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+System.Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {env}");
 string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
+var secret = Environment.GetEnvironmentVariable("SecretApp");
+var key = Encoding.ASCII.GetBytes(secret!);
 
 builder.Configuration.AddAzureKeyVault(
     new Uri(keyVaultUri),
@@ -76,8 +80,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-var secret = Environment.GetEnvironmentVariable("SecretApp");
-var key = Encoding.ASCII.GetBytes(secret!);
 
 builder.Services.AddAuthentication(x =>
 {

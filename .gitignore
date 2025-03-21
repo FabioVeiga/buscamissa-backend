@@ -400,3 +400,4 @@ BuscaMissa/appsettings.Development.json
 BuscaMissa/Properties/launchSettings.json
 BuscaMissa/BuscaMissa.pem
 importantes/*
+.vscode/*

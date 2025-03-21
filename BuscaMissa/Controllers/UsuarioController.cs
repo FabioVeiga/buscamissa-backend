@@ -75,8 +75,16 @@ namespace BuscaMissa.Controllers
                 #if DEBUG
                     Console.WriteLine("DEBUG");
                 #else
-                    var enviarEmail = await _emailService.EnviarCodigoValidador(usuario.Nome, codigoValidador.CodigoToken, codigoValidador.ValidoAte, usuario.Email);
-                    if (!enviarEmail) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no emil do email" }));
+                    var responseEmail = await _emailService.EnviarEmail(
+                            [usuario.Email], 
+                            $"Código para Validação", 
+                            Contant.EmailValidacaoToken
+                            .Replace("{nome}",usuario.Nome)
+                            .Replace("{token}",codigo.CodigoToken.ToString())
+                            .Replace("{ano}",DataHoraHelper.Ano())
+                        );
+                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
+                    if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
                 #endif
                 
 
