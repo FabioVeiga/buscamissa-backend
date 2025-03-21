@@ -75,7 +75,7 @@ namespace BuscaMissa.Services
             }
         }
 
-        public async Task<IgrejaResponse> AtivarAsync(Controle model, Usuario usuario)
+        public async Task<bool> AtivarAsync(Controle model, Usuario usuario)
         {
             try
             {
@@ -85,8 +85,8 @@ namespace BuscaMissa.Services
                 model.Igreja.UsuarioId = usuario.Id;
                 model.Status = Enums.StatusEnum.Finalizado;
                 _context.Controles.Update(model);
-                await _context.SaveChangesAsync();
-                return (IgrejaResponse)model.Igreja;
+                var resultado = await _context.SaveChangesAsync();
+                return resultado > 0;
             }
             catch (Exception ex)
             {
