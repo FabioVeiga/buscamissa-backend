@@ -47,6 +47,7 @@ namespace BuscaMissa.Services
                     .Include(x => x.Missas)
                     .Include(Igreja => Igreja.Contato)
                     .Include(Igreja => Igreja.RedesSociais)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Endereco.Cep == CepHelper.FormatarCep(cep));
 
                 if (model == null) return null;
@@ -104,6 +105,7 @@ namespace BuscaMissa.Services
                 .Include(x => x.Usuario)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
+                .AsNoTracking()
                 .Where(x =>
                     x.Endereco.Uf == filtro.Uf.ToUpper()
                     && x.Ativo == filtro.Ativo)
@@ -247,8 +249,8 @@ namespace BuscaMissa.Services
             try
             {
                 return new InformacoesGeraisResponse{
-                    QuantidadesIgrejas = _context.Igrejas.Count(x => x.Ativo),
-                    QuantidadeMissas = _context.Missas.Count()
+                    QuantidadesIgrejas = _context.Igrejas.AsNoTracking().Count(x => x.Ativo),
+                    QuantidadeMissas = _context.Missas.AsNoTracking().Count()
                 };
             }
             catch (Exception ex)

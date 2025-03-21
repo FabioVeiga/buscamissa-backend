@@ -56,6 +56,7 @@ namespace BuscaMissa.Services
             {
                 return await _context.CodigoPermissoes
                 .Include(x => x.Controle)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.CodigoToken == codigoToken);
             }
             catch (Exception ex)
@@ -71,6 +72,7 @@ namespace BuscaMissa.Services
             {
                 return await _context.CodigoPermissoes
                 .Include(x => x.Controle)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Controle!.IgrejaId == IgrejaId);
             }
             catch (Exception ex)

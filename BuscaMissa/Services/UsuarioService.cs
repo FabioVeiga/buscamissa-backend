@@ -43,12 +43,16 @@ namespace BuscaMissa.Services
 
         public async Task<Usuario?> BuscarPorCodigo(int id)
         {
-            return await _context.Usuarios
+            return await _context
+            .Usuarios
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
         }
         public async Task<Usuario?> BuscarPorEmailAsync(string email)
         {
-            return await _context.Usuarios
+            return await _context
+            .Usuarios
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Email.ToUpper() == email.ToUpper());
         }
         public UsuarioResponse GerarTokenAsync(Usuario usuario)
@@ -96,6 +100,7 @@ namespace BuscaMissa.Services
                 AceitarPromocao = x.AceitarPromocao,
                 AceitarTermo = x.AceitarTermo
             })
+            .AsNoTracking()
             .AsQueryable();
             if (filtro.Nome != null)
             query = query.Where(x => x.Nome.Contains(filtro.Nome));
