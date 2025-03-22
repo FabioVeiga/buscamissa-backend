@@ -87,6 +87,7 @@ namespace BuscaMissa.Services
             {
                 return await _context.CodigoPermissoes
                 .Include(x => x.Controle)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.ControleId == controleId);
             }
             catch (Exception ex)
@@ -119,7 +120,9 @@ namespace BuscaMissa.Services
         private async Task<int> GerarCodigo()
         {
             var codigoToken = SenhaHelper.GerarSenhaTemporariaInt();
-            var temCodigo = await _context.CodigoPermissoes.FirstOrDefaultAsync(c => c.CodigoToken == codigoToken);
+            var temCodigo = await _context
+            .CodigoPermissoes.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.CodigoToken == codigoToken);
             if (temCodigo != null)
                 return await GerarCodigo();
             return codigoToken;
