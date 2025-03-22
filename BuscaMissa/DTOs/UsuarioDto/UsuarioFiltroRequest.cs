@@ -6,6 +6,7 @@ namespace BuscaMissa.DTOs.UsuarioDto
     {
         public string? Nome { get; set; }
         public string? Email { get; set; }
+        public bool? Bloqueado { get; set; }
         public PaginacaoRequest Paginacao { get; set; } = default!;
     }
 }

@@ -19,6 +19,8 @@ namespace BuscaMissa.Models
         [Required]
         public bool AceitarTermo { get; set; }
         public bool? AceitarPromocao { get; set; }
+        public bool? Bloqueado { get; set; }
+        public string? MotivoBloqueio { get; set; }
         [Required]
         public DateTime Criacao { get; set; } = DateTime.Now;
         public ICollection<Igreja> Igrejas { get; set; } = [];
@@ -46,7 +48,6 @@ namespace BuscaMissa.Models
                 AceitarPromocao = request.AceitarPromocao
             };
         }
-        
     }
 
 }

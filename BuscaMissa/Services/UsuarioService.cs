@@ -32,6 +32,14 @@ namespace BuscaMissa.Services
             return usuario;
         }
 
+        public async Task<bool> EditarAsync(Usuario usuario)
+        {
+           
+            _context.Usuarios.Update(usuario);
+            var resultado = await _context.SaveChangesAsync();
+            return resultado > 0;
+        }
+
         public bool Autenticar(LoginRequest request, Usuario usuario)
         {
             if(!request.Email.Contains(usuario.Email))
@@ -102,10 +110,13 @@ namespace BuscaMissa.Services
             })
             .AsNoTracking()
             .AsQueryable();
+            
             if (filtro.Nome != null)
-            query = query.Where(x => x.Nome.Contains(filtro.Nome));
+                query = query.Where(x => x.Nome.Contains(filtro.Nome));
             if (filtro.Email != null)
-            query = query.Where(x => x.Email.Contains(filtro.Email));
+                query = query.Where(x => x.Email.Contains(filtro.Email));
+            if(filtro.Bloqueado.HasValue)
+                query = query.Where(x => x.Bloqueado == filtro.Bloqueado.Value);
 
             var resultado = await query.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
             return resultado;

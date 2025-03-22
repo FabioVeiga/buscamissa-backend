@@ -102,6 +102,29 @@ namespace BuscaMissa.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("igreja/bloquear-desbloquear/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> BloquearDesbloquearAsync(int id, [FromBody] UsuarioBloqueadoRequest request)
+        {
+            try
+            {
+                if(!ModelState.IsValid) return BadRequest();
+                var model = await _usuarioService.BuscarPorCodigo(id);
+                if (model == null) return NotFound(new ApiResponse<dynamic>("Usuário não encontrado"));
+                model.Bloqueado = request.Bloqueado;
+                model.MotivoBloqueio = request.MotivoBloqueio;
+                var resultado = await _usuarioService.EditarAsync(model);
+                return Ok(new ApiResponse<dynamic>(new { resultado }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         #endregion
 
         #region Igreja
@@ -206,6 +229,7 @@ namespace BuscaMissa.Controllers
         {
             try
             {
+                if(!ModelState.IsValid) return BadRequest();
                 var model = await _igrejaDenunciaService.BuscarPorIdAsync(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Denuncia não encontrada"));
                 model.AcaoRealizada = request.Solucao;

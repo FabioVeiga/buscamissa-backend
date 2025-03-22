@@ -30,6 +30,7 @@ namespace BuscaMissa.Controllers
                 if (!ModelState.IsValid) BadRequest();
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 if (usuario == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não existe!" }));
+                if (usuario.Bloqueado.HasValue && usuario.Bloqueado.Value) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário bloqueado!" }));
                 var autenticado = _usuarioService.Autenticar(request, usuario);
                 if (!autenticado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "E-mail ou Senha invalido!" }));
                 var usuarioResponse = _usuarioService.GerarTokenAsync(usuario);
