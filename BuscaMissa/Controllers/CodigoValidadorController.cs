@@ -35,7 +35,7 @@ namespace BuscaMissa.Controllers
                 var mensagemTela = string.Empty;
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 if (usuario == null) return NotFound(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não encontrado!" }));
-
+                if (usuario.Bloqueado.HasValue && usuario.Bloqueado.Value) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário bloqueado! Entrar em contato pelo suporte@buscamissa.com.br!" }));
                 var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
                 if (controle is null || controle.Igreja is null) return NotFound(new ApiResponse<dynamic>(new { mensagemTela = "Não existe este controle!" }));
                 var codigo = await _codigoValidacaoService.BuscarPorCodigoTokenAsync(request.CodigoValidador);

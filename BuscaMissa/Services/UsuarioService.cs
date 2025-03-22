@@ -106,11 +106,13 @@ namespace BuscaMissa.Services
                 Perfil = x.Perfil,
                 Criacao = x.Criacao,
                 AceitarPromocao = x.AceitarPromocao,
-                AceitarTermo = x.AceitarTermo
+                AceitarTermo = x.AceitarTermo,
+                Bloqueado = x.Bloqueado,
+                MotivoBloqueio = x.MotivoBloqueio
             })
             .AsNoTracking()
             .AsQueryable();
-            
+
             if (filtro.Nome != null)
                 query = query.Where(x => x.Nome.Contains(filtro.Nome));
             if (filtro.Email != null)
