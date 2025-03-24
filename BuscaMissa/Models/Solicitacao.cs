@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BuscaMissa.DTOs.SolicitacaoDto;
 using BuscaMissa.Enums;
 
 namespace BuscaMissa.Models
@@ -24,5 +25,15 @@ namespace BuscaMissa.Models
         public string? Resposta { get; set; }
         public bool? EnviarResposta { get; set; }
         public DateTime? DataSolucao { get; set; }
+
+        public static explicit operator Solicitacao(SolicitacaoUsuarioRequest request){
+            return new Solicitacao{
+                Tipo = request.Tipo,
+                Assunto = request.Assunto,
+                Mensagem = request.Mensagem,
+                NomeSolicitante = request.NomeSolicitante,
+                EmailSolicitante = request.EmailSolicitante
+            };
+        }
     }
 }

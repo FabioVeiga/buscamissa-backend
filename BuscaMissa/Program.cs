@@ -38,6 +38,7 @@ builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
 builder.Services.AddScoped<ContatoService>();
 builder.Services.AddScoped<IgrejaDenunciaService>();
+builder.Services.AddScoped<SolicitacaoService>();
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddMailerSendEmailClient(options =>

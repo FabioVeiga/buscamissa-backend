@@ -1,6 +1,7 @@
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
+using BuscaMissa.DTOs.SolicitacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
@@ -15,7 +16,7 @@ namespace BuscaMissa.Controllers
     public class AdminController(
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
         ImagemService imagemService, ViaCepService viaCepService, ContatoService contatoService, 
-        IgrejaDenunciaService igrejaDenunciaService, EmailService emailService
+        IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService
         ) : ControllerBase
     {
         private readonly ILogger<AdminController> _logger = logger;
@@ -26,6 +27,7 @@ namespace BuscaMissa.Controllers
         private readonly ContatoService _contatoService = contatoService;
         private readonly IgrejaDenunciaService _igrejaDenunciaService = igrejaDenunciaService;
         private readonly EmailService _emailService = emailService;
+        private readonly SolicitacaoService _solicitacaoService = solicitacaoService;
 
         #region Usuario
         [HttpGet]
@@ -257,5 +259,47 @@ namespace BuscaMissa.Controllers
         }
 
         #endregion
+    
+        #region Solicitacao
+        [HttpPost]
+        [Route("solicitacao/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SolicitacaoAdmin(int id, [FromBody] SolicitacaoAdminRequest request)
+        {
+            try
+            {
+                if(!ModelState.IsValid) return BadRequest(ModelState);
+                var model = await _solicitacaoService.BuscarPorId(id);
+                if (model == null) return NotFound(new ApiResponse<dynamic>("Solicitação não encontrada"));
+                model.Resposta = request.Resposta;
+                model.Solucao = request.Solucao;
+                model.Resolvido = request.Resolvido;
+                model.EnviarResposta = request.EnviarResposta;
+                await _solicitacaoService.EditarAsync(model);
+                if(request.EnviarResposta){
+                    var responseEmail = await _emailService.EnviarEmail(
+                        [model.EmailSolicitante], 
+                        $"Resposta da  solicitação - {model.Tipo}", 
+                        Contant.EmailSolicitacaoResposta
+                        .Replace("{nomeUsuario}",model.NomeSolicitante)
+                        .Replace("{numeroSolicitacao}",model.Numero)
+                        .Replace("{assuntoSolicitacao}",model.Assunto)
+                        .Replace("{mensagemSolicitacao}",model.Mensagem)
+                        .Replace("{respostaSolicitacao}",model.Resposta)
+                        .Replace("{ano}",DataHoraHelper.Ano())
+                        );
+                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
+                }
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+        #endregion
+    
     }
 }
