@@ -27,6 +27,7 @@ namespace BuscaMissa.Services
         {
             try
             {
+                model.DataSolucao = DateTime.Now;
                 _context.Update(model);
                 await _context.SaveChangesAsync();
             }
