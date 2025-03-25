@@ -145,14 +145,14 @@ namespace BuscaMissa.Controllers
 
                 var igreja = await _igrejaService.InserirAsync(request);
                 igreja.Ativo = true;
-                igreja = await _igrejaService.EditarAsync(igreja);
-
+                
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp2 = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
-                    await _igrejaService.EditarAsync(igreja);
                 }
+
+                igreja = await _igrejaService.EditarAsync(igreja);
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
             }
@@ -166,7 +166,7 @@ namespace BuscaMissa.Controllers
         [HttpPut]
         [Authorize(Roles = "Admin")]
         [Route("igreja/atualizar")]
-        public async Task<IActionResult> Atualizar([FromBody] AtualicaoIgrejaRequest request)
+        public async Task<IActionResult> Atualizar([FromBody] AtualicaoIgrejaAdminRequest request)
         {
             try
             {
@@ -183,14 +183,14 @@ namespace BuscaMissa.Controllers
                     else
                         await _contatoService.InserirAsync(contato);
                 }
-                await _igrejaService.EditarAsync(igreja, request);
 
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
-                    await _igrejaService.EditarAsync(igreja);
                 }
+                await _igrejaService.EditarAsync(igreja, request);
+
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
             }
