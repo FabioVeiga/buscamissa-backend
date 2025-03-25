@@ -174,20 +174,16 @@ namespace BuscaMissa.Controllers
                 var igreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
 
-                await _igrejaService.EditarAsync(igreja, request);
-
                 if (request.Contato is not null)
                 {
                     var contato = (Contato)request.Contato;
                     contato.IgrejaId = igreja.Id;
                     if (igreja.Contato is not null)
-                    {
                         contato.Id = igreja.Contato!.Id;
-                        await _contatoService.EditarAsync(contato);
-                    }
                     else
                         await _contatoService.InserirAsync(contato);
                 }
+                await _igrejaService.EditarAsync(igreja, request);
 
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {

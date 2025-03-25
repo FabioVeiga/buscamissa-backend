@@ -75,6 +75,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public TipoRedeSocialEnum TipoRedeSocial { get; set; }
         public string NomeRedeSocial { get; set; } = default!;
         public string Url { get; set; } = default!;
+        public string NomeDoPerfil { get; set; } = default!;
 
         public static explicit operator IgrejaRedesSociaisResponse(RedeSocial redeSocial)
         {
@@ -82,6 +83,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
             {
                 TipoRedeSocial = redeSocial.TipoRedeSocial,
                 NomeRedeSocial = redeSocial.TipoRedeSocial.ToString(),
+                NomeDoPerfil = redeSocial.NomeDoPerfil,
                 Url =  Helpers.RedeSocialHelper.ObterURlRedesSociais(redeSocial.TipoRedeSocial, redeSocial.NomeDoPerfil)
             };
         }
