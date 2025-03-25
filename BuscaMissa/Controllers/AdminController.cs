@@ -15,7 +15,7 @@ namespace BuscaMissa.Controllers
     [Route("api/[controller]")]
     public class AdminController(
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
-        ImagemService imagemService, ViaCepService viaCepService, ContatoService contatoService, 
+        ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService, 
         IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService
         ) : ControllerBase
     {
@@ -23,7 +23,7 @@ namespace BuscaMissa.Controllers
         private readonly UsuarioService _usuarioService = usuarioService;
         private readonly IgrejaService _igrejaService = igrejaService;
         private readonly ImagemService _imagemService = imagemService;
-        private readonly ViaCepService _viaCepService = viaCepService;
+        private readonly RedeSociaisService _redeSociaisService = redeSociaisService;
         private readonly ContatoService _contatoService = contatoService;
         private readonly IgrejaDenunciaService _igrejaDenunciaService = igrejaDenunciaService;
         private readonly EmailService _emailService = emailService;
@@ -189,6 +189,22 @@ namespace BuscaMissa.Controllers
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                 }
+
+                if(request.RedeSociais is not null)
+                {
+                    foreach (var item in request.RedeSociais)
+                    {
+                        var redeSocial = (RedeSocial) item;
+                        if(!item.Id.HasValue)
+                        {
+                            redeSocial.IgrejaId = igreja.Id;
+                            await _redeSociaisService.InserirAsync(redeSocial);
+                        }
+                        else
+                            await _redeSociaisService.EditarAsync(redeSocial);
+                    }
+                }
+
                 await _igrejaService.EditarAsync(igreja, request);
 
                 var response = (IgrejaResponse)igreja;

@@ -7,6 +7,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
 {
     public class RedeSolcialIgrejaRequest : IValidatableObject
     {
+        public int? Id { get; set; }
         public TipoRedeSocialEnum TipoRedeSocial { get; set; }
         [NoProfanity]
         public string NomeDoPerfil { get; set; } = null!;

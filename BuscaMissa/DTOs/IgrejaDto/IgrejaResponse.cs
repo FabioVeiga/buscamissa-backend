@@ -72,6 +72,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
 
     public class IgrejaRedesSociaisResponse()
     {
+        public int Id { get; set; }
         public TipoRedeSocialEnum TipoRedeSocial { get; set; }
         public string NomeRedeSocial { get; set; } = default!;
         public string Url { get; set; } = default!;
@@ -81,6 +82,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         {
             return new IgrejaRedesSociaisResponse()
             {
+                Id = redeSocial.Id,
                 TipoRedeSocial = redeSocial.TipoRedeSocial,
                 NomeRedeSocial = redeSocial.TipoRedeSocial.ToString(),
                 NomeDoPerfil = redeSocial.NomeDoPerfil,
