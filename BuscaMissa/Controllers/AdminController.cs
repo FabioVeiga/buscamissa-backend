@@ -195,9 +195,9 @@ namespace BuscaMissa.Controllers
                     foreach (var item in request.RedeSociais)
                     {
                         var redeSocial = (RedeSocial) item;
+                        redeSocial.IgrejaId = igreja.Id;
                         if(!item.Id.HasValue)
                         {
-                            redeSocial.IgrejaId = igreja.Id;
                             await _redeSociaisService.InserirAsync(redeSocial);
                         }
                         else
