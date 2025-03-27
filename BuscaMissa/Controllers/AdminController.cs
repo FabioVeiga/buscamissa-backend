@@ -211,19 +211,20 @@ namespace BuscaMissa.Controllers
 
                 if (request.Contato is not null)
                 {
-                    var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
-                    if (contato is not null)
+                    //var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
+                    if (igreja.Contato is not null)
                     {
-                        contato.DDD = request.Contato.DDD;
-                        contato.Telefone = request.Contato.Telefone;
-                        contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
-                        contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
-                        contato.EmailContato = request.Contato.EmailContato;
+                        igreja.Contato.DDD = request.Contato.DDD;
+                        igreja.Contato.Telefone = request.Contato.Telefone;
+                        igreja.Contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
+                        igreja.Contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
+                        igreja.Contato.EmailContato = request.Contato.EmailContato;
                     }
                     else
                     {
-                        contato = (Contato)request.Contato;
+                        var contato = (Contato)request.Contato;
                         contato.IgrejaId = igreja.Id;
+                        await _contatoService.InserirAsync(contato);
                     }
                 }
 
