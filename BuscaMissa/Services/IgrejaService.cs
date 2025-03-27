@@ -105,6 +105,7 @@ namespace BuscaMissa.Services
                 .Include(x => x.Usuario)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
+                .Include(x => x.Denuncia)
                 .AsNoTracking()
                 .Where(x =>
                     x.Endereco.Uf == filtro.Uf.ToUpper()
@@ -140,8 +141,8 @@ namespace BuscaMissa.Services
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
-                    RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList()
-                    
+                    RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
+                    IdDenuncia = x.Denuncia == null ? null : x.Denuncia.Id
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
@@ -288,7 +289,10 @@ namespace BuscaMissa.Services
             {
                 return new InformacoesGeraisResponse{
                     QuantidadesIgrejas = _context.Igrejas.AsNoTracking().Count(x => x.Ativo),
-                    QuantidadeMissas = _context.Missas.AsNoTracking().Count()
+                    QuantidadeMissas = _context.Missas.AsNoTracking().Count(),
+                    QuantidadeIgrejaDenunciaNaoAtendida = _context.IgrejaDenuncias.AsNoTracking().Count(x => string.IsNullOrEmpty(x.AcaoRealizada)),
+                    QuantidadeSolicitacoesNaoAtendida = _context.Solicitacoes.AsNoTracking().Count(x => !x.Resolvido),
+                    QuantidadeDeUsuarios = _context.Usuarios.AsNoTracking().Count(x => x.Perfil != Enums.PerfilEnum.Admin)
                 };
             }
             catch (Exception ex)

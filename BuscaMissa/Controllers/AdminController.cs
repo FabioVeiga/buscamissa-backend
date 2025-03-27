@@ -105,7 +105,7 @@ namespace BuscaMissa.Controllers
         }
 
         [HttpPut]
-        [Route("igreja/bloquear-desbloquear/{id}")]
+        [Route("usuario/bloquear-desbloquear/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> BloquearDesbloquearAsync(int id, [FromBody] UsuarioBloqueadoRequest request)
         {

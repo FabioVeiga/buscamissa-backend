@@ -13,6 +13,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string? Paroco { get; set; }
         public string? ImagemUrl { get; set; }
         public bool Ativo { get; set; }
+        public int? IdDenuncia { get; set; }
         public DateTime Criacao { get; set; }
         public DateTime Alteracao { get; set; }
         public UsuarioDtoResponse? Usuario { get; set; } = default!;
@@ -37,7 +38,8 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Endereco = (EnderecoIgrejaResponse)igreja.Endereco,
                 Missas = [.. igreja.Missas.Select(m => (MissaResponse)m)],
                 Contato = igreja.Contato is null ? null : (IgrejaContatoResponse)igreja.Contato,
-                RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : [.. igreja.RedesSociais.Select(rs => (IgrejaRedesSociaisResponse)rs)]
+                RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : [.. igreja.RedesSociais.Select(rs => (IgrejaRedesSociaisResponse)rs)],
+                IdDenuncia = igreja.Denuncia is null ? null : igreja.Denuncia.Id
             };
         }
     }
