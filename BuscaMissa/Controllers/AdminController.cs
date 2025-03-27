@@ -15,7 +15,7 @@ namespace BuscaMissa.Controllers
     [Route("api/[controller]")]
     public class AdminController(
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
-        ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService, 
+        ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService,
         IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService
         ) : ControllerBase
     {
@@ -111,7 +111,7 @@ namespace BuscaMissa.Controllers
         {
             try
             {
-                if(!ModelState.IsValid) return BadRequest();
+                if (!ModelState.IsValid) return BadRequest();
                 var model = await _usuarioService.BuscarPorCodigo(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Usuário não encontrado"));
                 model.Bloqueado = request.Bloqueado;
@@ -145,7 +145,7 @@ namespace BuscaMissa.Controllers
 
                 var igreja = await _igrejaService.InserirAsync(request);
                 igreja.Ativo = true;
-                
+
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
@@ -190,18 +190,40 @@ namespace BuscaMissa.Controllers
                     var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                 }
 
-                if(request.RedeSociais is not null)
+                if (request.RedeSociais is not null)
                 {
                     foreach (var item in request.RedeSociais)
                     {
-                        var redeSocial = (RedeSocial) item;
-                        redeSocial.IgrejaId = igreja.Id;
-                        if(!item.Id.HasValue)
+                        var temRede = igreja.RedesSociais.FirstOrDefault(x => x.TipoRedeSocial == item.TipoRedeSocial);
+                        if (temRede is not null)
                         {
-                            await _redeSociaisService.InserirAsync(redeSocial);
+                            temRede.NomeDoPerfil = item.NomeDoPerfil;
                         }
                         else
-                            await _redeSociaisService.EditarAsync(redeSocial);
+                        {
+                            var rede = (RedeSocial)item;
+                            rede.IgrejaId = igreja.Id;
+                            await _redeSociaisService.InserirAsync(rede);
+                        }
+                    }
+                }
+
+
+                if (request.Contato is not null)
+                {
+                    var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
+                    if (contato is not null)
+                    {
+                        contato.DDD = request.Contato.DDD;
+                        contato.Telefone = request.Contato.Telefone;
+                        contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
+                        contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
+                        contato.EmailContato = request.Contato.EmailContato;
+                    }
+                    else
+                    {
+                        contato = (Contato)request.Contato;
+                        contato.IgrejaId = igreja.Id;
                     }
                 }
 
@@ -243,20 +265,21 @@ namespace BuscaMissa.Controllers
         {
             try
             {
-                if(!ModelState.IsValid) return BadRequest();
+                if (!ModelState.IsValid) return BadRequest();
                 var model = await _igrejaDenunciaService.BuscarPorIdAsync(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Denuncia não encontrada"));
                 model.AcaoRealizada = request.Solucao;
                 var response = await _igrejaDenunciaService.SolucaoAsync(model);
-                if(request.EnviarEmailDenunciador){
+                if (request.EnviarEmailDenunciador)
+                {
                     var responseEmail = await _emailService.EnviarEmail(
-                        [model.EmailDenunciador], 
-                        $"Resposta da denuncia - {model.Igreja.Nome}", 
+                        [model.EmailDenunciador],
+                        $"Resposta da denuncia - {model.Igreja.Nome}",
                         Contant.EmailDenuncia
-                        .Replace("{nomeDenunciador}",model.NomeDenunciador)
-                        .Replace("{denuncia}",model.Descricao)
-                        .Replace("{solução}",request.Solucao)
-                        .Replace("{ano}",DataHoraHelper.Ano())
+                        .Replace("{nomeDenunciador}", model.NomeDenunciador)
+                        .Replace("{denuncia}", model.Descricao)
+                        .Replace("{solução}", request.Solucao)
+                        .Replace("{ano}", DataHoraHelper.Ano())
                         );
                     Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
@@ -271,7 +294,7 @@ namespace BuscaMissa.Controllers
         }
 
         #endregion
-    
+
         #region Solicitacao
         [HttpPost]
         [Route("solicitacao/{id}")]
@@ -280,7 +303,7 @@ namespace BuscaMissa.Controllers
         {
             try
             {
-                if(!ModelState.IsValid) return BadRequest(ModelState);
+                if (!ModelState.IsValid) return BadRequest(ModelState);
                 var model = await _solicitacaoService.BuscarPorId(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Solicitação não encontrada"));
                 model.Resposta = request.Resposta;
@@ -288,17 +311,18 @@ namespace BuscaMissa.Controllers
                 model.Resolvido = request.Resolvido;
                 model.EnviarResposta = request.EnviarResposta;
                 await _solicitacaoService.EditarAsync(model);
-                if(request.EnviarResposta){
+                if (request.EnviarResposta)
+                {
                     var responseEmail = await _emailService.EnviarEmail(
-                        [model.EmailSolicitante], 
-                        $"Resposta da  solicitação - {model.Tipo}", 
+                        [model.EmailSolicitante],
+                        $"Resposta da  solicitação - {model.Tipo}",
                         Contant.EmailSolicitacaoResposta
-                        .Replace("{nomeUsuario}",model.NomeSolicitante)
-                        .Replace("{numeroSolicitacao}",model.Numero)
-                        .Replace("{assuntoSolicitacao}",model.Assunto)
-                        .Replace("{mensagemSolicitacao}",model.Mensagem)
-                        .Replace("{respostaSolicitacao}",model.Resposta)
-                        .Replace("{ano}",DataHoraHelper.Ano())
+                        .Replace("{nomeUsuario}", model.NomeSolicitante)
+                        .Replace("{numeroSolicitacao}", model.Numero)
+                        .Replace("{assuntoSolicitacao}", model.Assunto)
+                        .Replace("{mensagemSolicitacao}", model.Mensagem)
+                        .Replace("{respostaSolicitacao}", model.Resposta)
+                        .Replace("{ano}", DataHoraHelper.Ano())
                         );
                     Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
@@ -312,6 +336,6 @@ namespace BuscaMissa.Controllers
             }
         }
         #endregion
-    
+
     }
 }

@@ -24,7 +24,7 @@ namespace BuscaMissa.DTOs.MissaDto
                 if (!TimeSpan.TryParse(Horario, out var horario))
                     results.Add(new ValidationResult("Formato do horario invalido.", [nameof(Horario)]));
                 else
-                    HorarioMissa = horario;
+                    HorarioMissa = new TimeSpan(horario.Hours, horario.Minutes, 0);
             }
             
             if(!Enum.IsDefined(typeof(DiaDaSemanaEnum), DiaSemana))

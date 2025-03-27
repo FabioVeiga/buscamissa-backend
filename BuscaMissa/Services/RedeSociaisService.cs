@@ -1,4 +1,5 @@
 using BuscaMissa.Context;
+using BuscaMissa.Enums;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,21 @@ namespace BuscaMissa.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while editing {Model}", model);
+                throw;
+            }
+        }
+
+        public async Task<RedeSocial?> ObterPorTipoEIgrejaIdAsync(TipoRedeSocialEnum tipoRedeSocial, int igrejaId)
+        {
+            try
+            {
+                return await _context.RedesSociais
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId && x.TipoRedeSocial == tipoRedeSocial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching {Model}", igrejaId);
                 throw;
             }
         }
