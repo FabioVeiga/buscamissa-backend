@@ -11,13 +11,17 @@ namespace BuscaMissa.Services
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<IgrejaTemporariaService> _logger = logger;
 
-        public async Task<AtualizacaoIgrejaResponse> BuscarPorIgrejaIdAsync(int igrejaId)
+        public async Task<AtualizacaoIgrejaResponse?> BuscarPorIgrejaIdAsync(int igrejaId)
         {
             try
             {
-               var model = await _context.IgrejaTemporarias
+                var model = await _context.IgrejaTemporarias
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+
+                if(model is null){
+                    return null;
+                }
 
                 var missasTemp = await _context.MissasTemporarias
                     .Where(x => x.IgrejaId == igrejaId)
