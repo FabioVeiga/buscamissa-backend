@@ -1,4 +1,5 @@
 using BuscaMissa.Context;
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.Models;
@@ -25,14 +26,22 @@ namespace BuscaMissa.Services
 
                 var missasTemp = await _context.MissasTemporarias
                     .Where(x => x.IgrejaId == igrejaId)
+                    .AsNoTracking()
                     .ToListAsync();
+
+                var igreja = await _context.Igrejas
+                    .Include(x => x.Endereco)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == model.IgrejaId);
 
                 var response = new AtualizacaoIgrejaResponse
                 {
                     Id = model!.Id,
+                    Nome = igreja!.Nome,
                     ImagemUrl = model.ImagemUrl,
                     Paroco = model.Paroco,
-                    MissasTemporaria = missasTemp.Select(item => (MissaResponse)item).ToList()
+                    MissasTemporaria = [.. missasTemp.Select(item => (MissaResponse)item)],
+                    Endereco = (EnderecoIgrejaResponse)igreja.Endereco
                 };
 
                 return response;

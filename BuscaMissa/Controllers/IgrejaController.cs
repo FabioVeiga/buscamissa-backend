@@ -162,6 +162,10 @@ namespace BuscaMissa.Controllers
             {
                 var resultado = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(igrejaId);
                 if (resultado is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Não tem nenhuma atualização!" }));
+                if(resultado.ImagemUrl != string.Empty)
+                {
+                    resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{resultado.ImagemUrl}");
+                }
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
