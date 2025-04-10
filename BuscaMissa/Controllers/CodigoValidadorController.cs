@@ -90,7 +90,7 @@ namespace BuscaMissa.Controllers
                     }));
                 }
                 controle.Status = Enums.StatusEnum.Finalizado;
-                await _controleService.EditarAsync(controle);
+                await _controleService.EditarStatusAsync(controle.Status, controle.Id);
                 var response = new ApiResponse<dynamic>(new { 
                     mensagemTela, 
                     #if DEBUG

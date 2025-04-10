@@ -130,7 +130,7 @@ namespace BuscaMissa.Controllers
                 var resultado = await _igrejaTemporariaService.InserirAsync(request);
                 if (!resultado) return UnprocessableEntity();
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
-                await _controleService.EditarAsync(controle);
+                await _controleService.EditarStatusAsync(controle.Status, controle.Id);
                 if(request.Contato is not null)
                 {
                     var contato = (Contato)request.Contato;

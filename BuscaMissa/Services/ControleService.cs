@@ -1,4 +1,5 @@
 using BuscaMissa.Context;
+using BuscaMissa.Enums;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,6 +36,22 @@ namespace BuscaMissa.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while editing Controle {Controle}", model);
+                throw;
+            }
+        }
+
+        public async Task EditarStatusAsync(StatusEnum status, int controleId)
+        {
+            try
+            {
+                var controle = await _context.Controles.AsNoTracking().FirstOrDefaultAsync(x => x.Id == controleId) ?? throw new Exception("Controle not found");
+                controle.Status = status;
+                _context.Controles.Update(controle);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while editing Status Controle {Controle}", controleId);
                 throw;
             }
         }

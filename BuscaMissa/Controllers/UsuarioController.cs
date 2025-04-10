@@ -73,7 +73,7 @@ namespace BuscaMissa.Controllers
                     break;
                 }
                 
-                await _controleService.EditarAsync(controle);
+                await _controleService.EditarStatusAsync(controle.Status, controle.Id);
                 #if DEBUG
                     Console.WriteLine("DEBUG");
                 #else
