@@ -121,7 +121,8 @@ namespace BuscaMissa.Services
         {
             var codigoToken = SenhaHelper.GerarSenhaTemporariaInt();
             var temCodigo = await _context
-            .CodigoPermissoes.AsNoTracking()
+            .CodigoPermissoes
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.CodigoToken == codigoToken);
             if (temCodigo != null)
                 return await GerarCodigo();
