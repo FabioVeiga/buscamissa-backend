@@ -195,7 +195,7 @@ namespace BuscaMissa.Controllers
                 }
                 if(resultado.ImagemUrl != string.Empty)
                 {
-                    resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{resultado.Id}");
+                    resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{resultado.ImagemUrl}");
                 }
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
