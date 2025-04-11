@@ -1,6 +1,7 @@
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
+using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services;
@@ -160,8 +161,38 @@ namespace BuscaMissa.Controllers
         {
             try
             {
+                var igreja = await _igrejaService.BuscarPorIdAsync(igrejaId);
+                if(igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
+                
+                var controle = await _controleService.BuscarPorIgrejaIdAsync(igrejaId);
                 var resultado = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(igrejaId);
-                if (resultado is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Não tem nenhuma atualização!" }));
+                if (resultado is null) 
+                {
+                    resultado = new AtualizacaoIgrejaResponse(){
+                        Id = igreja.Id,
+                        Nome = igreja.Nome,
+                        Paroco = igreja.Paroco,
+                        Endereco = new EnderecoIgrejaResponse()
+                        {
+                            Id = igreja.Endereco!.Id,
+                            Cep = igreja.Endereco.Cep,
+                            Logradouro = igreja.Endereco.Logradouro,
+                            Complemento = igreja.Endereco.Complemento,
+                            Bairro = igreja.Endereco.Bairro,
+                            Localidade = igreja.Endereco.Localidade,
+                            Uf = igreja.Endereco.Uf,
+                            Estado = igreja.Endereco.Estado,
+                            Regiao = igreja.Endereco.Regiao,
+                            Numero = igreja.Endereco.Numero,
+                        },
+                        MissasTemporaria = [.. igreja.Missas.Select(x => new MissaResponse(){
+                            Id = x.Id,
+                            DiaSemana = x.DiaSemana,
+                            Horario = x.Horario.ToString(),
+                            Observacao = x.Observacao
+                        })]
+                    };
+                }
                 if(resultado.ImagemUrl != string.Empty)
                 {
                     resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{resultado.ImagemUrl}");
