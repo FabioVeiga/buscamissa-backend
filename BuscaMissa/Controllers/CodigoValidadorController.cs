@@ -11,9 +11,9 @@ namespace BuscaMissa.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CodigoValidadorController(ILogger<CodigoValidadorController> logger, EmailService emailService, UsuarioService usuarioService, 
+    public class CodigoValidadorController(ILogger<CodigoValidadorController> logger, EmailService emailService, UsuarioService usuarioService,
     IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, IgrejaTemporariaService igrejaTemporariaService,
-    ImagemService imagemService) 
+    ImagemService imagemService)
     : ControllerBase
     {
         private readonly ILogger<CodigoValidadorController> _logger = logger;
@@ -40,9 +40,9 @@ namespace BuscaMissa.Controllers
                 if (controle is null || controle.Igreja is null) return NotFound(new ApiResponse<dynamic>(new { mensagemTela = "Não existe este controle!" }));
                 var codigo = await _codigoValidacaoService.BuscarPorCodigoTokenAsync(request.CodigoValidador);
                 if (codigo == null) return NotFound(new ApiResponse<dynamic>(new { mensagemTela = "Código não encontrado" }));
-                if(controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Não há validação para esta operação!" }));
+                if (controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Não há validação para esta operação!" }));
                 var codigoValidador = _codigoValidacaoService.Validar(request, codigo);
-                if(string.IsNullOrEmpty(codigoValidador))
+                if (string.IsNullOrEmpty(codigoValidador))
                 {
                     switch (controle.Status)
                     {
@@ -52,8 +52,8 @@ namespace BuscaMissa.Controllers
                             break;
                         case Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador:
                             var temporaria = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(controle.Igreja.Id);
-                            var alterado = await _igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria);
-                            if(temporaria.ImagemUrl != string.Empty)
+                            var alterado = await _igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria!);
+                            if (temporaria!.ImagemUrl != string.Empty && temporaria.ImagemUrl != null)
                             {
                                 var nome = $"{controle.Igreja.Id}{Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
                                 _imagemService.UploadAzure(temporaria.ImagemUrl!, "igreja", nome);
@@ -61,15 +61,15 @@ namespace BuscaMissa.Controllers
                             mensagemTela = "Igreja atualizada com sucesso!";
                             break;
                         default:
-                        return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Não há validação para esta operação!" }));
+                            return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Não há validação para esta operação!" }));
                     }
                 }
-                if(codigoValidador.Contains("Enviado email com o código"))
+                if (codigoValidador.Contains("Enviado email com o código"))
                 {
                     codigo = await _codigoValidacaoService.EditarAsync(codigo);
-                    #if DEBUG
-                        Console.WriteLine("DEBUG");
-                    #else
+#if DEBUG
+                    Console.WriteLine("DEBUG");
+#else
                         var responseEmail = await _emailService.EnviarEmail(
                             [usuario.Email], 
                             $"Código para Validação", 
@@ -80,24 +80,30 @@ namespace BuscaMissa.Controllers
                         );
                         Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                         if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
-                    #endif
+#endif
                     return Ok(new ApiResponse<dynamic>(new
                     {
                         mensagemTela = "Novo código validador enviado código para o email!",
-                        #if DEBUG
+#if DEBUG
                         codigoValidador = codigo.CodigoToken
-                        #endif
+#endif
                     }));
                 }
                 controle.Status = Enums.StatusEnum.Finalizado;
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                var response = new ApiResponse<dynamic>(new { 
-                    mensagemTela, 
-                    #if DEBUG
-                    codigoValidador 
-                    #endif
+                var response = new ApiResponse<dynamic>(new
+                {
+                    mensagemTela,
+#if DEBUG
+                    codigoValidador
+#endif
                 });
-                return Ok();
+                var igreja = await _igrejaService.BuscarPorIdAsync(controle.Igreja.Id);
+                return Ok(new ApiResponse<dynamic>(new
+                {
+                    mensagemTela = "Igreja atualizada com sucesso!",
+                    cep = igreja!.Endereco.Cep,
+                }));
             }
             catch (Exception ex)
             {

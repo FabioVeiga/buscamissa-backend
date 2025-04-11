@@ -53,10 +53,11 @@ namespace BuscaMissa.Controllers
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
                 return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
