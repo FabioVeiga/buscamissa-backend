@@ -131,17 +131,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Aplica migrações automaticamente (opcional)
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    DatabaseSeeder.Seed(context);
-}
-
-// Use o CORS
-app.UseCors("AllowLocalhost4200");
-
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
