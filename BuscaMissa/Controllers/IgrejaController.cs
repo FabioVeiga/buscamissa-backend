@@ -226,25 +226,6 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-
-        [HttpGet]
-        [Route("obter-enderecos")]
-        [Authorize(Roles = "App")]
-        public async Task<ActionResult> ObterDadosDeBuscaAsync([FromQuery] EnderecoIgrejaBuscaRequest request)
-        {   
-            try
-            {
-                if(!ModelState.IsValid) return BadRequest();
-                var resultado = await _enderecoService.BuscarDadosBuscaAsync(request);
-                return Ok(new ApiResponse<dynamic>(resultado));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
     
         [HttpPost]
         [Route("denunciar/{igrejaId}")]
@@ -266,6 +247,44 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+    
+        [HttpGet]
+        [Route("obter-enderecos")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> ObterDadosDeBuscaAsync([FromQuery] EnderecoIgrejaBuscaRequest request)
+        {   
+            try
+            {
+                if(!ModelState.IsValid) return BadRequest();
+                var resultado = await _enderecoService.BuscarDadosBuscaAsync(request);
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpGet]
+        [Route("v2/obter-enderecos")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> ObterDadosDeBuscaAsync()
+        {   
+            try
+            {
+                var resultado = await _enderecoService.OrganizarEnderecosAsync();
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+    
     }
 }
 

@@ -58,5 +58,37 @@ namespace BuscaMissa.Services
                 throw;
             }
         }
+
+        public async Task<Dictionary<string, Dictionary<string, List<string>>>> OrganizarEnderecosAsync()
+        {
+            try
+            {
+            var enderecos = await _context.Enderecos
+                .AsNoTracking()
+                .Where(x => x.Igreja.Ativo)
+                .ToListAsync();
+
+            return enderecos
+                .GroupBy(e => e.Uf)
+                .ToDictionary(
+                ufGroup => ufGroup.Key,
+                ufGroup => ufGroup
+                    .GroupBy(e => e.Localidade)
+                    .ToDictionary(
+                    localidadeGroup => localidadeGroup.Key,
+                    localidadeGroup => localidadeGroup
+                        .Select(e => e.Bairro)
+                        .Where(bairro => !string.IsNullOrEmpty(bairro))
+                        .Distinct()
+                        .ToList()
+                    )
+                );
+            }
+            catch (Exception ex)
+            {
+            _logger.LogError(ex, "An error occurred while organizing addresses.");
+            throw;
+            }
+        }
     }
 }
