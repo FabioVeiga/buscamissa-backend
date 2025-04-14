@@ -18,6 +18,7 @@ namespace BuscaMissa.Context
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<IgrejaDenuncia> IgrejaDenuncias { get; set; }
         public DbSet<Solicitacao> Solicitacoes { get; set; }
+        public DbSet<Contribuidor> Contribuidores { get; set; }
     }
 
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>

@@ -26,6 +26,9 @@ namespace BuscaMissa.Models
         [Required]
         public int Numero { get; set; }
 
+        public string? Latitude { get; set; }
+        public string? Longitude { get; set; }
+
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
         
