@@ -117,13 +117,9 @@ Environment.SetEnvironmentVariable("AzureBlobStorage",builder.Configuration["Azu
 // Adicione o serviço CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost4200", policy =>
+    options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:4200", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -138,8 +134,10 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
 });
 
-
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseCors("AllowLocalhost");
 
 app.UseAuthentication();
 app.UseAuthorization();

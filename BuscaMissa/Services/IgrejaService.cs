@@ -155,6 +155,69 @@ namespace BuscaMissa.Services
             }
         }
 
+        public async Task<Paginacao<IgrejaResponse>> BuscarPorFiltrosAsync(FiltroIgrejaAdminRequest filtro)
+        {
+            try
+            {
+                var query = _context.Igrejas
+                .Include(x => x.Endereco)
+                .Include(x => x.Usuario)
+                .Include(Igreja => Igreja.Contato)
+                .Include(Igreja => Igreja.RedesSociais)
+                .Include(x => x.Denuncia)
+                .AsNoTracking()
+                .Where(x =>
+                    x.Ativo == filtro.Ativo)
+                .AsQueryable();
+
+                if (!string.IsNullOrEmpty(filtro.Uf))
+                    query = query.Where(x => x.Endereco.Uf == filtro.Uf.ToUpper());
+
+                if (!string.IsNullOrEmpty(filtro.Localidade))
+                    query = query.Where(x => x.Endereco.Localidade == filtro.Localidade);
+
+                if (!string.IsNullOrEmpty(filtro.Bairro))
+                    query = query.Where(x => x.Endereco.Bairro == filtro.Bairro);
+
+                if (!string.IsNullOrEmpty(filtro.Nome))
+                    query = query.Where(x => x.Nome.ToUpper().Contains(filtro.Nome.ToUpper()));
+
+                if (filtro.DiaDaSemana is not null)
+                    query = query.Where(x => x.Missas.Any(y => y.DiaSemana == filtro.DiaDaSemana));
+
+                if (!string.IsNullOrEmpty(filtro.Horario))
+                    query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
+
+                if(filtro.Denuncia)
+                    query = query.Where(x => x.Denuncia.AcaoRealizada == null);
+
+                var aux = query.Select(x => new IgrejaResponse()
+                {
+                    Id = x.Id,
+                    Nome = x.Nome,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
+                    Alteracao = x.Alteracao,
+                    Ativo = x.Ativo,
+                    Criacao = x.Criacao,
+                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    Paroco = x.Paroco,
+                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
+                    RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
+                    Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
+                });
+
+                var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+                return resultado;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         public async Task<Igreja> EditarAsync(Igreja model)
         {
             try
