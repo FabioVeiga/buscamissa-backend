@@ -209,24 +209,24 @@ namespace BuscaMissa.Controllers
                 }
 
 
-                if (request.Contato is not null)
-                {
-                    //var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
-                    if (igreja.Contato is not null)
-                    {
-                        igreja.Contato.DDD = request.Contato.DDD;
-                        igreja.Contato.Telefone = request.Contato.Telefone;
-                        igreja.Contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
-                        igreja.Contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
-                        igreja.Contato.EmailContato = request.Contato.EmailContato;
-                    }
-                    else
-                    {
-                        var contato = (Contato)request.Contato;
-                        contato.IgrejaId = igreja.Id;
-                        await _contatoService.InserirAsync(contato);
-                    }
-                }
+                // if (request.Contato is not null)
+                // {
+                //     //var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
+                //     if (igreja.Contato is not null)
+                //     {
+                //         igreja.Contato.DDD = request.Contato.DDD;
+                //         igreja.Contato.Telefone = request.Contato.Telefone;
+                //         igreja.Contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
+                //         igreja.Contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
+                //         igreja.Contato.EmailContato = request.Contato.EmailContato;
+                //     }
+                //     else
+                //     {
+                //         var contato = (Contato)request.Contato;
+                //         contato.IgrejaId = igreja.Id;
+                //         await _contatoService.InserirAsync(contato);
+                //     }
+                // }
 
                 await _igrejaService.EditarAsync(igreja, request);
 

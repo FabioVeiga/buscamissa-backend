@@ -47,15 +47,16 @@ namespace BuscaMissa.Controllers
                     switch (controle.Status)
                     {
                         case Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador:
-                            var ativarIgreja = await _igrejaService.AtivarAsync(controle, usuario);
+                            await _igrejaService.AtivarAsync(controle, usuario);
                             mensagemTela = "Igreja ativada com sucesso!";
                             break;
                         case Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador:
                             var temporaria = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(controle.Igreja.Id);
                             var alterado = await _igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria!);
+                            await _igrejaService.AtivarAsync(controle, usuario);
                             if (temporaria!.ImagemUrl != string.Empty && temporaria.ImagemUrl != null)
                             {
-                                var nome = $"{controle.Igreja.Id}{Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
+                                var nome = $"{controle.Igreja.Id}{ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
                                 _imagemService.UploadAzure(temporaria.ImagemUrl!, "igreja", nome);
                             }
                             mensagemTela = "Igreja atualizada com sucesso!";

@@ -43,6 +43,22 @@ namespace BuscaMissa.Services
             }
         }
 
+        public async Task<bool> TemDenunciaPorIgrejaIdAsync(int igrejaId)
+        {
+            try
+            {
+                return await _context.IgrejaDenuncias
+                .AsNoTracking()
+                .AnyAsync(x => x.IgrejaId == igrejaId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar Igreja");
+                throw;
+            }
+        }
+        
+
         public async Task<bool> InserirAsync(DenunciarIgrejaRequest request)
         {
             try{

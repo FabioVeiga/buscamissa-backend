@@ -237,6 +237,8 @@ namespace BuscaMissa.Controllers
                 var resultado = await _igrejaService.BuscarPorIdAsync(igrejaId);
                 if(resultado == null) return NotFound();
                 request.IgrejaId = igrejaId;
+                var temDenuncia = await _igrejaDenunciaService.TemDenunciaPorIgrejaIdAsync(igrejaId);
+                if(temDenuncia) return UnprocessableEntity(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja já denunciada!" }));
                 var resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
                 return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
             }
