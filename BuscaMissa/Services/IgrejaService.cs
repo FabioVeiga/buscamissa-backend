@@ -189,7 +189,7 @@ namespace BuscaMissa.Services
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
                 if(filtro.Denuncia)
-                    query = query.Where(x => x.Denuncia.AcaoRealizada == null);
+                    query = query.Where(x => x.Denuncia != null && string.IsNullOrEmpty(x.Denuncia.AcaoRealizada));
 
                 var aux = query.Select(x => new IgrejaResponse()
                 {

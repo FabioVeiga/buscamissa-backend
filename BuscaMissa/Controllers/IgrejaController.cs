@@ -251,7 +251,8 @@ namespace BuscaMissa.Controllers
                     resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
                 }
 
-                return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
+                //return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
+                return Ok(new ApiResponse<dynamic>(new { resultadoDenuncia, messagemAplicacao = "Aguarde a resposta do administrador!" }));
             }
             catch (Exception ex)
             {
