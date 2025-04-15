@@ -6,7 +6,6 @@ namespace BuscaMissa.DTOs.UsuarioDto
     {
         [Required]
         public bool Bloqueado { get; set; }
-        [Required]
-        public string MotivoBloqueio { get; set; } = default!;
+        public string? MotivoBloqueio { get; set; } = default!;
     }
 }

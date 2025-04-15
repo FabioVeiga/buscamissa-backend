@@ -19,7 +19,7 @@ namespace BuscaMissa.Models
         [Required]
         public bool AceitarTermo { get; set; }
         public bool? AceitarPromocao { get; set; }
-        public bool? Bloqueado { get; set; }
+        public bool Bloqueado { get; set; } = false;
         public string? MotivoBloqueio { get; set; }
         [Required]
         public DateTime Criacao { get; set; } = DateTime.Now;

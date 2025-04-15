@@ -359,6 +359,26 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+        
+        [HttpGet]
+        [Route("solicitacao")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BuscarSolicitacao([FromQuery]bool? resolvida)
+        {
+            try
+            {
+                var resultado = await _solicitacaoService.BuscarTodosAsync(resolvida);
+                if (resultado.Count() == 0) return NotFound();
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+        
         #endregion
 
     }
