@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
@@ -277,6 +278,7 @@ namespace BuscaMissa.Controllers
                         [model.EmailDenunciador],
                         $"Resposta da denuncia - {model.Igreja.Nome}",
                         Contant.EmailDenuncia
+                        .Replace("{base64Logo}", Contant.Base64Logo)
                         .Replace("{nomeDenunciador}", model.NomeDenunciador)
                         .Replace("{denuncia}", model.Descricao)
                         .Replace("{solução}", request.Solucao)
@@ -338,6 +340,7 @@ namespace BuscaMissa.Controllers
                         [model.EmailSolicitante],
                         $"Resposta da  solicitação - {model.Tipo}",
                         Contant.EmailSolicitacaoResposta
+                        .Replace("{base64Logo}", Contant.Base64Logo)
                         .Replace("{nomeUsuario}", model.NomeSolicitante)
                         .Replace("{numeroSolicitacao}", model.Numero)
                         .Replace("{assuntoSolicitacao}", model.Assunto)

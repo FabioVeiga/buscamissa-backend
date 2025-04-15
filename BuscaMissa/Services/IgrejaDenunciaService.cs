@@ -11,6 +11,22 @@ namespace BuscaMissa.Services
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<IgrejaDenunciaService> _logger = logger;
 
+        public async Task<IgrejaDenuncia?> BuscarPorIdAsync(int id)
+        {
+            try
+            {
+               return await _context.IgrejaDenuncias
+               .Include(id => id.Igreja)
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.Id == id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar Igreja");
+                throw;
+            }
+        }
+
         public async Task<IgrejaDenuncia?> BuscarPorIgrejaIdAsync(int igrejaId)
         {
             try
@@ -27,29 +43,13 @@ namespace BuscaMissa.Services
             }
         }
 
-        public async Task<IgrejaDenuncia?> BuscarPorIdAsync(int id)
-        {
-            try
-            {
-               return await _context.IgrejaDenuncias
-               .Include(id => id.Igreja)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao buscar Igreja");
-                throw;
-            }
-        }
-
-        public async Task<bool> TemDenunciaPorIgrejaIdAsync(int igrejaId)
+        public async Task<IgrejaDenuncia?> TemDenunciaPorIgrejaIdAsync(int igrejaId)
         {
             try
             {
                 return await _context.IgrejaDenuncias
                 .AsNoTracking()
-                .AnyAsync(x => x.IgrejaId == igrejaId);
+                .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
             }
             catch (Exception ex)
             {
@@ -70,6 +70,21 @@ namespace BuscaMissa.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao inserir {request}", request);
+                return false;
+            }
+        }
+
+        public async Task<bool> AtualizarAsync(IgrejaDenuncia request)
+        {
+            try
+            {
+                _context.Update(request);
+                var resultado = await _context.SaveChangesAsync();
+                return resultado > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar {request}", request);
                 return false;
             }
         }

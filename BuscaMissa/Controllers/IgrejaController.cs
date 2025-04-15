@@ -237,9 +237,20 @@ namespace BuscaMissa.Controllers
                 var resultado = await _igrejaService.BuscarPorIdAsync(igrejaId);
                 if(resultado == null) return NotFound();
                 request.IgrejaId = igrejaId;
-                var temDenuncia = await _igrejaDenunciaService.TemDenunciaPorIgrejaIdAsync(igrejaId);
-                if(temDenuncia) return UnprocessableEntity(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja já denunciada!" }));
-                var resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
+                var denuncia = await _igrejaDenunciaService.BuscarPorIgrejaIdAsync(igrejaId);
+                var resultadoDenuncia = false;
+                if(denuncia is not null && !string.IsNullOrEmpty(denuncia.AcaoRealizada))
+                {
+                    denuncia.AcaoRealizada = null;
+                    denuncia.Descricao = request.Descricao;
+                    denuncia.Titulo = request.Titulo;
+                    denuncia.NomeDenunciador = request.NomeDenunciador;
+                    denuncia.EmailDenunciador = request.EmailDenunciador;
+                    resultadoDenuncia = await _igrejaDenunciaService.AtualizarAsync(denuncia);
+                }else{
+                    resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
+                }
+
                 return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
             }
             catch (Exception ex)
