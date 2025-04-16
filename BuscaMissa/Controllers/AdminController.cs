@@ -18,7 +18,8 @@ namespace BuscaMissa.Controllers
     public class AdminController(
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
         ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService,
-        IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService
+        IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService,
+        ControleService controleService
         ) : ControllerBase
     {
         private readonly ILogger<AdminController> _logger = logger;
@@ -30,6 +31,7 @@ namespace BuscaMissa.Controllers
         private readonly IgrejaDenunciaService _igrejaDenunciaService = igrejaDenunciaService;
         private readonly EmailService _emailService = emailService;
         private readonly SolicitacaoService _solicitacaoService = solicitacaoService;
+        private readonly ControleService _controleService = controleService;
 
         #region Usuario
         [HttpGet]
@@ -224,6 +226,28 @@ namespace BuscaMissa.Controllers
 
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        [Route("igreja/ativar/{igrejaId}/usuario/{usuarioId}")]
+        public async Task<IActionResult> AtivarIgreja(int igrejaId, int usuarioId)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest();
+                var usuario = await _usuarioService.BuscarPorCodigo(usuarioId);
+                if (usuario is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Usuário não encontrado!" }));
+
+                await _igrejaService.AtivarAsync(igrejaId, usuario.Id);
+                return Ok(new ApiResponse<dynamic>(new { mensagemAplicacao = "Igreja ativada com sucesso!" }));
             }
             catch (Exception ex)
             {

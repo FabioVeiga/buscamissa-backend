@@ -96,6 +96,33 @@ namespace BuscaMissa.Services
             }
         }
 
+        public async Task<bool> AtivarAsync(int igrejaId, int usuarioId)
+        {
+            try
+            {
+                var model = await _context.Controles
+                    .Include(x => x.Igreja)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+
+                if (model == null) return false;
+
+                model.Igreja!.Ativo = true;
+                model.Igreja.Alteracao = DateTime.Now;
+                model.Igreja.UsuarioId = usuarioId;
+                model.Status = Enums.StatusEnum.Finalizado;
+                _context.Controles.Update(model);
+                var resultado = await _context.SaveChangesAsync();
+                return resultado > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", igrejaId);
+                throw;
+            }
+        }
+        
+       
         public async Task<Paginacao<IgrejaResponse>> BuscarPorFiltros(FiltroIgrejaRequest filtro)
         {
             try
