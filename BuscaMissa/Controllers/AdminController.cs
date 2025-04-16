@@ -175,16 +175,6 @@ namespace BuscaMissa.Controllers
                 var igreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
 
-                if (request.Contato is not null)
-                {
-                    var contato = (Contato)request.Contato;
-                    contato.IgrejaId = igreja.Id;
-                    if (igreja.Contato is not null)
-                        contato.Id = igreja.Contato!.Id;
-                    else
-                        await _contatoService.InserirAsync(contato);
-                }
-
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
@@ -210,24 +200,24 @@ namespace BuscaMissa.Controllers
                 }
 
 
-                // if (request.Contato is not null)
-                // {
-                //     //var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
-                //     if (igreja.Contato is not null)
-                //     {
-                //         igreja.Contato.DDD = request.Contato.DDD;
-                //         igreja.Contato.Telefone = request.Contato.Telefone;
-                //         igreja.Contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
-                //         igreja.Contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
-                //         igreja.Contato.EmailContato = request.Contato.EmailContato;
-                //     }
-                //     else
-                //     {
-                //         var contato = (Contato)request.Contato;
-                //         contato.IgrejaId = igreja.Id;
-                //         await _contatoService.InserirAsync(contato);
-                //     }
-                // }
+                if (request.Contato is not null)
+                {
+                    //var contato = await _contatoService.ObterIgrejaIdAsync(igreja.Id);
+                    if (igreja.Contato is not null)
+                    {
+                        igreja.Contato.DDD = request.Contato.DDD;
+                        igreja.Contato.Telefone = request.Contato.Telefone;
+                        igreja.Contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
+                        igreja.Contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
+                        igreja.Contato.EmailContato = request.Contato.EmailContato;
+                    }
+                    else
+                    {
+                        var contato = (Contato)request.Contato;
+                        contato.IgrejaId = igreja.Id;
+                        await _contatoService.InserirAsync(contato);
+                    }
+                }
 
                 await _igrejaService.EditarAsync(igreja, request);
 
