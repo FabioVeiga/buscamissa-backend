@@ -4,6 +4,7 @@ using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.SolicitacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.Enums;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services;
@@ -223,6 +224,25 @@ namespace BuscaMissa.Controllers
 
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpDelete]
+        [Authorize(Roles = "Admin")]
+        [Route("igreja/deletar/redesocial/{igrejaId}/{tipoRedeSocial}")]
+        public async Task<IActionResult> DeletarRedeSocial(TipoRedeSocialEnum tipoRedeSocial, int igrejaId)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest();
+                await _redeSociaisService.DeletarAsync(igrejaId, tipoRedeSocial);
+                return Ok(new ApiResponse<dynamic>(new { mensagemAplicacao = "Rede social deletada com sucesso!" }));
             }
             catch (Exception ex)
             {
