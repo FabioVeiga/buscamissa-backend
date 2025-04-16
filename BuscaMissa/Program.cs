@@ -14,7 +14,6 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
-System.Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {env}");
 string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
 var secret = Environment.GetEnvironmentVariable("SecretApp");
 var key = Encoding.ASCII.GetBytes(secret!);
@@ -25,7 +24,15 @@ builder.Configuration.AddAzureKeyVault(
 );
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration["AzureSqlConnection"]));
+    options.UseSqlServer(builder.Configuration["AzureSqlConnection"], sqlServerOptions =>
+    {
+        sqlServerOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null
+        );
+    })
+);
 
 builder.Services.AddScoped<CodigoValidacaoService>();
 builder.Services.AddScoped<ControleService>();
