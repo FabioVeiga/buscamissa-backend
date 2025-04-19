@@ -129,6 +129,10 @@ namespace BuscaMissa.Controllers
                 if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
                 controle ??= await _controleService.InserirAsync(new Controle() { Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido, IgrejaId = temIgreja.Id });
+               
+                if(request.Imagem is not null && request.Imagem.Contains(temIgreja.ImagemUrl!))
+                    request.Imagem = null;
+
                 var resultado = await _igrejaTemporariaService.InserirAsync(request);
                 if (!resultado) return UnprocessableEntity();
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
