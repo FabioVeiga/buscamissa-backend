@@ -19,15 +19,23 @@ namespace BuscaMissa.DTOs.MissaDto
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             var results = new List<ValidationResult>();
-            if(!string.IsNullOrEmpty(Horario))
+            if (!string.IsNullOrEmpty(Horario))
             {
                 if (!TimeSpan.TryParse(Horario, out var horario))
+                {
                     results.Add(new ValidationResult("Formato do horario invalido.", [nameof(Horario)]));
+                }
+                else if (horario.Seconds != 0)
+                {
+                    results.Add(new ValidationResult("Horario nao pode conter segundos.", [nameof(Horario)]));
+                }
                 else
+                {
                     HorarioMissa = new TimeSpan(horario.Hours, horario.Minutes, 0);
+                }
             }
-            
-            if(!Enum.IsDefined(typeof(DiaDaSemanaEnum), DiaSemana))
+
+            if (!Enum.IsDefined(typeof(DiaDaSemanaEnum), DiaSemana))
             {
                 results.Add(new ValidationResult("Dia da semana invalido.", [nameof(DiaSemana)]));
             }

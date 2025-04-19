@@ -57,44 +57,52 @@ namespace BuscaMissa.Services
         public async Task<bool> InserirAsync(AtualicaoIgrejaRequest request)
         {
             var igrejaTemporaria = (IgrejaTemporaria)request;
-            await DeletaIgrejaAsync(request.Id);
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+
+            var deletaIgrejaTemporaria = await DeletaIgrejaAsync(request.Id);
+            var deletaMissasTemporaria = await DeletaMissasTemporarias(request.Id);
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                _context.IgrejaTemporarias.Add(igrejaTemporaria);
-                if (await DeletaMissasTemporarias(request.Id))
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    var missasTemp = request.Missas.Select(item => 
+                    _context.IgrejaTemporarias.Add(igrejaTemporaria);
+                    if (deletaMissasTemporaria)
                     {
-                        var aux = (MissaTemporaria)item;
-                        aux.IgrejaId = request.Id;
-                        return aux;
-                    }).ToList();
-                    await _context.MissasTemporarias.AddRangeAsync(missasTemp);
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
+                        var missasTemp = request.Missas.Select(item =>
+                        {
+                            var aux = (MissaTemporaria)item;
+                            aux.IgrejaId = request.Id;
+                            return aux;
+                        }).ToList();
+                        await _context.MissasTemporarias.AddRangeAsync(missasTemp);
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                        return true;
+                    }
+                    else
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, $"Erro ao inserir igreja temporaria: {request}");
                     await transaction.RollbackAsync();
                     return false;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Erro ao inserir igreja temporaria: {request}");
-                await transaction.RollbackAsync();
-                return false;
-                throw; // Re-throw the exception after logging
-            }
+            });
         }
 
         public async Task<bool> DeletaIgrejaAsync(int igrejaId)
         {
             try
             {
-                var model = await _context.IgrejaTemporarias.FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+                var model = await _context.IgrejaTemporarias
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
                 if (model != null)
                 {
                     _context.IgrejaTemporarias.Remove(model);
@@ -114,13 +122,18 @@ namespace BuscaMissa.Services
             try
             {
                 var missas = await _context.MissasTemporarias
-                    .Where(m => m.IgrejaId == igrejaId)
-                    .ToListAsync();
+                .AsNoTracking()
+                .Where(m => m.IgrejaId == igrejaId)
+                .ToListAsync();
 
                 if (missas.Count != 0)
                 {
                     _context.MissasTemporarias.RemoveRange(missas);
-                    await _context.SaveChangesAsync();
+                    var result = await _context.SaveChangesAsync();
+                    if (result == 0)
+                    {
+                        return false;
+                    }
                 }
                 return true;
             }

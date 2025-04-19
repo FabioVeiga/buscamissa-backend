@@ -128,16 +128,11 @@ namespace BuscaMissa.Controllers
                 var temIgreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
-                if (controle == null) return NotFound();
+                controle ??= await _controleService.InserirAsync(new Controle() { Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido, IgrejaId = temIgreja.Id });
                 var resultado = await _igrejaTemporariaService.InserirAsync(request);
                 if (!resultado) return UnprocessableEntity();
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                if (!string.IsNullOrEmpty(request.Imagem) && request.Imagem != temIgreja.ImagemUrl!)
-                {
-                    request.Imagem = $"{request.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", request.Imagem);
-                }
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
                 return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
             }
