@@ -68,7 +68,7 @@ namespace BuscaMissa.Controllers
         {
             try
             {
-                var temIgreja = await _igrejaService.BuscarPorCepAsync(cep);
+                var temIgreja = await _igrejaService.BuscarPorCepAsync(CepHelper.FormatarCep(cep));
                 if (temIgreja == null)
                 {
                     var endereco = await _viaCepService.ConsultarCepAsync(CepHelper.FormatarCep(cep).ToString());
