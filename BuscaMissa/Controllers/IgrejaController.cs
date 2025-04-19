@@ -133,16 +133,10 @@ namespace BuscaMissa.Controllers
                 if (!resultado) return UnprocessableEntity();
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                if(request.Contato is not null)
+                if (!string.IsNullOrEmpty(request.Imagem) && request.Imagem != temIgreja.ImagemUrl!)
                 {
-                    var contato = (Contato)request.Contato;
-                    contato.IgrejaId = temIgreja.Id;
-                    if(temIgreja.Contato is not null){
-                        contato.Id = temIgreja.Contato!.Id;
-                        await _contatoService.EditarAsync(contato); 
-                    }
-                    else
-                        await _contatoService.InserirAsync(contato);
+                    request.Imagem = $"{request.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+                    var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", request.Imagem);
                 }
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
                 return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
