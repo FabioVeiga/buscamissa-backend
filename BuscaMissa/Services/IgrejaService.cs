@@ -344,33 +344,44 @@ namespace BuscaMissa.Services
 
         public async Task<bool> EditarPorTemporariaAsync(Igreja igreja, AtualizacaoIgrejaResponse atualizacao)
         {
-            
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                _context.Missas.RemoveRange(igreja.Missas);
-                _context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa(){
-                    DiaSemana = x.DiaSemana,
-                    Horario = TimeSpan.Parse(x.Horario),
-                    IgrejaId = igreja.Id,
-                    Observacao = x.Observacao
-                }));
-                igreja.Paroco = atualizacao.Paroco;
-                igreja.Alteracao = DateTime.Now;
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    _context.Missas.RemoveRange(igreja.Missas);
+                    _context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa()
+                    {
+                        DiaSemana = x.DiaSemana,
+                        Horario = TimeSpan.Parse(x.Horario),
+                        IgrejaId = igreja.Id,
+                        Observacao = x.Observacao
+                    }));
+                    igreja.Paroco = atualizacao.Paroco;
+                    igreja.Alteracao = DateTime.Now;
 
-                await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
-                await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", igreja);
-                await transaction.RollbackAsync();
-                return false;
-            }
+                    // Delete IgrejaTemporarias and MissasTemporarias
+                    var deleteIgrejaResult = await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
+                    var deleteMissasResult = await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
 
+                    if (!deleteIgrejaResult || !deleteMissasResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", igreja);
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+            });
         }
     
         public InformacoesGeraisResponse InformacoesGeraisResponse()
