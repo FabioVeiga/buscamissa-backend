@@ -132,7 +132,7 @@ namespace BuscaMissa.Controllers
                
                 if(request.Imagem is not null)
                 {
-                    if(temIgreja.ImagemUrl is not null && request.Imagem.Contains(temIgreja.ImagemUrl!))
+                    if(temIgreja.ImagemUrl is not null && request.Imagem.Contains(temIgreja.ImagemUrl))
                         request.Imagem = null;
                 }
 
