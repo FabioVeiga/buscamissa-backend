@@ -76,7 +76,7 @@ namespace BuscaMissa.Controllers
                         return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
                     return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
                 }
-                if(temIgreja.ImagemUrl != string.Empty)
+                if(!string.IsNullOrEmpty(temIgreja.ImagemUrl))
                 {
                     temIgreja.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{temIgreja.ImagemUrl}");
                 }

@@ -361,6 +361,13 @@ namespace BuscaMissa.Services
                     igreja.Paroco = atualizacao.Paroco;
                     igreja.Alteracao = DateTime.Now;
 
+                    if(atualizacao.ImagemUrl != null)
+                    {
+                        var nome = $"{igreja.Id}{ImageHelper.BuscarExtensao(atualizacao.ImagemUrl)}";
+                        _imagemService.UploadAzure(atualizacao.ImagemUrl, "igreja", nome);
+                        igreja.ImagemUrl = nome;
+                    }
+
                     // Delete IgrejaTemporarias and MissasTemporarias
                     var deleteIgrejaResult = await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
                     var deleteMissasResult = await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);

@@ -54,11 +54,6 @@ namespace BuscaMissa.Controllers
                             var temporaria = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(controle.Igreja.Id);
                             var alterado = await _igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria!);
                             await _igrejaService.AtivarAsync(controle, usuario);
-                            if (temporaria!.ImagemUrl != string.Empty && temporaria.ImagemUrl != null)
-                            {
-                                var nome = $"{controle.Igreja.Id}{ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
-                                _imagemService.UploadAzure(temporaria.ImagemUrl!, "igreja", nome);
-                            }
                             mensagemTela = "Igreja atualizada com sucesso!";
                             break;
                         default:
