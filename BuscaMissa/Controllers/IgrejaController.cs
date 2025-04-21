@@ -190,10 +190,11 @@ namespace BuscaMissa.Controllers
                         })]
                     };
                 }
-                if(resultado.ImagemUrl != string.Empty && igreja.ImagemUrl != null)
+                if(resultado.ImagemUrl != string.Empty)
                 {
-                    var imgUrl = resultado.ImagemUrl ?? igreja.ImagemUrl;
-                    resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{imgUrl}");
+                    //var imgUrl resultado.ImagemUrl ?? igreja.ImagemUrl;
+                    //resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{imgUrl}");
+                    resultado.ImagemUrl = $"data:image/png;base64,{resultado.ImagemUrl}";
                 }
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
