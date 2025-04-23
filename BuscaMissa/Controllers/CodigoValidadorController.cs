@@ -69,7 +69,6 @@ namespace BuscaMissa.Controllers
                             [usuario.Email], 
                             $"Código para Validação", 
                             Contant.EmailValidacaoToken
-                            .Replace("{base64Logo}", Contant.Base64Logo)
                             .Replace("{nome}",usuario.Nome)
                             .Replace("{token}",codigo.CodigoToken.ToString())
                             .Replace("{ano}",DataHoraHelper.Ano())

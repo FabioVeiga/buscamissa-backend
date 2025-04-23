@@ -36,7 +36,7 @@ namespace BuscaMissa.Services
 
                 var response = new AtualizacaoIgrejaResponse
                 {
-                    Id = model!.Id,
+                    Id = igrejaId,
                     Nome = igreja!.Nome,
                     ImagemUrl = model.ImagemUrl,
                     Paroco = model.Paroco,
