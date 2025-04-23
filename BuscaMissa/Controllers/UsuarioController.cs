@@ -11,7 +11,7 @@ namespace BuscaMissa.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, ControleService controleService,
-    CodigoValidacaoService codigoValidacaoService, EmailService emailService) 
+    CodigoValidacaoService codigoValidacaoService, EmailService emailService)
     : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger = logger;
@@ -43,7 +43,7 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-    
+
         [HttpPost]
         [Route("gerar-codigo-validador")]
         [Authorize(Roles = "Admin,App")]
@@ -54,47 +54,44 @@ namespace BuscaMissa.Controllers
                 if (!ModelState.IsValid) BadRequest();
                 var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
                 if (controle == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Controle não encontrada!" }));
-                if(controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela= "Igreja já ativada!" }));
+                if (controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Igreja já ativada!" }));
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 usuario ??= await _usuarioService.InserirAsync(request);
                 var codigoValidador = await _codigoValidacaoService.BuscarPorControleIdAsync(request.ControleId);
-                if(codigoValidador is not null)
+                if (codigoValidador is not null)
                     codigoValidador = await _codigoValidacaoService.EditarAsync(codigoValidador);
                 else
                     codigoValidador = await _codigoValidacaoService.InserirAsync(controle);
-                
+
                 switch (controle.Status)
                 {
                     case Enums.StatusEnum.Igreja_Criacao:
                         controle.Status = Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador;
-                    break;
+                        break;
                     case Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido:
                         controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador;
-                    break;
+                        break;
                 }
-                
+
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                #if DEBUG
-                    Console.WriteLine("DEBUG");
-                #else
-                    var responseEmail = await _emailService.EnviarEmail(
-                            [usuario.Email], 
-                            $"Código para Validação", 
-                            Contant.EmailValidacaoToken
-                            .Replace("{nome}",usuario.Nome)
-                            .Replace("{token}",codigoValidador.CodigoToken.ToString())
-                            .Replace("{ano}",DataHoraHelper.Ano())
-                        );
-                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
-                    if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
-                #endif
+                var responseEmail = await _emailService.EnviarEmail(
+                        [usuario.Email],
+                        $"Código para Validação",
+                        Contant.EmailValidacaoToken
+                        .Replace("{base64Logo}", Contant.Base64Logo)
+                        .Replace("{nome}", usuario.Nome)
+                        .Replace("{token}", codigoValidador.CodigoToken.ToString())
+                        .Replace("{ano}", DataHoraHelper.Ano())
+                    );
+                Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
+                if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
 
                 return Ok(new ApiResponse<dynamic>(new
                 {
                     mensagemTela = "Usuário criado com sucesso e enviado código para o email!",
-                    #if DEBUG
+#if DEBUG
                     codigoValidador = codigoValidador.CodigoToken
-                    #endif
+#endif
                 }));
             }
             catch (Exception ex)

@@ -86,13 +86,6 @@ namespace BuscaMissa.Controllers
                 }
                 controle.Status = Enums.StatusEnum.Finalizado;
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                var response = new ApiResponse<dynamic>(new
-                {
-                    mensagemTela,
-#if DEBUG
-                    codigoValidador
-#endif
-                });
                 var igreja = await _igrejaService.BuscarPorIdAsync(controle.Igreja.Id);
                 return Ok(new ApiResponse<dynamic>(new
                 {

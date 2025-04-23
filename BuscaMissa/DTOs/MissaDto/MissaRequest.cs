@@ -25,12 +25,9 @@ namespace BuscaMissa.DTOs.MissaDto
                 {
                     results.Add(new ValidationResult("Formato do horario invalido.", [nameof(Horario)]));
                 }
-                else if (horario.Seconds != 0)
-                {
-                    results.Add(new ValidationResult("Horario nao pode conter segundos.", [nameof(Horario)]));
-                }
                 else
                 {
+                    // Adjust seconds to 00 if they are not already
                     HorarioMissa = new TimeSpan(horario.Hours, horario.Minutes, 0);
                 }
             }
