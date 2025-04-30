@@ -12,15 +12,17 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
 string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
-var secret = Environment.GetEnvironmentVariable("SecretApp");
-var key = Encoding.ASCII.GetBytes(secret!);
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
 
 builder.Configuration.AddAzureKeyVault(
     new Uri(keyVaultUri),
     new DefaultAzureCredential()
 );
+
+var secret = builder.Configuration["SecretApp"];
+var key = Encoding.ASCII.GetBytes(secret!);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration["AzureSqlConnection"], sqlServerOptions =>
@@ -118,7 +120,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 builder.Services.Configure<S3BucketSetting>(builder.Configuration.GetSection("S3BucketSetting"));
 builder.Services.Configure<AzureBlobStorage>(builder.Configuration.GetSection("AzureBlobStorage"));
-//Environment.SetEnvironmentVariable("AzureBlobStorage",builder.Configuration["AzureBlobStorage"]);
 
 // Adicione o serviço CORS
 builder.Services.AddCors(options =>
