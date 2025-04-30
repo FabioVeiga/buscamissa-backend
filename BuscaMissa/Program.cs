@@ -145,6 +145,13 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowLocalhost");
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    DatabaseSeeder.Seed(context, builder.Configuration["SenhaAdmin"]!);
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
