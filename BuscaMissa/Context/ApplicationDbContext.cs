@@ -34,6 +34,10 @@ namespace BuscaMissa.Context
             .Build();
 
             var connectionString = configuration.GetConnectionString("AzureSqlConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                connectionString = configuration["AzureSqlConnection"];
+            }
 
             if (string.IsNullOrEmpty(connectionString))
             {

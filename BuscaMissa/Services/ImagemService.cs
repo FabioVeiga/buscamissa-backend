@@ -14,14 +14,16 @@ namespace BuscaMissa.Services
         private readonly AmazonS3Client _s3Client;
         private readonly S3BucketSetting _s3BucketSetting;
         private readonly AzureBlobStorage _azureBlobStorage;
+        private readonly IConfiguration _configuration;
 
-        public ImagemService(ILogger<ImagemService> logger, IOptions<S3BucketSetting> options, IOptions<AzureBlobStorage> optionsAzure)
+        public ImagemService(ILogger<ImagemService> logger, IOptions<S3BucketSetting> options, IOptions<AzureBlobStorage> optionsAzure, IConfiguration configuration)
         {
+            _configuration = configuration;
             _logger = logger;
             _s3BucketSetting = options.Value;
             _s3Client = new AmazonS3Client(_s3BucketSetting.AwsAccessKeyId, _s3BucketSetting.AwsSecretAccessKey, _s3BucketSetting.RegionDefault);
             _azureBlobStorage = optionsAzure.Value;
-            _azureBlobStorage.ConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorage")!;
+            //_azureBlobStorage.ConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorage")!;
         }
 
         public async Task<string> UploadBucketAsync(string base64Image, string pasta, string nomeArquivo, string extensao)
@@ -74,7 +76,7 @@ namespace BuscaMissa.Services
         {
             try
             {
-                BlobServiceClient blobServiceClient = new(_azureBlobStorage.ConnectionString);
+                BlobServiceClient blobServiceClient = new(_configuration["AzureBlobStorage"]);
                 BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(_azureBlobStorage.ContainerName);
                 containerClient.CreateIfNotExists();
                 BlobClient blobClient = containerClient.GetBlobClient(string.Concat(pasta, "/", nomeArquivo));
@@ -92,7 +94,7 @@ namespace BuscaMissa.Services
         }
 
         public string ObterUrlAzureBlob(string caminho){
-            BlobServiceClient blobServiceClient = new(_azureBlobStorage.ConnectionString);
+            BlobServiceClient blobServiceClient = new(_configuration["AzureBlobStorage"]);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(_azureBlobStorage.ContainerName);
             BlobClient blobClient = containerClient.GetBlobClient(caminho);
             return blobClient.Uri.ToString();
