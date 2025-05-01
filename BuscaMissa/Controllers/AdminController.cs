@@ -178,10 +178,10 @@ namespace BuscaMissa.Controllers
                 var igreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
 
-                if (!string.IsNullOrEmpty(request.Imagem) && request.Imagem != igreja.ImagemUrl!)
+                if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
+                    _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                 }
 
                 if (request.RedeSociais is not null)
