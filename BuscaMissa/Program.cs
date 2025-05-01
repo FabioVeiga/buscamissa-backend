@@ -14,8 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
 string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
+string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? throw new ArgumentNullException("ASPNETCORE_ENVIRONMENT must be provided.");
 #pragma warning restore CA2208 // Instantiate argument exceptions correctly
 
+if (env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+{
+    keyVaultUri = keyVaultUri.Replace("dev", "prod"); // Assign the modified value back to keyVaultUri
+}
 builder.Configuration.AddAzureKeyVault(
     new Uri(keyVaultUri),
     new DefaultAzureCredential()

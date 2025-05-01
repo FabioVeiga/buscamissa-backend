@@ -15,16 +15,20 @@ namespace BuscaMissa.Services
             _configuration = configuration;
             _logger = logger;
             _azureBlobStorage = optionsAzure.Value;
-            AzureBlobStorageStringConnection();
+            AzureBlobStorageModel();
         }
 
-        private void AzureBlobStorageStringConnection()
+        private void AzureBlobStorageModel()
         {
             if (string.IsNullOrEmpty(_configuration["AzureBlobStorage"]))
             {
                 throw new ArgumentNullException("ConnectionString", "Connection string for Azure Blob Storage is not set.");
             }
             _azureBlobStorage.ConnectionString = _configuration["AzureBlobStorage"]!;
+            if(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!.Equals("Development", StringComparison.OrdinalIgnoreCase))
+            {
+                _azureBlobStorage.BaseUri = _azureBlobStorage.BaseUri.Replace("prod","dev");
+            }
         }
 
         public Uri UploadAzure(string base64Image, string pasta, string nomeArquivo)
