@@ -402,3 +402,4 @@ BuscaMissa/BuscaMissa.pem
 importantes/*
 .vscode/*
 BuscaMissa/appsettings.Staging.json
+BuscaMissa/appsettings.Production.json
