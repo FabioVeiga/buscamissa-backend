@@ -24,7 +24,8 @@ namespace BuscaMissa.Controllers
             var lista = new List<TipoEnum>();
             foreach (var tipo in Enum.GetValues(typeof(TipoSolicitacaoEnum)))
             {
-                lista.Add(new TipoEnum((int)tipo, tipo.ToString()!));
+                var description = Helpers.EnumHelper.GetDescription((TipoSolicitacaoEnum)tipo);
+                lista.Add(new TipoEnum((int)tipo, description));
             }
             return Ok(lista);
         }

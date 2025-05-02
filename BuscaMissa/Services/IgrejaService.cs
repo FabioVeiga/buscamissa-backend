@@ -397,7 +397,7 @@ namespace BuscaMissa.Services
             {
                 return new InformacoesGeraisResponse{
                     QuantidadesIgrejas = _context.Igrejas.AsNoTracking().Count(x => x.Ativo),
-                    QuantidadeMissas = _context.Missas.AsNoTracking().Count(),
+                    QuantidadeMissas = _context.Missas.Include(x => x.Igreja).AsNoTracking().Count(x => x.Igreja.Ativo),
                     QuantidadeIgrejaDenunciaNaoAtendida = _context.IgrejaDenuncias.AsNoTracking().Count(x => string.IsNullOrEmpty(x.AcaoRealizada)),
                     QuantidadeSolicitacoesNaoAtendida = _context.Solicitacoes.AsNoTracking().Count(x => !x.Resolvido),
                     QuantidadeDeUsuarios = _context.Usuarios.AsNoTracking().Count(x => x.Perfil != Enums.PerfilEnum.Admin)
