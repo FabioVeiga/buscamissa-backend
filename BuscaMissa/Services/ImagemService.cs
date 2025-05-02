@@ -1,7 +1,3 @@
-using Amazon;
-using Amazon.S3;
-using Amazon.S3.Model;
-using Amazon.S3.Transfer;
 using Azure.Storage.Blobs;
 using BuscaMissa.DTOs.SettingsDto;
 using Microsoft.Extensions.Options;
@@ -11,62 +7,27 @@ namespace BuscaMissa.Services
     public class ImagemService
     {
         private readonly ILogger<ImagemService> _logger;
-        private readonly AmazonS3Client _s3Client;
-        private readonly S3BucketSetting _s3BucketSetting;
         private readonly AzureBlobStorage _azureBlobStorage;
+        private readonly IConfiguration _configuration;
 
-        public ImagemService(ILogger<ImagemService> logger, IOptions<S3BucketSetting> options, IOptions<AzureBlobStorage> optionsAzure)
+        public ImagemService(ILogger<ImagemService> logger, IOptions<AzureBlobStorage> optionsAzure, IConfiguration configuration)
         {
+            _configuration = configuration;
             _logger = logger;
-            _s3BucketSetting = options.Value;
-            _s3Client = new AmazonS3Client(_s3BucketSetting.AwsAccessKeyId, _s3BucketSetting.AwsSecretAccessKey, _s3BucketSetting.RegionDefault);
             _azureBlobStorage = optionsAzure.Value;
-            _azureBlobStorage.ConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorage")!;
+            AzureBlobStorageModel();
         }
 
-        public async Task<string> UploadBucketAsync(string base64Image, string pasta, string nomeArquivo, string extensao)
+        private void AzureBlobStorageModel()
         {
-            try
+            if (string.IsNullOrEmpty(_configuration["AzureBlobStorage"]))
             {
-                var imageBytes = Helpers.ImageHelper.ConverterStringEmByte(base64Image);
-                var key = $"{pasta}/{nomeArquivo}";
-                using var stream = new MemoryStream(imageBytes);
-                var uploadRequest = new TransferUtilityUploadRequest
-                {
-                    InputStream = stream,
-                    Key = key,
-                    BucketName = _s3BucketSetting.BucketName,
-                    ContentType = $"image/{extensao}",
-                };
-                var transferUtility = new TransferUtility(_s3Client);
-                await transferUtility.UploadAsync(uploadRequest);
-
-                return ObterPreVisualizacaoBucketS3(key);
+                throw new ArgumentNullException("ConnectionString", "Connection string for Azure Blob Storage is not set.");
             }
-            catch (Exception ex)
+            _azureBlobStorage.ConnectionString = _configuration["AzureBlobStorage"]!;
+            if(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!.Equals("Development", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogError(ex, "Erro ao realizar upload de imagem");
-                throw;
-            }
-        }
-
-        public string ObterPreVisualizacaoBucketS3(string key)
-        {
-            try
-            {
-                var request = new GetPreSignedUrlRequest
-                {
-                    BucketName = _s3BucketSetting.BucketName,
-                    Key = key,
-                    Expires = DateTime.UtcNow.AddHours(1)
-                };
-                return _s3Client.GetPreSignedURL(request);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao obter pré-visualização de imagem");
-                throw;
+                _azureBlobStorage.BaseUri = _azureBlobStorage.BaseUri.Replace("prod","dev");
             }
         }
 

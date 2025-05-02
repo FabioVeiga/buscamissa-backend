@@ -35,7 +35,7 @@ namespace BuscaMissa.Controllers
                 var mensagemTela = string.Empty;
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 if (usuario == null) return NotFound(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não encontrado!" }));
-                if (usuario.Bloqueado.HasValue && usuario.Bloqueado.Value) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário bloqueado! Entrar em contato pelo suporte@buscamissa.com.br!" }));
+                if (usuario.Bloqueado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário bloqueado! Entrar em contato pelo suporte@buscamissa.com.br!" }));
                 var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
                 if (controle is null || controle.Igreja is null) return NotFound(new ApiResponse<dynamic>(new { mensagemTela = "Não existe este controle!" }));
                 var codigo = await _codigoValidacaoService.BuscarPorCodigoTokenAsync(request.CodigoValidador);
@@ -47,17 +47,13 @@ namespace BuscaMissa.Controllers
                     switch (controle.Status)
                     {
                         case Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador:
-                            var ativarIgreja = await _igrejaService.AtivarAsync(controle, usuario);
+                            await _igrejaService.AtivarAsync(controle, usuario);
                             mensagemTela = "Igreja ativada com sucesso!";
                             break;
                         case Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador:
                             var temporaria = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(controle.Igreja.Id);
                             var alterado = await _igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria!);
-                            if (temporaria!.ImagemUrl != string.Empty && temporaria.ImagemUrl != null)
-                            {
-                                var nome = $"{controle.Igreja.Id}{Helpers.ImageHelper.BuscarExtensao(temporaria.ImagemUrl!)}";
-                                _imagemService.UploadAzure(temporaria.ImagemUrl!, "igreja", nome);
-                            }
+                            await _igrejaService.AtivarAsync(controle, usuario);
                             mensagemTela = "Igreja atualizada com sucesso!";
                             break;
                         default:
@@ -67,9 +63,8 @@ namespace BuscaMissa.Controllers
                 if (codigoValidador.Contains("Enviado email com o código"))
                 {
                     codigo = await _codigoValidacaoService.EditarAsync(codigo);
-#if DEBUG
+                    
                     Console.WriteLine("DEBUG");
-#else
                         var responseEmail = await _emailService.EnviarEmail(
                             [usuario.Email], 
                             $"Código para Validação", 
@@ -80,7 +75,6 @@ namespace BuscaMissa.Controllers
                         );
                         Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                         if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
-#endif
                     return Ok(new ApiResponse<dynamic>(new
                     {
                         mensagemTela = "Novo código validador enviado código para o email!",
@@ -91,13 +85,6 @@ namespace BuscaMissa.Controllers
                 }
                 controle.Status = Enums.StatusEnum.Finalizado;
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                var response = new ApiResponse<dynamic>(new
-                {
-                    mensagemTela,
-#if DEBUG
-                    codigoValidador
-#endif
-                });
                 var igreja = await _igrejaService.BuscarPorIdAsync(controle.Igreja.Id);
                 return Ok(new ApiResponse<dynamic>(new
                 {

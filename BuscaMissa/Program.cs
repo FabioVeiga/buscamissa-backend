@@ -4,7 +4,6 @@ using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.SettingsDto;
 using BuscaMissa.Services;
-using MailerSendNetCore.Common;
 using MailerSendNetCore.Common.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -13,19 +12,33 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!;
-System.Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {env}");
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
 string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
-var secret = Environment.GetEnvironmentVariable("SecretApp");
-var key = Encoding.ASCII.GetBytes(secret!);
+string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? throw new ArgumentNullException("ASPNETCORE_ENVIRONMENT must be provided.");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
 
+if (env.Equals("Production", StringComparison.OrdinalIgnoreCase))
+{
+    keyVaultUri = keyVaultUri.Replace("dev", "prod"); // Assign the modified value back to keyVaultUri
+}
 builder.Configuration.AddAzureKeyVault(
     new Uri(keyVaultUri),
     new DefaultAzureCredential()
 );
 
+var secret = builder.Configuration["SecretApp"];
+var key = Encoding.ASCII.GetBytes(secret!);
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration["AzureSqlConnection"]));
+    options.UseSqlServer(builder.Configuration["AzureSqlConnection"], sqlServerOptions =>
+    {
+        sqlServerOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(70),
+            errorNumbersToAdd: null
+        );
+    })
+);
 
 builder.Services.AddScoped<CodigoValidacaoService>();
 builder.Services.AddScoped<ControleService>();
@@ -110,37 +123,20 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
-builder.Services.Configure<S3BucketSetting>(builder.Configuration.GetSection("S3BucketSetting"));
 builder.Services.Configure<AzureBlobStorage>(builder.Configuration.GetSection("AzureBlobStorage"));
-Environment.SetEnvironmentVariable("AzureBlobStorage",builder.Configuration["AzureBlobStorage"]);
 
 // Adicione o serviço CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost4200", policy =>
+    options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:4200", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
-
-// Aplica migrações automaticamente (opcional)
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    DatabaseSeeder.Seed(context);
-}
-
-// Use o CORS
-app.UseCors("AllowLocalhost4200");
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>
@@ -149,8 +145,17 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
 });
 
-
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseCors("AllowLocalhost");
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    DatabaseSeeder.Seed(context, builder.Configuration["SenhaAdmin"]!);
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

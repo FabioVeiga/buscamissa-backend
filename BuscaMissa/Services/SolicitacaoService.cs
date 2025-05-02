@@ -52,5 +52,21 @@ namespace BuscaMissa.Services
                 throw;
             }
         }
+
+        public async Task<IEnumerable<Solicitacao>> BuscarTodosAsync(bool? resolvida)
+        {
+            try
+            {
+                return await _context.Solicitacoes
+                .Where(x => resolvida == null || x.Resolvido == resolvida)
+                .AsNoTracking()
+                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching all Solicitacoes");
+                throw;
+            }
+        }
     }
 }

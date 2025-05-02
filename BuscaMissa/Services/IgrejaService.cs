@@ -96,6 +96,33 @@ namespace BuscaMissa.Services
             }
         }
 
+        public async Task<bool> AtivarAsync(int igrejaId, int usuarioId)
+        {
+            try
+            {
+                var model = await _context.Controles
+                    .Include(x => x.Igreja)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+
+                if (model == null) return false;
+
+                model.Igreja!.Ativo = true;
+                model.Igreja.Alteracao = DateTime.Now;
+                model.Igreja.UsuarioId = usuarioId;
+                model.Status = Enums.StatusEnum.Finalizado;
+                _context.Controles.Update(model);
+                var resultado = await _context.SaveChangesAsync();
+                return resultado > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", igrejaId);
+                throw;
+            }
+        }
+        
+       
         public async Task<Paginacao<IgrejaResponse>> BuscarPorFiltros(FiltroIgrejaRequest filtro)
         {
             try
@@ -127,6 +154,69 @@ namespace BuscaMissa.Services
                 if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
+
+                var aux = query.Select(x => new IgrejaResponse()
+                {
+                    Id = x.Id,
+                    Nome = x.Nome,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
+                    Alteracao = x.Alteracao,
+                    Ativo = x.Ativo,
+                    Criacao = x.Criacao,
+                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    Paroco = x.Paroco,
+                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
+                    RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
+                    Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
+                });
+
+                var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+                return resultado;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task<Paginacao<IgrejaResponse>> BuscarPorFiltrosAsync(FiltroIgrejaAdminRequest filtro)
+        {
+            try
+            {
+                var query = _context.Igrejas
+                .Include(x => x.Endereco)
+                .Include(x => x.Usuario)
+                .Include(Igreja => Igreja.Contato)
+                .Include(Igreja => Igreja.RedesSociais)
+                .Include(x => x.Denuncia)
+                .AsNoTracking()
+                .Where(x =>
+                    x.Ativo == filtro.Ativo)
+                .AsQueryable();
+
+                if (!string.IsNullOrEmpty(filtro.Uf))
+                    query = query.Where(x => x.Endereco.Uf == filtro.Uf.ToUpper());
+
+                if (!string.IsNullOrEmpty(filtro.Localidade))
+                    query = query.Where(x => x.Endereco.Localidade == filtro.Localidade);
+
+                if (!string.IsNullOrEmpty(filtro.Bairro))
+                    query = query.Where(x => x.Endereco.Bairro == filtro.Bairro);
+
+                if (!string.IsNullOrEmpty(filtro.Nome))
+                    query = query.Where(x => x.Nome.ToUpper().Contains(filtro.Nome.ToUpper()));
+
+                if (filtro.DiaDaSemana is not null)
+                    query = query.Where(x => x.Missas.Any(y => y.DiaSemana == filtro.DiaDaSemana));
+
+                if (!string.IsNullOrEmpty(filtro.Horario))
+                    query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
+
+                if(filtro.Denuncia)
+                    query = query.Where(x => x.Denuncia != null && string.IsNullOrEmpty(x.Denuncia.AcaoRealizada));
 
                 var aux = query.Select(x => new IgrejaResponse()
                 {
@@ -254,33 +344,51 @@ namespace BuscaMissa.Services
 
         public async Task<bool> EditarPorTemporariaAsync(Igreja igreja, AtualizacaoIgrejaResponse atualizacao)
         {
-            
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                _context.Missas.RemoveRange(igreja.Missas);
-                _context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa(){
-                    DiaSemana = x.DiaSemana,
-                    Horario = TimeSpan.Parse(x.Horario),
-                    IgrejaId = igreja.Id,
-                    Observacao = x.Observacao
-                }));
-                igreja.Paroco = atualizacao.Paroco;
-                igreja.Alteracao = DateTime.Now;
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    _context.Missas.RemoveRange(igreja.Missas);
+                    _context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa()
+                    {
+                        DiaSemana = x.DiaSemana,
+                        Horario = TimeSpan.Parse(x.Horario),
+                        IgrejaId = igreja.Id,
+                        Observacao = x.Observacao
+                    }));
+                    igreja.Paroco = atualizacao.Paroco;
+                    igreja.Alteracao = DateTime.Now;
 
-                await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
-                await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", igreja);
-                await transaction.RollbackAsync();
-                return false;
-            }
+                    if(atualizacao.ImagemUrl != null)
+                    {
+                        var nome = $"{igreja.Id}{ImageHelper.BuscarExtensao(atualizacao.ImagemUrl)}";
+                        _imagemService.UploadAzure(atualizacao.ImagemUrl, "igreja", nome);
+                        igreja.ImagemUrl = nome;
+                    }
 
+                    // Delete IgrejaTemporarias and MissasTemporarias
+                    var deleteIgrejaResult = await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
+                    var deleteMissasResult = await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
+
+                    if (!deleteIgrejaResult || !deleteMissasResult)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", igreja);
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+            });
         }
     
         public InformacoesGeraisResponse InformacoesGeraisResponse()

@@ -68,7 +68,7 @@ namespace BuscaMissa.Controllers
         {
             try
             {
-                var temIgreja = await _igrejaService.BuscarPorCepAsync(cep);
+                var temIgreja = await _igrejaService.BuscarPorCepAsync(CepHelper.FormatarCep(cep));
                 if (temIgreja == null)
                 {
                     var endereco = await _viaCepService.ConsultarCepAsync(CepHelper.FormatarCep(cep).ToString());
@@ -76,7 +76,7 @@ namespace BuscaMissa.Controllers
                         return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
                     return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
                 }
-                if(temIgreja.ImagemUrl != string.Empty)
+                if(!string.IsNullOrEmpty(temIgreja.ImagemUrl))
                 {
                     temIgreja.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{temIgreja.ImagemUrl}");
                 }
@@ -128,22 +128,18 @@ namespace BuscaMissa.Controllers
                 var temIgreja = await _igrejaService.BuscarPorIdAsync(request.Id);
                 if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
-                if (controle == null) return NotFound();
+                controle ??= await _controleService.InserirAsync(new Controle() { Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido, IgrejaId = temIgreja.Id });
+               
+                if(request.Imagem is not null)
+                {
+                    if(temIgreja.ImagemUrl is not null && request.Imagem.Contains(temIgreja.ImagemUrl))
+                        request.Imagem = null;
+                }
+
                 var resultado = await _igrejaTemporariaService.InserirAsync(request);
                 if (!resultado) return UnprocessableEntity();
                 controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
                 await _controleService.EditarStatusAsync(controle.Status, controle.Id);
-                if(request.Contato is not null)
-                {
-                    var contato = (Contato)request.Contato;
-                    contato.IgrejaId = temIgreja.Id;
-                    if(temIgreja.Contato is not null){
-                        contato.Id = temIgreja.Contato!.Id;
-                        await _contatoService.EditarAsync(contato); 
-                    }
-                    else
-                        await _contatoService.InserirAsync(contato);
-                }
                 var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
                 return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
             }
@@ -194,10 +190,15 @@ namespace BuscaMissa.Controllers
                         })]
                     };
                 }
-                if(resultado.ImagemUrl != string.Empty && igreja.ImagemUrl != null)
+                if(!string.IsNullOrEmpty(resultado.ImagemUrl))
                 {
-                    var imgUrl = resultado.ImagemUrl ?? igreja.ImagemUrl;
-                    resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{imgUrl}");
+                    resultado.ImagemUrl = $"data:image/png;base64,{resultado.ImagemUrl}";
+                }else{
+                    if(igreja.ImagemUrl is not null){
+                        resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{igreja.ImagemUrl}");
+                    }else{
+                        resultado.ImagemUrl = null;
+                    }
                 }
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
@@ -237,8 +238,22 @@ namespace BuscaMissa.Controllers
                 var resultado = await _igrejaService.BuscarPorIdAsync(igrejaId);
                 if(resultado == null) return NotFound();
                 request.IgrejaId = igrejaId;
-                var resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
-                return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
+                var denuncia = await _igrejaDenunciaService.BuscarPorIgrejaIdAsync(igrejaId);
+                var resultadoDenuncia = false;
+                if(denuncia is not null && !string.IsNullOrEmpty(denuncia.AcaoRealizada))
+                {
+                    denuncia.AcaoRealizada = null;
+                    denuncia.Descricao = request.Descricao;
+                    denuncia.Titulo = request.Titulo;
+                    denuncia.NomeDenunciador = request.NomeDenunciador;
+                    denuncia.EmailDenunciador = request.EmailDenunciador;
+                    resultadoDenuncia = await _igrejaDenunciaService.AtualizarAsync(denuncia);
+                }else{
+                    resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
+                }
+
+                //return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
+                return Ok(new ApiResponse<dynamic>(new { resultadoDenuncia, messagemAplicacao = "Aguarde a resposta do administrador!" }));
             }
             catch (Exception ex)
             {

@@ -25,6 +25,7 @@ namespace BuscaMissa.Services
             {
                 Console.WriteLine(response);
             }
+            System.Console.WriteLine(html);
 
             return response.MessageId;
         }

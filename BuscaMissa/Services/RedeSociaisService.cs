@@ -68,5 +68,25 @@ namespace BuscaMissa.Services
                 throw;
             }
         }
+
+        public async Task DeletarAsync(int igrejaId, TipoRedeSocialEnum tipoRedeSocial){
+            try
+            {
+                var redeSocial = await _context.RedesSociais
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId && x.TipoRedeSocial == tipoRedeSocial);
+
+                if (redeSocial != null)
+                {
+                    _context.RedesSociais.Remove(redeSocial);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting {Model}", igrejaId);
+                throw;
+            }
+        }
     }
 }

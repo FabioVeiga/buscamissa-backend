@@ -6,7 +6,8 @@ namespace BuscaMissa.Helpers
     {
         public static string FormatarCep(string cepInput)
         {
-            return Regex.Replace(cepInput, "[^0-9]", "");
+            var formattedCep = Regex.Replace(cepInput, "[^0-9]", "");
+            return formattedCep.PadLeft(8, '0'); 
         }
     }
 }

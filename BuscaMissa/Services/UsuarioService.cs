@@ -11,10 +11,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BuscaMissa.Services
 {
-    public class UsuarioService(ApplicationDbContext context, ILogger<UsuarioService> logger)
+    public class UsuarioService(ApplicationDbContext context, ILogger<UsuarioService> logger, IConfiguration configuration)
     {
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<UsuarioService> _logger = logger;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task<Usuario> InserirAsync(CriacaoUsuarioRequest request)
         {
@@ -66,7 +67,7 @@ namespace BuscaMissa.Services
         public UsuarioResponse GerarTokenAsync(Usuario usuario)
         {
             var expiracao = usuario.Perfil == Enums.PerfilEnum.App ? DateTime.UtcNow.AddYears(10) : DateTime.UtcNow.AddHours(2);
-            var secret = Environment.GetEnvironmentVariable("SecretApp");
+            var secret = _configuration["SecretApp"];
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
