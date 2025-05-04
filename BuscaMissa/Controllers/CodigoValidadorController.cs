@@ -63,18 +63,16 @@ namespace BuscaMissa.Controllers
                 if (codigoValidador.Contains("Enviado email com o código"))
                 {
                     codigo = await _codigoValidacaoService.EditarAsync(codigo);
-                    
-                    Console.WriteLine("DEBUG");
-                        var responseEmail = await _emailService.EnviarEmail(
-                            [usuario.Email], 
-                            $"Código para Validação", 
-                            Contant.EmailValidacaoToken
-                            .Replace("{nome}",usuario.Nome)
-                            .Replace("{token}",codigo.CodigoToken.ToString())
-                            .Replace("{ano}",DataHoraHelper.Ano())
-                        );
-                        Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
-                        if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
+                    var responseEmail = await _emailService.EnviarEmail(
+                        [usuario.Email],
+                        $"Código para Validação",
+                        Contant.EmailValidacaoToken
+                        .Replace("{nome}", usuario.Nome)
+                        .Replace("{token}", codigo.CodigoToken.ToString())
+                        .Replace("{ano}", DataHoraHelper.Ano())
+                    );
+                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
+                    if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
                     return Ok(new ApiResponse<dynamic>(new
                     {
                         mensagemTela = "Novo código validador enviado código para o email!",

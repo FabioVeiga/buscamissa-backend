@@ -6,8 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace BuscaMissa.Services
 {
-    public class EmailService(IOptions<SettingCodigoValidacao> options, IMailerSendEmailClient mailerSendEmailClient)
+    public class EmailService(ILogger<EmailService> logger, IOptions<SettingCodigoValidacao> options, IMailerSendEmailClient mailerSendEmailClient)
     {
+        private readonly ILogger<EmailService> _logger = logger;
         private readonly IMailerSendEmailClient _mailerSendEmailClient = mailerSendEmailClient;
         private readonly SettingCodigoValidacao _mailerSendEmailSetting = options.Value;
 
@@ -23,7 +24,7 @@ namespace BuscaMissa.Services
             var response = await _mailerSendEmailClient.SendEmailAsync(parameters, cancellationToken);
             if (response is { Errors.Count: > 0 })
             {
-                Console.WriteLine(response);
+                _logger.LogError("Erro ao enviar email: {Errors}", response);
             }
             System.Console.WriteLine(html);
 

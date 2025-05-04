@@ -23,8 +23,8 @@ namespace BuscaMissa.Helpers
             {
                 TipoRedeSocialEnum.Facebook => $"https://www.facebook.com/{nomeDoPerfil}",
                 TipoRedeSocialEnum.Instagram => $"https://www.instagram.com/{nomeDoPerfil}/",
-                TipoRedeSocialEnum.TikTok => $"https://www.youtube.com/c/{nomeDoPerfil}",
-                TipoRedeSocialEnum.YouTube => $"https://www.tiktok.com/@{nomeDoPerfil}",
+                TipoRedeSocialEnum.YouTube => $"https://www.youtube.com/c/{nomeDoPerfil}",
+                TipoRedeSocialEnum.TikTok => $"https://www.tiktok.com/@{nomeDoPerfil}",
                 _ => string.Empty,
             };
         }
