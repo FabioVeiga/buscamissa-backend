@@ -30,7 +30,7 @@ var secret = builder.Configuration["SecretApp"];
 var key = Encoding.ASCII.GetBytes(secret!);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("MySqlConnection"), new MySqlServerVersion(new Version(8, 0, 33)), mySqlOptions =>
+    options.UseMySql(builder.Configuration["MySqlConnection"], new MySqlServerVersion(new Version(8, 0, 33)), mySqlOptions =>
     {
         mySqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
