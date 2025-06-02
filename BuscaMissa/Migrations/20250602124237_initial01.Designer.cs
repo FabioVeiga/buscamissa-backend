@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BuscaMissa.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250311014656_initial02")]
-    partial class initial02
+    [Migration("20250602124237_initial01")]
+    partial class initial01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,9 +21,9 @@ namespace BuscaMissa.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.13")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("BuscaMissa.Models.CodigoPermissao", b =>
                 {
@@ -31,7 +31,7 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CodigoToken")
                         .HasColumnType("int");
@@ -40,7 +40,7 @@ namespace BuscaMissa.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("ValidoAte")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -55,34 +55,34 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("DDD")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("DDDWhatsApp")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("EmailContato")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<bool?>("EmailContatoValidado")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
                     b.Property<string>("Telefone")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<bool?>("TelefoneValidado")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("TelefoneWhatsApp")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<bool?>("TelefoneWhatsAppValidado")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -92,13 +92,33 @@ namespace BuscaMissa.Migrations
                     b.ToTable("Contatos");
                 });
 
+            modelBuilder.Entity("BuscaMissa.Models.Contribuidor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataContribuicao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Contribuidores");
+                });
+
             modelBuilder.Entity("BuscaMissa.Models.Controle", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("IgrejaId")
                         .HasColumnType("int");
@@ -119,44 +139,50 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Bairro")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Cep")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Complemento")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Estado")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Latitude")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Localidade")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Logradouro")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Longitude")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Numero")
                         .HasColumnType("int");
 
                     b.Property<string>("Regiao")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Uf")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -172,26 +198,26 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("Alteracao")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("Ativo")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("Criacao")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("ImagemUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nome")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Paroco")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
@@ -203,22 +229,60 @@ namespace BuscaMissa.Migrations
                     b.ToTable("Igrejas");
                 });
 
+            modelBuilder.Entity("BuscaMissa.Models.IgrejaDenuncia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AcaoRealizada")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("EmailDenunciador")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("IgrejaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NomeDenunciador")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IgrejaId")
+                        .IsUnique();
+
+                    b.ToTable("IgrejaDenuncias");
+                });
+
             modelBuilder.Entity("BuscaMissa.Models.IgrejaTemporaria", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
                     b.Property<string>("ImagemUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Paroco")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -231,19 +295,19 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("DiaSemana")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan>("Horario")
-                        .HasColumnType("time");
+                        .HasColumnType("time(6)");
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
                     b.Property<string>("Observacao")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -258,19 +322,19 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("DiaSemana")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan>("Horario")
-                        .HasColumnType("time");
+                        .HasColumnType("time(6)");
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
                     b.Property<string>("Observacao")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -285,20 +349,20 @@ namespace BuscaMissa.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
                     b.Property<string>("NomeDoPerfil")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("TipoRedeSocial")
                         .HasColumnType("int");
 
                     b.Property<bool>("Verificado")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -307,37 +371,97 @@ namespace BuscaMissa.Migrations
                     b.ToTable("RedesSociais");
                 });
 
+            modelBuilder.Entity("BuscaMissa.Models.Solicitacao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Assunto")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("DataSolicitacao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DataSolucao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EmailSolicitante")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool?>("EnviarResposta")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Mensagem")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("NomeSolicitante")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("Resolvido")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Resposta")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Solucao")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Solicitacoes");
+                });
+
             modelBuilder.Entity("BuscaMissa.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool?>("AceitarPromocao")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("AceitarTermo")
-                        .HasColumnType("bit");
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("Bloqueado")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("Criacao")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("MotivoBloqueio")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nome")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Perfil")
                         .HasColumnType("int");
 
                     b.Property<string>("Senha")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -393,6 +517,17 @@ namespace BuscaMissa.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("BuscaMissa.Models.IgrejaDenuncia", b =>
+                {
+                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
+                        .WithOne("Denuncia")
+                        .HasForeignKey("BuscaMissa.Models.IgrejaDenuncia", "IgrejaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Igreja");
+                });
+
             modelBuilder.Entity("BuscaMissa.Models.Missa", b =>
                 {
                     b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
@@ -429,6 +564,8 @@ namespace BuscaMissa.Migrations
             modelBuilder.Entity("BuscaMissa.Models.Igreja", b =>
                 {
                     b.Navigation("Contato");
+
+                    b.Navigation("Denuncia");
 
                     b.Navigation("Endereco")
                         .IsRequired();

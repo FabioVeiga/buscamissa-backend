@@ -27,20 +27,25 @@ namespace BuscaMissa.Context
         {
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             Console.WriteLine($"Executando em ambiente: {env}");
+
             IConfigurationRoot configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile($"appsettings.{env}.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
-            var connectionString = configuration.GetConnectionString("AzureSqlConnection");
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile($"appsettings.{env}.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("MySqlConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("Connection string 'AzureSqlConnection' not found.");
+                throw new InvalidOperationException("Connection string 'MySqlConnection' not found.");
             }
+
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 33)));
+
             return new ApplicationDbContext(optionsBuilder.Options);
         }
+
     }
 }
 

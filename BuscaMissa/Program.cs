@@ -30,9 +30,9 @@ var secret = builder.Configuration["SecretApp"];
 var key = Encoding.ASCII.GetBytes(secret!);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration["AzureSqlConnection"], sqlServerOptions =>
+    options.UseMySql(builder.Configuration.GetConnectionString("MySqlConnection"), new MySqlServerVersion(new Version(8, 0, 33)), mySqlOptions =>
     {
-        sqlServerOptions.EnableRetryOnFailure(
+        mySqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(70),
             errorNumbersToAdd: null
