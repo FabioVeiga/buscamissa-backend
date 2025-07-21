@@ -8,7 +8,7 @@ namespace BuscaMissa.DTOs.EnderecoDto
         public string Cep { get; set; } = null!;
 
         [JsonPropertyName("logradouro")]
-        public string Logradouro { get; set; }  = null!;
+        public string Logradouro { get; set; } = null!;
 
         [JsonPropertyName("complemento")]
         public string Complemento { get; set; } = null!;
@@ -42,5 +42,7 @@ namespace BuscaMissa.DTOs.EnderecoDto
 
         [JsonPropertyName("siafi")]
         public string Siafi { get; set; } = null!;
+
+        public bool Erro { get; set; }
     }
 }
