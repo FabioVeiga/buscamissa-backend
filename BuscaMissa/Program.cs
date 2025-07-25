@@ -40,6 +40,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     })
 );
 
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddScoped<CodigoValidacaoService>();
 builder.Services.AddScoped<ControleService>();
 builder.Services.AddScoped<EmailService>();
@@ -47,7 +49,6 @@ builder.Services.AddScoped<EnderecoService>();
 builder.Services.AddScoped<IgrejaService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ImagemService>();
-builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
 builder.Services.AddScoped<ContatoService>();
 builder.Services.AddScoped<IgrejaDenunciaService>();
