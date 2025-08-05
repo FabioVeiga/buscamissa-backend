@@ -12,9 +12,9 @@ namespace BuscaMissa.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
+    public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService,
     ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
-    EnderecoService enderecoService, ContatoService contatoService, IgrejaDenunciaService igrejaDenunciaService) 
+    EnderecoService enderecoService, ContatoService contatoService, IgrejaDenunciaService igrejaDenunciaService)
     : ControllerBase
     {
         private readonly ILogger<IgrejaController> _logger = logger;
@@ -38,14 +38,15 @@ namespace BuscaMissa.Controllers
                 var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
                 if (igrejaResponse is not null) return NotFound(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Carregar página com dados da igreja!" }));
 
-                if(!ModelState.IsValid) return BadRequest();
+                if (!ModelState.IsValid) return BadRequest();
 
                 var igreja = await _igrejaService.InserirAsync(request);
                 var controle = new Controle() { Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await _controleService.InserirAsync(controle);
-                
-                if (!string.IsNullOrEmpty(request.Imagem)){
-                    igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+
+                if (!string.IsNullOrEmpty(request.Imagem))
+                {
+                    igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     var urlTemp = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await _igrejaService.EditarAsync(igreja);
                 }
@@ -76,7 +77,7 @@ namespace BuscaMissa.Controllers
                         return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }));
                     return NotFound(new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
                 }
-                if(!string.IsNullOrEmpty(temIgreja.ImagemUrl))
+                if (!string.IsNullOrEmpty(temIgreja.ImagemUrl))
                 {
                     temIgreja.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{temIgreja.ImagemUrl}");
                 }
@@ -84,7 +85,7 @@ namespace BuscaMissa.Controllers
                 IgrejaResponse response = temIgreja;
                 if (!temIgreja.Ativo)
                     messagemAplicacao = "Habilitar para usuario editar e validar!";
-                
+
                 return Ok(new ApiResponse<dynamic>(new
                 {
                     response,
@@ -129,10 +130,10 @@ namespace BuscaMissa.Controllers
                 if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(request.Id);
                 controle ??= await _controleService.InserirAsync(new Controle() { Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido, IgrejaId = temIgreja.Id });
-               
-                if(request.Imagem is not null)
+
+                if (request.Imagem is not null)
                 {
-                    if(temIgreja.ImagemUrl is not null && request.Imagem.Contains(temIgreja.ImagemUrl))
+                    if (temIgreja.ImagemUrl is not null && request.Imagem.Contains(temIgreja.ImagemUrl))
                         request.Imagem = null;
                 }
 
@@ -150,7 +151,7 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-    
+
         [HttpGet]
         [Route("buscar-por-atualizacoes/{igrejaId}")]
         [Authorize(Roles = "App")]
@@ -159,13 +160,14 @@ namespace BuscaMissa.Controllers
             try
             {
                 var igreja = await _igrejaService.BuscarPorIdAsync(igrejaId);
-                if(igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
-                
+                if (igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
+
                 var controle = await _controleService.BuscarPorIgrejaIdAsync(igrejaId);
                 var resultado = await _igrejaTemporariaService.BuscarPorIgrejaIdAsync(igrejaId);
-                if (resultado is null) 
+                if (resultado is null)
                 {
-                    resultado = new AtualizacaoIgrejaResponse(){
+                    resultado = new AtualizacaoIgrejaResponse()
+                    {
                         Id = igreja.Id,
                         Nome = igreja.Nome,
                         Paroco = igreja.Paroco,
@@ -190,13 +192,18 @@ namespace BuscaMissa.Controllers
                         })]
                     };
                 }
-                if(!string.IsNullOrEmpty(resultado.ImagemUrl))
+                if (!string.IsNullOrEmpty(resultado.ImagemUrl))
                 {
                     resultado.ImagemUrl = $"data:image/png;base64,{resultado.ImagemUrl}";
-                }else{
-                    if(igreja.ImagemUrl is not null){
+                }
+                else
+                {
+                    if (igreja.ImagemUrl is not null)
+                    {
                         resultado.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{igreja.ImagemUrl}");
-                    }else{
+                    }
+                    else
+                    {
                         resultado.ImagemUrl = null;
                     }
                 }
@@ -227,20 +234,21 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-    
+
         [HttpPost]
         [Route("denunciar/{igrejaId}")]
         [Authorize(Roles = "App")]
-        public async Task<ActionResult> Denunciar(int igrejaId, [FromBody] DenunciarIgrejaRequest request){
+        public async Task<ActionResult> Denunciar(int igrejaId, [FromBody] DenunciarIgrejaRequest request)
+        {
             try
             {
-                if(!ModelState.IsValid) return BadRequest();
+                if (!ModelState.IsValid) return BadRequest();
                 var resultado = await _igrejaService.BuscarPorIdAsync(igrejaId);
-                if(resultado == null) return NotFound();
+                if (resultado == null) return NotFound();
                 request.IgrejaId = igrejaId;
                 var denuncia = await _igrejaDenunciaService.BuscarPorIgrejaIdAsync(igrejaId);
                 var resultadoDenuncia = false;
-                if(denuncia is not null && !string.IsNullOrEmpty(denuncia.AcaoRealizada))
+                if (denuncia is not null && !string.IsNullOrEmpty(denuncia.AcaoRealizada))
                 {
                     denuncia.AcaoRealizada = null;
                     denuncia.Descricao = request.Descricao;
@@ -248,7 +256,9 @@ namespace BuscaMissa.Controllers
                     denuncia.NomeDenunciador = request.NomeDenunciador;
                     denuncia.EmailDenunciador = request.EmailDenunciador;
                     resultadoDenuncia = await _igrejaDenunciaService.AtualizarAsync(denuncia);
-                }else{
+                }
+                else
+                {
                     resultadoDenuncia = await _igrejaDenunciaService.InserirAsync(request);
                 }
 
@@ -262,15 +272,15 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-    
+
         [HttpGet]
         [Route("obter-enderecos")]
         [Authorize(Roles = "App")]
         public async Task<ActionResult> ObterDadosDeBuscaAsync([FromQuery] EnderecoIgrejaBuscaRequest request)
-        {   
+        {
             try
             {
-                if(!ModelState.IsValid) return BadRequest();
+                if (!ModelState.IsValid) return BadRequest();
                 var resultado = await _enderecoService.BuscarDadosBuscaAsync(request);
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
@@ -286,7 +296,7 @@ namespace BuscaMissa.Controllers
         [Route("v2/obter-enderecos")]
         [Authorize(Roles = "App")]
         public async Task<ActionResult> ObterDadosDeBuscaAsync()
-        {   
+        {
             try
             {
                 var resultado = await _enderecoService.OrganizarEnderecosAsync();
@@ -299,7 +309,30 @@ namespace BuscaMissa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
-    
+
+        [HttpGet]
+        [Route("buscar-por-id")]
+        [Authorize(Roles = "App")]
+        public async Task<ActionResult> BuscarPorIdAsync([FromQuery] int igrejaId)
+        {
+            try
+            {
+                var model = await _igrejaService.BuscarPorIdAsync(igrejaId);
+                if (model == null) return NotFound();
+                if (!string.IsNullOrEmpty(model.ImagemUrl))
+                {
+                    model.ImagemUrl = _imagemService.ObterUrlAzureBlob($"igreja/{model.ImagemUrl}");
+                }
+                var resultado = (IgrejaResponse)model;
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
     }
 }
 
