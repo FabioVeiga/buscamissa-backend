@@ -2,7 +2,7 @@ using Azure.Storage.Blobs;
 using BuscaMissa.DTOs.SettingsDto;
 using Microsoft.Extensions.Options;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class ImagemService
     {

@@ -1,9 +1,8 @@
-using BuscaMissa.Models;
-using BuscaMissa.Services;
+using BuscaMissa.Services.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BuscaMissa.Controllers
+namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
     [Route("api/[controller]")]

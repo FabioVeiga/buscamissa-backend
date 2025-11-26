@@ -9,7 +9,7 @@ using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class UsuarioService(ApplicationDbContext context, ILogger<UsuarioService> logger, IConfiguration configuration)
     {

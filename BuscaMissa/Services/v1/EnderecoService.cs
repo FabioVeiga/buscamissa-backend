@@ -3,7 +3,7 @@ using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class EnderecoService(ApplicationDbContext context, ILogger<EnderecoService> logger)
     {

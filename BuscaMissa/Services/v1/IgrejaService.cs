@@ -8,7 +8,7 @@ using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class IgrejaService(ApplicationDbContext context, ILogger<IgrejaService> logger, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService)
     {

@@ -2,7 +2,7 @@ using BuscaMissa.Context;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class ContatoService(ApplicationDbContext context, ILogger<ContatoService> logger)
     {

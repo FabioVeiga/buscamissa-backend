@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 #if DEBUG
-namespace BuscaMissa.Controllers
+namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
     [Route("api/[controller]")]

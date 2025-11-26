@@ -3,7 +3,7 @@ using Azure.Identity;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.SettingsDto;
-using BuscaMissa.Services;
+using BuscaMissa.Services.v1;
 using MailerSendNetCore.Common.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;

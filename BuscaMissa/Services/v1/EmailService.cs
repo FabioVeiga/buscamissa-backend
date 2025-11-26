@@ -4,7 +4,7 @@ using MailerSendNetCore.Common.Interfaces;
 using MailerSendNetCore.Emails.Dtos;
 using Microsoft.Extensions.Options;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class EmailService(ILogger<EmailService> logger, IOptions<SettingCodigoValidacao> options, IMailerSendEmailClient mailerSendEmailClient)
     {

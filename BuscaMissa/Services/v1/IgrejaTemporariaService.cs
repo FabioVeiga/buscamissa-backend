@@ -5,7 +5,7 @@ using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class IgrejaTemporariaService(ApplicationDbContext context, ILogger<IgrejaTemporariaService> logger)
     {

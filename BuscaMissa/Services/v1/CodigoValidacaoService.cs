@@ -5,7 +5,7 @@ using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class CodigoValidacaoService(ApplicationDbContext context, ILogger<CodigoValidacaoService> logger)
     {

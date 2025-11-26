@@ -1,7 +1,7 @@
 using System.Text.Json;
 using BuscaMissa.DTOs.EnderecoDto;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class ViaCepService(HttpClient httpClient, ILogger<ViaCepService> logger)
     {

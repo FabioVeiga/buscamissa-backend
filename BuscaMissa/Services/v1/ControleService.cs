@@ -3,7 +3,7 @@ using BuscaMissa.Enums;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BuscaMissa.Services
+namespace BuscaMissa.Services.v1
 {
     public class ControleService(ApplicationDbContext context, ILogger<ControleService> logger)
     {
