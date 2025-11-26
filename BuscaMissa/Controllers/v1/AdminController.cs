@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
@@ -13,7 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AdminController(
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
         ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService,

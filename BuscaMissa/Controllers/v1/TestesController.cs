@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class TestesController(IConfiguration configuration) : ControllerBase
     {
         private readonly IConfiguration _configuration = configuration;

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class CodigoValidadorController(ILogger<CodigoValidadorController> logger, EmailService emailService, UsuarioService usuarioService,
     IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, IgrejaTemporariaService igrejaTemporariaService,
     ImagemService imagemService)

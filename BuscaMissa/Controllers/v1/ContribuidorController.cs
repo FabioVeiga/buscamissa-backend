@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class ContribuidorController(ContribuidoresService service) : ControllerBase
     {
         private readonly ContribuidoresService _service = service;

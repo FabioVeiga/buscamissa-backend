@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, ControleService controleService,
     CodigoValidacaoService codigoValidacaoService, EmailService emailService)
     : ControllerBase

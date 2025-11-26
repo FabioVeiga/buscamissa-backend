@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BuscaMissa.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
     ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
     EnderecoService enderecoService, ContatoService contatoService, IgrejaDenunciaService igrejaDenunciaService) 
