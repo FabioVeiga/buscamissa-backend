@@ -22,8 +22,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public IList<MissaResponse> Missas { get; set; } = [];
 
         public IList<IgrejaRedesSociaisResponse> RedesSociais { get; set; } = [];
-
-        //TODO: ver quais dados deve retornar
+        
         public static explicit operator IgrejaResponse(Igreja igreja)
         {
             return new IgrejaResponse{

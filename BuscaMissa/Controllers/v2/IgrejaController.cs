@@ -1,15 +1,17 @@
+using Asp.Versioning;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
+using BuscaMissa.DTOs.v2.IgrejaDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CriacaoIgrejaRequest = BuscaMissa.DTOs.v2.IgrejaDto.CriacaoIgrejaRequest;
 
 namespace BuscaMissa.Controllers.v2
 {
     [ApiController]
+    [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class IgrejaController(
         ILogger<IgrejaController> logger, 
@@ -25,14 +27,14 @@ namespace BuscaMissa.Controllers.v2
 
         [HttpPost]
         [Authorize(Roles = "App")]
-        public async Task<IActionResult> CriarIgreja([FromBody] CriacaoIgrejaRequest request)
+        public async Task<IActionResult> CriarIgrejaAsync([FromBody] PostIgrejaRequest request)
         {
             try
             {
                 if(!ModelState.IsValid) return BadRequest();
                 
                 var nomeUnico = await igrejaServiceV2.TemNomeNomeUnicoAsync(request.NomeUnico);
-                if(nomeUnico)
+                if(nomeUnico is not null)
                     return BadRequest(new ApiResponse<dynamic>(new { messagemAplicacao = "Nome unico já existe." }));
 
                 var igreja = await igrejaServiceV2.InserirAsync(request);
@@ -41,7 +43,7 @@ namespace BuscaMissa.Controllers.v2
                 
                 if (!string.IsNullOrEmpty(request.Imagem)){
                     igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp = imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
+                    imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await igrejaService.EditarAsync(igreja);
                 }
 
@@ -55,6 +57,58 @@ namespace BuscaMissa.Controllers.v2
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
+        [HttpGet("validar-por-nome-unico/{nomeUnico}")]
+        //[Authorize(Roles = "App,Admin")]
+        public async Task<ActionResult> TemNomeUnicoAsync(string nomeUnico)
+        {
+            try
+            {
+                var temNomeUnico = await igrejaServiceV2.TemNomeNomeUnicoAsync(nomeUnico);
+                return Ok(temNomeUnico is not null ? new ApiResponse<dynamic>(true) : new ApiResponse<dynamic>(false));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+        
+        [HttpGet]
+        [Route("buscar-por-nome-unico/{nomeUnico}")]
+        //[Authorize(Roles = "App,Admin")]
+        public async Task<ActionResult> BuscarPorCep(string nomeUnico)
+        {
+            try
+            {
+                var temIgreja = await igrejaServiceV2.TemNomeNomeUnicoAsync(nomeUnico);
+                if (temIgreja is null)
+                {
+                        return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Não foi encontrada uma igreja com esse nome!" }));
+                }
+                if(!string.IsNullOrEmpty(temIgreja.ImagemUrl))
+                {
+                    temIgreja.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{temIgreja.ImagemUrl}");
+                }
+                var messagemAplicacao = string.Empty;
+                var response = (IgrejaResponse)temIgreja;
+                if (!temIgreja.Ativo)
+                    messagemAplicacao = "Habilitar para usuario editar e validar!";
+                
+                return Ok(new ApiResponse<dynamic>(new
+                {
+                    response, messagemAplicacao
+                }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+        
         /*
         [HttpGet]
         [Route("buscar-por-cep")]

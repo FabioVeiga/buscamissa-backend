@@ -24,8 +24,8 @@ namespace BuscaMissa.Services.v1
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
                     .Include(x => x.Missas)
-                    .Include(Igreja => Igreja.Contato)
-                    .Include(Igreja => Igreja.RedesSociais)
+                    .Include(igreja => igreja.Contato)
+                    .Include(igreja => igreja.RedesSociais)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(igreja => igreja.Id == id);
             }

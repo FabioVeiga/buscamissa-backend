@@ -9,7 +9,7 @@ public static class IgrejaHelper
     {
         if (request.RedeSociais != null && request.RedeSociais.Any())
         {
-            return request.RedeSociais.FirstOrDefault()!.NomeDoPerfil;
+            return request.RedeSociais.FirstOrDefault()!.NomeDoPerfil.ToLower();
         }
         return $"{request.Endereco.Uf}_{request.Nome.Replace(" ", "").ToLower()}";
     }

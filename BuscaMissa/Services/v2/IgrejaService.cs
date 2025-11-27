@@ -10,12 +10,18 @@ public class IgrejaService(
     ILogger<IgrejaService> logger
     )
 {
-    public async Task<bool> TemNomeNomeUnicoAsync(string nomeUnico)
+    public async Task<Igreja?> TemNomeNomeUnicoAsync(string nomeUnico)
     {
         try
         {
-            var model = await context.Igrejas.AsNoTracking().FirstOrDefaultAsync(x => x.NomeUnico == nomeUnico);
-            return model != null;
+            return await context.Igrejas
+                .Include(igreja => igreja.Endereco)
+                .Include(x => x.Usuario)
+                .Include(x => x.Missas)
+                .Include(igreja => igreja.Contato)
+                .Include(igreja => igreja.RedesSociais)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.NomeUnico != null && x.NomeUnico == nomeUnico.ToLower());
         }
         catch (Exception ex)
         {
@@ -24,7 +30,7 @@ public class IgrejaService(
         }
     }
     
-    public async Task<Igreja> InserirAsync(CriacaoIgrejaRequest request)
+    public async Task<Igreja> InserirAsync(PostIgrejaRequest request)
     {
         try
         {
