@@ -10,18 +10,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BuscaMissa.Services.v1
 {
-    public class IgrejaService(ApplicationDbContext context, ILogger<IgrejaService> logger, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService)
+    public class IgrejaService(
+        ApplicationDbContext context, 
+        ILogger<IgrejaService> logger, 
+        IgrejaTemporariaService igrejaTemporariaService, 
+        ImagemService imagemService)
     {
-        private readonly ApplicationDbContext _context = context;
-        private readonly ILogger<IgrejaService> _logger = logger;
-        private readonly IgrejaTemporariaService _igrejaTemporariaService = igrejaTemporariaService;
-        private readonly ImagemService _imagemService = imagemService;
-
         public async Task<Igreja?> BuscarPorIdAsync(int id)
         {
             try
             {
-                return await _context.Igrejas
+                return await context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
                     .Include(x => x.Missas)
@@ -32,7 +31,7 @@ namespace BuscaMissa.Services.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching Igreja with ID {Id}", id);
+                logger.LogError(ex, "An error occurred while fetching Igreja with ID {Id}", id);
                 throw;
             }
         }
@@ -41,7 +40,7 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
-                var model = await _context.Igrejas
+                var model = await context.Igrejas
                     .Include(igreja => igreja.Endereco)
                     .Include(x => x.Usuario)
                     .Include(x => x.Missas)
@@ -55,7 +54,7 @@ namespace BuscaMissa.Services.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching Igreja with CEP {Cep}", cep);
+                logger.LogError(ex, "An error occurred while fetching Igreja with CEP {Cep}", cep);
                 throw;
             }
         }
@@ -64,14 +63,15 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
-                Igreja model = (Igreja)request;
-                _context.Igrejas.Add(model);
-                await _context.SaveChangesAsync();
+                var model = (Igreja)request;
+                model.NomeUnico = IgrejaHelper.CriarNomeUnico(request);
+                context.Igrejas.Add(model);
+                await context.SaveChangesAsync();
                 return model;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while insering Igreja {IgrejaRequest}", request);
+                logger.LogError(ex, "An error occurred while insering Igreja {IgrejaRequest}", request);
                 throw;
             }
         }
@@ -85,13 +85,13 @@ namespace BuscaMissa.Services.v1
                 model.Igreja.Usuario = usuario;
                 model.Igreja.UsuarioId = usuario.Id;
                 model.Status = Enums.StatusEnum.Finalizado;
-                _context.Controles.Update(model);
-                var resultado = await _context.SaveChangesAsync();
+                context.Controles.Update(model);
+                var resultado = await context.SaveChangesAsync();
                 return resultado > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", model);
+                logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", model);
                 throw;
             }
         }
@@ -100,7 +100,7 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
-                var model = await _context.Controles
+                var model = await context.Controles
                     .Include(x => x.Igreja)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
@@ -111,13 +111,13 @@ namespace BuscaMissa.Services.v1
                 model.Igreja.Alteracao = DateTime.Now;
                 model.Igreja.UsuarioId = usuarioId;
                 model.Status = Enums.StatusEnum.Finalizado;
-                _context.Controles.Update(model);
-                var resultado = await _context.SaveChangesAsync();
+                context.Controles.Update(model);
+                var resultado = await context.SaveChangesAsync();
                 return resultado > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", igrejaId);
+                logger.LogError(ex, "An error occurred while activate Igreja {Igreja}", igrejaId);
                 throw;
             }
         }
@@ -127,7 +127,7 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
-                var query = _context.Igrejas
+                var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
                 .Include(Igreja => Igreja.Contato)
@@ -164,7 +164,7 @@ namespace BuscaMissa.Services.v1
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
@@ -186,7 +186,7 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
-                var query = _context.Igrejas
+                var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
                 .Include(Igreja => Igreja.Contato)
@@ -227,7 +227,7 @@ namespace BuscaMissa.Services.v1
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: _imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
                     Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
@@ -250,13 +250,13 @@ namespace BuscaMissa.Services.v1
             try
             {
                 model.Alteracao = DateTime.Now;
-                _context.Igrejas.Update(model);
-                await _context.SaveChangesAsync();
+                context.Igrejas.Update(model);
+                await context.SaveChangesAsync();
                 return model;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
+                logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
                 throw;
             }
         }
@@ -286,13 +286,13 @@ namespace BuscaMissa.Services.v1
                     }
                 }
 
-                _context.Igrejas.Update(model);
-                await _context.SaveChangesAsync();
+                context.Igrejas.Update(model);
+                await context.SaveChangesAsync();
                 return model;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
+                logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
                 throw;
             }
         }
@@ -325,33 +325,33 @@ namespace BuscaMissa.Services.v1
                     }
                 }
 
-                _context.Igrejas.Update(model);
-                await _context.SaveChangesAsync();
+                context.Igrejas.Update(model);
+                await context.SaveChangesAsync();
                 return model;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
+                logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", model);
                 throw;
             }
         }
 
         private async Task RemoverMissaAsync(IList<Missa> missas)
         {
-            _context.Missas.RemoveRange(missas);
-            await _context.SaveChangesAsync();
+            context.Missas.RemoveRange(missas);
+            await context.SaveChangesAsync();
         }
 
         public async Task<bool> EditarPorTemporariaAsync(Igreja igreja, AtualizacaoIgrejaResponse atualizacao)
         {
-            var strategy = _context.Database.CreateExecutionStrategy();
+            var strategy = context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
-                using var transaction = await _context.Database.BeginTransactionAsync();
+                using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
-                    _context.Missas.RemoveRange(igreja.Missas);
-                    _context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa()
+                    context.Missas.RemoveRange(igreja.Missas);
+                    context.Missas.AddRange(atualizacao.MissasTemporaria.Select(x => new Missa()
                     {
                         DiaSemana = x.DiaSemana,
                         Horario = TimeSpan.Parse(x.Horario),
@@ -364,27 +364,33 @@ namespace BuscaMissa.Services.v1
                     if(atualizacao.ImagemUrl != null)
                     {
                         var nome = $"{igreja.Id}{ImageHelper.BuscarExtensao(atualizacao.ImagemUrl)}";
-                        _imagemService.UploadAzure(atualizacao.ImagemUrl, "igreja", nome);
+                        imagemService.UploadAzure(atualizacao.ImagemUrl, "igreja", nome);
                         igreja.ImagemUrl = nome;
                     }
 
                     // Delete IgrejaTemporarias and MissasTemporarias
-                    var deleteIgrejaResult = await _igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
-                    var deleteMissasResult = await _igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
+                    var deleteIgrejaResult = await igrejaTemporariaService.DeletaIgrejaAsync(igreja.Id);
+                    var deleteMissasResult = await igrejaTemporariaService.DeletaMissasTemporarias(igreja.Id);
 
                     if (!deleteIgrejaResult || !deleteMissasResult)
                     {
                         await transaction.RollbackAsync();
                         return false;
                     }
+                    
+                    //inserir nome unico
+                    if (string.IsNullOrWhiteSpace(igreja.NomeUnico))
+                    {
+                        igreja.NomeUnico = IgrejaHelper.CriarNomeUnico(igreja);
+                    }
 
-                    await _context.SaveChangesAsync();
+                    await context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", igreja);
+                    logger.LogError(ex, "An error occurred while editing Igreja {Igreja}", igreja);
                     await transaction.RollbackAsync();
                     return false;
                 }
@@ -396,19 +402,22 @@ namespace BuscaMissa.Services.v1
             try
             {
                 return new InformacoesGeraisResponse{
-                    QuantidadesIgrejas = _context.Igrejas.AsNoTracking().Count(x => x.Ativo),
-                    QuantidadeMissas = _context.Missas.Include(x => x.Igreja).AsNoTracking().Count(x => x.Igreja.Ativo),
-                    QuantidadeIgrejaDenunciaNaoAtendida = _context.IgrejaDenuncias.AsNoTracking().Count(x => string.IsNullOrEmpty(x.AcaoRealizada)),
-                    QuantidadeSolicitacoesNaoAtendida = _context.Solicitacoes.AsNoTracking().Count(x => !x.Resolvido),
-                    QuantidadeDeUsuarios = _context.Usuarios.AsNoTracking().Count(x => x.Perfil != Enums.PerfilEnum.Admin)
+                    QuantidadesIgrejas = context.Igrejas.AsNoTracking().Count(x => x.Ativo),
+                    QuantidadeMissas = context.Missas.Include(x => x.Igreja).AsNoTracking().Count(x => x.Igreja.Ativo),
+                    QuantidadeIgrejaDenunciaNaoAtendida = context.IgrejaDenuncias.AsNoTracking().Count(x => string.IsNullOrEmpty(x.AcaoRealizada)),
+                    QuantidadeSolicitacoesNaoAtendida = context.Solicitacoes.AsNoTracking().Count(x => !x.Resolvido),
+                    QuantidadeDeUsuarios = context.Usuarios.AsNoTracking().Count(x => x.Perfil != Enums.PerfilEnum.Admin)
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while getting InformacoesGeraisResponse");
+                logger.LogError(ex, "An error occurred while getting InformacoesGeraisResponse");
                 throw;
             }
         }
+
+        
+        
     
     }
 }

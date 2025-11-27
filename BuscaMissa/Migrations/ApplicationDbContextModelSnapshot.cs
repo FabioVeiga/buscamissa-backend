@@ -213,6 +213,9 @@ namespace BuscaMissa.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("NomeUnico")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Paroco")
                         .HasColumnType("longtext");
 
