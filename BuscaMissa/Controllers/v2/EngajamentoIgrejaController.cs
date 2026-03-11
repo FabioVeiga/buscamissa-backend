@@ -171,6 +171,7 @@ public class EngajamentoIgrejaController(
         }
     }
 
+    
     [HttpGet("{id}/engajamento")]
     [Authorize(Roles = "App")]
     public async Task<IActionResult> ObterEngajamento(int id)
