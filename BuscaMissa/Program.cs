@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning;
+using BuscaMissa.Services.v2;
+using IgrejaService = BuscaMissa.Services.v1.IgrejaService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +59,9 @@ builder.Services.AddScoped<SolicitacaoService>();
 builder.Services.AddScoped<RedeSociaisService>();
 builder.Services.AddScoped<ContribuidoresService>();
 builder.Services.AddScoped<BuscaMissa.Services.v2.IgrejaService>();
+builder.Services.AddScoped<ServicoModeracaoComentarios>();
+builder.Services.AddScoped<ServicoEngajamentoIgreja>();
+
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddMailerSendEmailClient(options =>

@@ -133,6 +133,21 @@ public class IgrejaService(
 
                 throw;
             }
-        } 
-    
+        }
+
+    public async Task<IgrejaResponse?> ObterPorIdAsync(int id)
+    {
+        try
+        {
+            var entity = await context.Igrejas.FirstOrDefaultAsync(x => x.Id == id && x.Ativo);
+            if (entity == null) return null;
+            return (IgrejaResponse)entity;
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while searching Igreja {IgrejaRequest}", id);
+            throw;
+        }
+    }
 }

@@ -25,7 +25,8 @@ namespace BuscaMissa.DTOs.IgrejaDto
         
         public static explicit operator IgrejaResponse(Igreja igreja)
         {
-            return new IgrejaResponse{
+            var modelo = new IgrejaResponse
+            {
                 Id = igreja.Id,
                 Nome = igreja.Nome,
                 Paroco = igreja.Paroco,
@@ -34,12 +35,14 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,
                 Usuario = igreja.Usuario is null ? null : (UsuarioDtoResponse)igreja.Usuario,
-                Endereco = (EnderecoIgrejaResponse)igreja.Endereco,
-                Missas = [.. igreja.Missas.Select(m => (MissaResponse)m)],
-                Contato = igreja.Contato is null ? null : (IgrejaContatoResponse)igreja.Contato,
-                RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : [.. igreja.RedesSociais.Select(rs => (IgrejaRedesSociaisResponse)rs)],
-                Denuncia = igreja.Denuncia is null ? null : string.IsNullOrEmpty(igreja.Denuncia.AcaoRealizada) ? null : (DenunciarIgrejaAdminResponse)igreja.Denuncia
+                Denuncia = igreja.Denuncia is null ? null : string.IsNullOrEmpty(igreja.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)igreja.Denuncia : null,
+                Missas = igreja.Missas is null ? Array.Empty<MissaResponse>() : igreja.Missas.Select(m => (MissaResponse)m).ToList(),
+                RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : igreja.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
+                Endereco = igreja.Endereco is null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)igreja.Endereco,
+                Contato = igreja.Contato is null ? null : (IgrejaContatoResponse)igreja.Contato
             };
+           
+            return modelo;
         }
     }
 
