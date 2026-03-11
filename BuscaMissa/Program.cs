@@ -158,13 +158,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+if (!env.Equals("Production", StringComparison.OrdinalIgnoreCase))
 {
-    options.RoutePrefix = string.Empty;
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Busca Missa v1");
-    options.SwaggerEndpoint("/swagger/v2/swagger.json", "Busca Missa v2");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.RoutePrefix = string.Empty;
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Busca Missa v1");
+        options.SwaggerEndpoint("/swagger/v2/swagger.json", "Busca Missa v2");
+    });
+}
 
 app.UseHttpsRedirection();
 
