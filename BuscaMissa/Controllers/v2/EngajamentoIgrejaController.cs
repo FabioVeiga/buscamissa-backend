@@ -139,6 +139,37 @@ public class EngajamentoIgrejaController(
             return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
     }
+    
+    [HttpPost("{id}/visualizar")]
+    [Authorize(Roles = "App")]
+    public async Task<IActionResult> RegistrarVisualizacao(int id, [FromBody] VisualizacaoRequest request)
+    {
+        try
+        {
+            if(!ModelState.IsValid) return BadRequest();
+
+            var igreja = await igrejaService.ObterPorIdAsync(id);
+            if (igreja == null) return NotFound();
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            await servicoEngajamentoIgreja.RegistrarVisualizacao(id, request.Fingerprint, ip);
+
+            return Ok(new ApiResponse<dynamic>(new { mensagemAplicacao = "Visualização registrada com sucesso!" }));
+        }
+        catch (ApplicationException ex)
+        {
+            logger.LogError("{Ex}", ex);
+            var response = new ApiResponse<dynamic>(ex.Message);
+            return StatusCode(StatusCodes.Status400BadRequest, response);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("{Ex}", ex);
+            var response = new ApiResponse<dynamic>(ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, response);
+        }
+    }
 
     [HttpGet("{id}/engajamento")]
     [Authorize(Roles = "App")]
