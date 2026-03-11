@@ -157,7 +157,6 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
 if (!env.Equals("Production", StringComparison.OrdinalIgnoreCase))
 {
     app.UseSwagger();
