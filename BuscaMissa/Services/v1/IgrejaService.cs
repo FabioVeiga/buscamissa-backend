@@ -159,7 +159,8 @@ namespace BuscaMissa.Services.v1
                 {
                     Id = x.Id,
                     Nome = x.Nome,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    NomeUnico = x.NomeUnico,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
@@ -222,7 +223,8 @@ namespace BuscaMissa.Services.v1
                 {
                     Id = x.Id,
                     Nome = x.Nome,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    NomeUnico = x.NomeUnico,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,

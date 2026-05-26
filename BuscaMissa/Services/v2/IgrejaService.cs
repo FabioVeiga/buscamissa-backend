@@ -112,7 +112,8 @@ public class IgrejaService(
                 {
                     Id = x.Id,
                     Nome = x.Nome,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    NomeUnico = x.NomeUnico,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
@@ -149,5 +150,65 @@ public class IgrejaService(
             logger.LogError(ex, "An error occurred while searching Igreja {IgrejaRequest}", id);
             throw;
         }
+    }
+
+    public async Task<IgrejaResponse?> BuscarPorNomeUnicoAsync(string nomeUnico)
+    {
+        try
+        {
+            var model = await context.Igrejas
+                .Include(x => x.Endereco)
+                .Include(x => x.Missas)
+                .Include(x => x.Contato)
+                .Include(x => x.RedesSociais)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.NomeUnico == nomeUnico.ToLower() && x.Ativo);
+
+            if (model == null) return null;
+
+            var response = (IgrejaResponse)model;
+            if (!string.IsNullOrEmpty(model.ImagemUrl))
+                response.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{model.ImagemUrl}");
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while fetching Igreja with NomeUnico {NomeUnico}", nomeUnico);
+            throw;
+        }
+    }
+
+    public async Task<IList<SitemapIgrejaDto>> ObterDadosSitemapAsync()
+    {
+        try
+        {
+            return await context.Igrejas
+                .AsNoTracking()
+                .Where(x => x.Ativo && x.NomeUnico != null)
+                .Select(x => new SitemapIgrejaDto { NomeUnico = x.NomeUnico!, Alteracao = x.Alteracao })
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while generating sitemap data");
+            throw;
+        }
+    }
+
+    public SeoMetadataResponse GerarSeoMetadata(IgrejaResponse igreja, string frontendBaseUrl)
+    {
+        var diasDescricao = igreja.Missas.Any()
+            ? "Horários: " + string.Join(", ", igreja.Missas.Select(m => $"{m.DiaSemana} às {m.Horario}"))
+            : "Consulte os horários de missa.";
+
+        return new SeoMetadataResponse
+        {
+            Title = $"Missas em {igreja.Nome} - {igreja.Endereco.Localidade}/{igreja.Endereco.Uf} | BuscaMissa",
+            Description = $"{igreja.Nome}, {igreja.Endereco.Bairro}, {igreja.Endereco.Localidade}/{igreja.Endereco.Uf}. {diasDescricao}",
+            CanonicalUrl = $"{frontendBaseUrl.TrimEnd('/')}/igrejas/{igreja.NomeUnico}",
+            Keywords = $"missa, {igreja.Nome}, {igreja.Endereco.Localidade}, {igreja.Endereco.Uf}, horário de missa, {igreja.Endereco.Bairro}",
+            OgImage = string.IsNullOrEmpty(igreja.ImagemUrl) ? null : igreja.ImagemUrl
+        };
     }
 }

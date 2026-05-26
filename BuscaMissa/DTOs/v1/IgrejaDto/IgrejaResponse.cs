@@ -10,6 +10,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
     {
         public int Id { get; set; }
         public string Nome { get; set; } = null!;
+        public string? NomeUnico { get; set; }
         public string? Paroco { get; set; }
         public string? ImagemUrl { get; set; }
         public bool Ativo { get; set; }
@@ -29,6 +30,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
             {
                 Id = igreja.Id,
                 Nome = igreja.Nome,
+                NomeUnico = igreja.NomeUnico,
                 Paroco = igreja.Paroco,
                 ImagemUrl = igreja.ImagemUrl ?? string.Empty,
                 Ativo = igreja.Ativo,
