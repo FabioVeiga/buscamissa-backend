@@ -15,16 +15,11 @@ namespace BuscaMissa.Controllers.v2
     [Route("api/v{version:apiVersion}/[controller]")]
     public class IgrejaController(
         ILogger<IgrejaController> logger,
-        EmailService emailService,
         BuscaMissa.Services.v2.IgrejaService igrejaServiceV2,
         IgrejaService igrejaService,
         ControleService controleService,
         ViaCepService viaCepService,
-        IgrejaTemporariaService igrejaTemporariaService,
         ImagemService imagemService,
-        EnderecoService enderecoService,
-        ContatoService contatoService,
-        IgrejaDenunciaService igrejaDenunciaService,
         IConfiguration configuration)
     : ControllerBase
     {

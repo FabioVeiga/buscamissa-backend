@@ -13,12 +13,12 @@ public static class IgrejaHelper
         if (request.RedeSociais != null && request.RedeSociais.Any())
             return NormalizarSlug(request.RedeSociais.FirstOrDefault()!.NomeDoPerfil);
 
-        return NormalizarSlug($"{request.Endereco.Uf}-{request.Nome}");
+        return NormalizarSlug($"{request.Endereco.Uf}-{request.Endereco.Localidade}-{request.Nome}");
     }
 
     public static string CriarNomeUnico(Igreja model)
     {
-        return NormalizarSlug($"{model.Id}-{model.Nome}");
+        return NormalizarSlug($"{model.Endereco.Uf}-{model.Endereco.Localidade}-{model.Nome}");
     }
 
     public static string NormalizarSlug(string texto)
