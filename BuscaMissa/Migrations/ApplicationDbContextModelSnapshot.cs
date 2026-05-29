@@ -162,6 +162,9 @@ namespace BuscaMissa.Migrations
                     b.Property<bool?>("TelefoneWhatsAppValidado")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("Website")
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IgrejaId")

@@ -65,7 +65,7 @@ namespace BuscaMissa.Controllers.v1
 
         [HttpGet]
         [Route("buscar-por-cep")]
-        [Authorize(Roles = "App,Admin")]
+        //[Authorize(Roles = "App,Admin")]
         public async Task<ActionResult> BuscarPorCep(string cep)
         {
             try
