@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
 
 namespace BuscaMissa.Models
@@ -16,7 +15,8 @@ namespace BuscaMissa.Models
         public DateTime Criacao { get; set; } = DateTime.Now;
         public DateTime Alteracao { get; set; }
         public bool Ativo { get; set; } = false;
-        
+        public string? NomeUnico { get; set; }
+        public string? GooglePlaceId { get; set; }
         public int? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
         

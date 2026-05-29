@@ -4,6 +4,7 @@ using BuscaMissa.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BuscaMissa.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260311012605_igreja_melhorias")]
+    partial class igreja_melhorias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,9 +165,6 @@ namespace BuscaMissa.Migrations
                     b.Property<bool?>("TelefoneWhatsAppValidado")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Website")
-                        .HasColumnType("longtext");
-
                     b.HasKey("Id");
 
                     b.HasIndex("IgrejaId")
@@ -312,8 +312,8 @@ namespace BuscaMissa.Migrations
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
-                    b.Property<double>("MediaAvaliacoes")
-                        .HasColumnType("double");
+                    b.Property<decimal>("MediaAvaliacoes")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("TotalAvaliacoes")
                         .HasColumnType("int");
@@ -357,9 +357,6 @@ namespace BuscaMissa.Migrations
 
                     b.Property<DateTime>("Criacao")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("GooglePlaceId")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("ImagemUrl")
                         .HasColumnType("longtext");

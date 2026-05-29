@@ -4,6 +4,7 @@ using BuscaMissa.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BuscaMissa.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251126143000_igreja add nomeunico")]
+    partial class igrejaaddnomeunico
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,36 +24,6 @@ namespace BuscaMissa.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("BuscaMissa.Models.AvaliacaoIgreja", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("HashFingerprint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Nota")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IgrejaId");
-
-                    b.HasIndex("IgrejaId", "HashFingerprint")
-                        .IsUnique();
-
-                    b.ToTable("AvaliacoesIgreja");
-                });
 
             modelBuilder.Entity("BuscaMissa.Models.CodigoPermissao", b =>
                 {
@@ -74,57 +47,6 @@ namespace BuscaMissa.Migrations
                     b.HasIndex("ControleId");
 
                     b.ToTable("CodigoPermissoes");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.ComentarioIgreja", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<bool>("Aprovado")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Comentario")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("EnderecoIp")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("varchar(45)");
-
-                    b.Property<string>("HashFingerprint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MotivoBloqueio")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Aprovado");
-
-                    b.HasIndex("IgrejaId");
-
-                    b.HasIndex("IgrejaId", "Aprovado");
-
-                    b.ToTable("ComentariosIgreja");
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Contato", b =>
@@ -161,9 +83,6 @@ namespace BuscaMissa.Migrations
 
                     b.Property<bool?>("TelefoneWhatsAppValidado")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Website")
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -212,40 +131,6 @@ namespace BuscaMissa.Migrations
                     b.HasIndex("IgrejaId");
 
                     b.ToTable("Controles");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.CurtidaIgreja", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("EnderecoIp")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("varchar(45)");
-
-                    b.Property<string>("HashFingerprint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EnderecoIp");
-
-                    b.HasIndex("IgrejaId");
-
-                    b.HasIndex("IgrejaId", "HashFingerprint")
-                        .IsUnique();
-
-                    b.ToTable("CurtidasIgreja");
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Endereco", b =>
@@ -307,40 +192,6 @@ namespace BuscaMissa.Migrations
                     b.ToTable("Enderecos");
                 });
 
-            modelBuilder.Entity("BuscaMissa.Models.EstatisticasEngajamentoIgreja", b =>
-                {
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.Property<double>("MediaAvaliacoes")
-                        .HasColumnType("double");
-
-                    b.Property<int>("TotalAvaliacoes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalComentarios")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalCurtidas")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalVisualizacoes")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UltimaAtualizacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("IgrejaId");
-
-                    b.HasIndex("MediaAvaliacoes");
-
-                    b.HasIndex("TotalCurtidas");
-
-                    b.HasIndex("TotalVisualizacoes");
-
-                    b.ToTable("EstatisticasEngajamentoIgreja");
-                });
-
             modelBuilder.Entity("BuscaMissa.Models.Igreja", b =>
                 {
                     b.Property<int>("Id")
@@ -357,9 +208,6 @@ namespace BuscaMissa.Migrations
 
                     b.Property<DateTime>("Criacao")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("GooglePlaceId")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("ImagemUrl")
                         .HasColumnType("longtext");
@@ -623,50 +471,6 @@ namespace BuscaMissa.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("BuscaMissa.Models.VisualizacaoIgreja", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("EnderecoIp")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("varchar(45)");
-
-                    b.Property<string>("HashFingerprint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DataCriacao");
-
-                    b.HasIndex("HashFingerprint");
-
-                    b.HasIndex("IgrejaId");
-
-                    b.ToTable("VisualizacoesIgreja");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.AvaliacaoIgreja", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
-                        .HasForeignKey("IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
-                });
-
             modelBuilder.Entity("BuscaMissa.Models.CodigoPermissao", b =>
                 {
                     b.HasOne("BuscaMissa.Models.Controle", "Controle")
@@ -674,17 +478,6 @@ namespace BuscaMissa.Migrations
                         .HasForeignKey("ControleId");
 
                     b.Navigation("Controle");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.ComentarioIgreja", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
-                        .HasForeignKey("IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Contato", b =>
@@ -707,33 +500,11 @@ namespace BuscaMissa.Migrations
                     b.Navigation("Igreja");
                 });
 
-            modelBuilder.Entity("BuscaMissa.Models.CurtidaIgreja", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
-                        .HasForeignKey("IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
-                });
-
             modelBuilder.Entity("BuscaMissa.Models.Endereco", b =>
                 {
                     b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
                         .WithOne("Endereco")
                         .HasForeignKey("BuscaMissa.Models.Endereco", "IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.EstatisticasEngajamentoIgreja", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
-                        .HasForeignKey("IgrejaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -786,17 +557,6 @@ namespace BuscaMissa.Migrations
                 {
                     b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
                         .WithMany("RedesSociais")
-                        .HasForeignKey("IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.VisualizacaoIgreja", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
                         .HasForeignKey("IgrejaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
