@@ -65,6 +65,12 @@ namespace BuscaMissa.Services.v1
             {
                 var model = (Igreja)request;
                 model.NomeUnico = await GerarSlugUnicoAsync(IgrejaHelper.CriarNomeUnico(request));
+                // Missas cadastradas por usuário nascem validadas
+                foreach (var missa in model.Missas)
+                {
+                    missa.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
+                    missa.UltimaValidacao = DateTime.UtcNow;
+                }
                 context.Igrejas.Add(model);
                 await context.SaveChangesAsync();
                 return model;
