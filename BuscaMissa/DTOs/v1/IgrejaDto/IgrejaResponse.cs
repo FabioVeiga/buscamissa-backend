@@ -3,6 +3,7 @@ using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Enums;
 using BuscaMissa.Models;
+using BuscaMissa.Services;
 
 namespace BuscaMissa.DTOs.IgrejaDto
 {
@@ -17,6 +18,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public DenunciarIgrejaAdminResponse? Denuncia { get; set; }
         public DateTime Criacao { get; set; }
         public DateTime Alteracao { get; set; }
+        public StatusConfiancaEnum StatusConfianca { get; set; }
         public UsuarioDtoResponse? Usuario { get; set; } = default!;
         public EnderecoIgrejaResponse Endereco { get; set; } = default!;
         public IgrejaContatoResponse? Contato { get; set; }
@@ -38,6 +40,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Alteracao = igreja.Alteracao,
                 Usuario = igreja.Usuario is null ? null : (UsuarioDtoResponse)igreja.Usuario,
                 Denuncia = igreja.Denuncia is null ? null : string.IsNullOrEmpty(igreja.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)igreja.Denuncia : null,
+                StatusConfianca = ConfiancaCalculator.CalcularParaIgreja(igreja.Missas ?? []),
                 Missas = igreja.Missas is null ? Array.Empty<MissaResponse>() : igreja.Missas.Select(m => (MissaResponse)m).ToList(),
                 RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : igreja.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                 Endereco = igreja.Endereco is null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)igreja.Endereco,

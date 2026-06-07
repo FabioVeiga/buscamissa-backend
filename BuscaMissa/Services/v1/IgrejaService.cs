@@ -64,7 +64,7 @@ namespace BuscaMissa.Services.v1
             try
             {
                 var model = (Igreja)request;
-                model.NomeUnico = IgrejaHelper.CriarNomeUnico(request);
+                model.NomeUnico = await GerarSlugUnicoAsync(IgrejaHelper.CriarNomeUnico(request));
                 context.Igrejas.Add(model);
                 await context.SaveChangesAsync();
                 return model;
@@ -74,6 +74,18 @@ namespace BuscaMissa.Services.v1
                 logger.LogError(ex, "An error occurred while insering Igreja {IgrejaRequest}", request);
                 throw;
             }
+        }
+
+        private async Task<string> GerarSlugUnicoAsync(string baseSlug)
+        {
+            var sufixo = 1;
+            var slug = baseSlug;
+            while (await context.Igrejas.AnyAsync(x => x.NomeUnico == slug))
+            {
+                sufixo++;
+                slug = IgrejaHelper.CriarNomeUnicoComSufixo(baseSlug, sufixo);
+            }
+            return slug;
         }
 
         public async Task<bool> AtivarAsync(Controle model, Usuario usuario)

@@ -10,10 +10,13 @@ public static class IgrejaHelper
 {
     public static string CriarNomeUnico(CriacaoIgrejaRequest request)
     {
-        if (request.RedeSociais != null && request.RedeSociais.Any())
-            return NormalizarSlug(request.RedeSociais.FirstOrDefault()!.NomeDoPerfil);
-
         return NormalizarSlug($"{request.Endereco.Uf}-{request.Endereco.Localidade}-{request.Nome}");
+    }
+
+    // Gera slug com sufixo numérico para evitar colisões: "sp-campinas-nossa-senhora-2"
+    public static string CriarNomeUnicoComSufixo(string baseSlug, int sufixo)
+    {
+        return sufixo <= 1 ? baseSlug : $"{baseSlug}-{sufixo}";
     }
 
     public static string CriarNomeUnico(Igreja model)

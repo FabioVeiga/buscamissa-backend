@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.Helpers;
@@ -26,8 +27,10 @@ namespace BuscaMissa.Models
         [Required]
         public int Numero { get; set; }
 
-        public string? Latitude { get; set; }
-        public string? Longitude { get; set; }
+        [Column(TypeName = "decimal(10,7)")]
+        public decimal? Latitude { get; set; }
+        [Column(TypeName = "decimal(10,7)")]
+        public decimal? Longitude { get; set; }
 
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;

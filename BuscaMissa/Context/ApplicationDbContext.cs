@@ -33,11 +33,27 @@ namespace BuscaMissa.Context
         {
             base.OnModelCreating(modelBuilder);
 
+            ConfigurarIgreja(modelBuilder);
+            ConfigurarEndereco(modelBuilder);
             ConfigurarCurtidas(modelBuilder);
             ConfigurarAvaliacoes(modelBuilder);
             ConfigurarComentarios(modelBuilder);
             ConfigurarVisualizacoes(modelBuilder);
             ConfigurarEstatisticas(modelBuilder);
+        }
+
+        private void ConfigurarIgreja(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Igreja>()
+                .HasIndex(x => x.NomeUnico)
+                .IsUnique()
+                .HasFilter("NomeUnico IS NOT NULL");
+        }
+
+        private void ConfigurarEndereco(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Endereco>()
+                .HasIndex(x => new { x.Latitude, x.Longitude });
         }
         
         private void ConfigurarEstatisticas(ModelBuilder modelBuilder)
