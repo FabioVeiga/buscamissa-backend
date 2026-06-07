@@ -40,7 +40,6 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Alteracao = igreja.Alteracao,
                 Usuario = igreja.Usuario is null ? null : (UsuarioDtoResponse)igreja.Usuario,
                 Denuncia = igreja.Denuncia is null ? null : string.IsNullOrEmpty(igreja.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)igreja.Denuncia : null,
-                StatusConfianca = ConfiancaCalculator.CalcularParaIgreja(igreja.Missas ?? []),
                 Missas = igreja.Missas is null ? Array.Empty<MissaResponse>() : igreja.Missas.Select(m => (MissaResponse)m).ToList(),
                 RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : igreja.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                 Endereco = igreja.Endereco is null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)igreja.Endereco,

@@ -120,13 +120,32 @@ public class IgrejaService(
                     Criacao = x.Criacao,
                     ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
-                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Missas = x.Missas.Select(m => new MissaResponse
+                    {
+                        Id = m.Id,
+                        DiaSemana = m.DiaSemana,
+                        Horario = m.Horario.ToString(),
+                        Observacao = m.Observacao,
+                        FontePrincipal = m.FontePrincipal,
+                        UltimaValidacao = m.UltimaValidacao
+                        // StatusConfianca calculado em memória após materialização
+                    }).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
                     RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                     Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+
+                // Preencher confiança em memória (com fallback em Igreja.Alteracao se missa sem dados)
+                foreach (var ig in resultado.Items)
+                {
+                    DateTime? fallback = ig.Usuario != null ? ig.Alteracao : null;
+                    foreach (var m in ig.Missas)
+                        ConfiancaCalculator.PreencherConfianca(m, fallback);
+                    ig.StatusConfianca = ConfiancaCalculator.CalcularParaIgreja(ig.Missas);
+                }
+
                 return resultado;
             }
             catch (Exception)
