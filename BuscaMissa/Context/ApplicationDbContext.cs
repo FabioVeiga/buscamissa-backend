@@ -29,6 +29,9 @@ namespace BuscaMissa.Context
 
         public DbSet<EstatisticasEngajamentoIgreja> EstatisticasEngajamentoIgreja { get; set; }
 
+        public DbSet<ConfirmacaoHorario> ConfirmacoesHorario { get; set; }
+        public DbSet<ReporteHorario> ReportesHorario { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -40,6 +43,23 @@ namespace BuscaMissa.Context
             ConfigurarComentarios(modelBuilder);
             ConfigurarVisualizacoes(modelBuilder);
             ConfigurarEstatisticas(modelBuilder);
+            ConfigurarConfiabilidade(modelBuilder);
+        }
+
+        private void ConfigurarConfiabilidade(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ConfirmacaoHorario>()
+                .HasIndex(x => new { x.IgrejaId, x.HashFingerprint })
+                .IsUnique();
+
+            modelBuilder.Entity<ConfirmacaoHorario>()
+                .HasIndex(x => x.DataCriacao);
+
+            modelBuilder.Entity<ReporteHorario>()
+                .HasIndex(x => new { x.IgrejaId, x.Status });
+
+            modelBuilder.Entity<ReporteHorario>()
+                .HasIndex(x => x.DataCriacao);
         }
 
         private void ConfigurarIgreja(ModelBuilder modelBuilder)

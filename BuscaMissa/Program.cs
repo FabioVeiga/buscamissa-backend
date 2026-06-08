@@ -73,6 +73,7 @@ builder.Services.AddScoped<ContribuidoresService>();
 builder.Services.AddScoped<BuscaMissa.Services.v2.IgrejaService>();
 builder.Services.AddScoped<ServicoModeracaoComentarios>();
 builder.Services.AddScoped<ServicoEngajamentoIgreja>();
+builder.Services.AddScoped<BuscaMissa.Services.v2.ConfiabilidadeService>();
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
