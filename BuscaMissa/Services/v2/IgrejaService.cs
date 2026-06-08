@@ -178,6 +178,7 @@ public class IgrejaService(
             var model = await context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Missas)
+                .Include(x => x.Usuario)
                 .Include(x => x.Contato)
                 .Include(x => x.RedesSociais)
                 .AsNoTracking()
@@ -188,6 +189,12 @@ public class IgrejaService(
             var response = (IgrejaResponse)model;
             if (!string.IsNullOrEmpty(model.ImagemUrl))
                 response.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{model.ImagemUrl}");
+
+            // Preencher confiança em memória
+            DateTime? fallback = model.Usuario != null ? model.Alteracao : null;
+            foreach (var m in response.Missas)
+                ConfiancaCalculator.PreencherConfianca(m, fallback);
+            response.StatusConfianca = ConfiancaCalculator.CalcularParaIgreja(response.Missas);
 
             return response;
         }

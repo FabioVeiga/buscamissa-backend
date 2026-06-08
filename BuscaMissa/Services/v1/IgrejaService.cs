@@ -148,6 +148,7 @@ namespace BuscaMissa.Services.v1
                 var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
+                .Include(x => x.Missas)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
                 .Include(x => x.Denuncia)
@@ -172,7 +173,6 @@ namespace BuscaMissa.Services.v1
                 if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
-
                 var aux = query.Select(x => new IgrejaResponse()
                 {
                     Id = x.Id,
@@ -183,20 +183,37 @@ namespace BuscaMissa.Services.v1
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
-                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Missas = x.Missas.Select(m => new MissaResponse
+                    {
+                        Id = m.Id,
+                        DiaSemana = m.DiaSemana,
+                        Horario = m.Horario.ToString(),
+                        Observacao = m.Observacao,
+                        FontePrincipal = m.FontePrincipal,
+                        UltimaValidacao = m.UltimaValidacao
+                    }).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
                     RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                     Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+
+                // Preencher confiança em memória após materialização
+                foreach (var ig in resultado.Items)
+                {
+                    DateTime? fallback = ig.Usuario != null ? ig.Alteracao : null;
+                    foreach (var m in ig.Missas)
+                        Services.ConfiancaCalculator.PreencherConfianca(m, fallback);
+                    ig.StatusConfianca = Services.ConfiancaCalculator.CalcularParaIgreja(ig.Missas);
+                }
+
                 return resultado;
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
@@ -208,6 +225,7 @@ namespace BuscaMissa.Services.v1
                 var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
+                .Include(x => x.Missas)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
                 .Include(x => x.Denuncia)
@@ -234,7 +252,7 @@ namespace BuscaMissa.Services.v1
                 if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
-                if(filtro.Denuncia)
+                if (filtro.Denuncia)
                     query = query.Where(x => x.Denuncia != null && string.IsNullOrEmpty(x.Denuncia.AcaoRealizada));
 
                 var aux = query.Select(x => new IgrejaResponse()
@@ -247,20 +265,37 @@ namespace BuscaMissa.Services.v1
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
-                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Missas = x.Missas.Select(m => new MissaResponse
+                    {
+                        Id = m.Id,
+                        DiaSemana = m.DiaSemana,
+                        Horario = m.Horario.ToString(),
+                        Observacao = m.Observacao,
+                        FontePrincipal = m.FontePrincipal,
+                        UltimaValidacao = m.UltimaValidacao
+                    }).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
                     RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                     Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+
+                // Preencher confiança em memória após materialização
+                foreach (var ig in resultado.Items)
+                {
+                    DateTime? fallback = ig.Usuario != null ? ig.Alteracao : null;
+                    foreach (var m in ig.Missas)
+                        Services.ConfiancaCalculator.PreencherConfianca(m, fallback);
+                    ig.StatusConfianca = Services.ConfiancaCalculator.CalcularParaIgreja(ig.Missas);
+                }
+
                 return resultado;
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
