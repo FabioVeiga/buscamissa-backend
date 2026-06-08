@@ -2,10 +2,11 @@ namespace BuscaMissa.Enums;
 
 public enum FontePrincipalEnum
 {
-    Desconhecida = 0,
-    Usuario = 1,
-    RedeSocial = 2,          // Instagram / Facebook
-    SecretariaParoquial = 3,
-    Diocese = 4,
-    SiteOficial = 5
+    Desconhecida        = 0,
+    RedeSocial          = 1,   // Instagram / Facebook
+    Usuario             = 2,   // Cadastrado ou confirmado por membro da comunidade
+    GoogleBusiness      = 3,   // Google Business Profile da paróquia
+    SecretariaParoquial = 4,
+    Diocese             = 5,
+    SiteOficial         = 6
 }
