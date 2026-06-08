@@ -3,6 +3,7 @@ using Azure.Identity;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.SettingsDto;
+using BuscaMissa.Middlewares;
 using BuscaMissa.Services.v1;
 using MailerSendNetCore.Common.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,8 +13,19 @@ using Microsoft.OpenApi.Models;
 using Asp.Versioning;
 using BuscaMissa.Services.v2;
 using IgrejaService = BuscaMissa.Services.v1.IgrejaService;
+using Serilog;
+using Serilog.Events;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
 string keyVaultUri = Environment.GetEnvironmentVariable("KeyVaultUri") ?? throw new ArgumentNullException("KeyVaultUri must be provided.");
@@ -61,6 +73,7 @@ builder.Services.AddScoped<ContribuidoresService>();
 builder.Services.AddScoped<BuscaMissa.Services.v2.IgrejaService>();
 builder.Services.AddScoped<ServicoModeracaoComentarios>();
 builder.Services.AddScoped<ServicoEngajamentoIgreja>();
+builder.Services.AddScoped<BuscaMissa.Services.v2.ConfiabilidadeService>();
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
@@ -169,6 +182,8 @@ if (!env.Equals("Production", StringComparison.OrdinalIgnoreCase))
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 app.UseRouting();
 app.UseCors("AllowLocalhost");

@@ -29,15 +29,44 @@ namespace BuscaMissa.Context
 
         public DbSet<EstatisticasEngajamentoIgreja> EstatisticasEngajamentoIgreja { get; set; }
 
+        public DbSet<ConfirmacaoHorario> ConfirmacoesHorario { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            ConfigurarIgreja(modelBuilder);
+            ConfigurarEndereco(modelBuilder);
             ConfigurarCurtidas(modelBuilder);
             ConfigurarAvaliacoes(modelBuilder);
             ConfigurarComentarios(modelBuilder);
             ConfigurarVisualizacoes(modelBuilder);
             ConfigurarEstatisticas(modelBuilder);
+            ConfigurarConfiabilidade(modelBuilder);
+        }
+
+        private void ConfigurarConfiabilidade(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ConfirmacaoHorario>()
+                .HasIndex(x => new { x.IgrejaId, x.HashFingerprint })
+                .IsUnique();
+
+            modelBuilder.Entity<ConfirmacaoHorario>()
+                .HasIndex(x => x.DataCriacao);
+        }
+
+        private void ConfigurarIgreja(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Igreja>()
+                .HasIndex(x => x.NomeUnico)
+                .IsUnique()
+                .HasFilter("NomeUnico IS NOT NULL");
+        }
+
+        private void ConfigurarEndereco(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Endereco>()
+                .HasIndex(x => new { x.Latitude, x.Longitude });
         }
         
         private void ConfigurarEstatisticas(ModelBuilder modelBuilder)

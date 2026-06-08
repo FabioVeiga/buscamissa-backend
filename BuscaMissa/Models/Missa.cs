@@ -13,6 +13,8 @@ namespace BuscaMissa.Models
         [Required]
         public TimeSpan Horario { get; set; }
         public string? Observacao { get; set; }
+        public FontePrincipalEnum FontePrincipal { get; set; } = FontePrincipalEnum.Desconhecida;
+        public DateTime? UltimaValidacao { get; set; }
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
 

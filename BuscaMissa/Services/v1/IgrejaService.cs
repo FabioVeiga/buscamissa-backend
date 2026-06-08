@@ -64,7 +64,13 @@ namespace BuscaMissa.Services.v1
             try
             {
                 var model = (Igreja)request;
-                model.NomeUnico = IgrejaHelper.CriarNomeUnico(request);
+                model.NomeUnico = await GerarSlugUnicoAsync(IgrejaHelper.CriarNomeUnico(request));
+                // Missas cadastradas por usuário nascem validadas
+                foreach (var missa in model.Missas)
+                {
+                    missa.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
+                    missa.UltimaValidacao = DateTime.UtcNow;
+                }
                 context.Igrejas.Add(model);
                 await context.SaveChangesAsync();
                 return model;
@@ -74,6 +80,18 @@ namespace BuscaMissa.Services.v1
                 logger.LogError(ex, "An error occurred while insering Igreja {IgrejaRequest}", request);
                 throw;
             }
+        }
+
+        private async Task<string> GerarSlugUnicoAsync(string baseSlug)
+        {
+            var sufixo = 1;
+            var slug = baseSlug;
+            while (await context.Igrejas.AnyAsync(x => x.NomeUnico == slug))
+            {
+                sufixo++;
+                slug = IgrejaHelper.CriarNomeUnicoComSufixo(baseSlug, sufixo);
+            }
+            return slug;
         }
 
         public async Task<bool> AtivarAsync(Controle model, Usuario usuario)
@@ -130,6 +148,7 @@ namespace BuscaMissa.Services.v1
                 var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
+                .Include(x => x.Missas)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
                 .Include(x => x.Denuncia)
@@ -154,30 +173,47 @@ namespace BuscaMissa.Services.v1
                 if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
-
                 var aux = query.Select(x => new IgrejaResponse()
                 {
                     Id = x.Id,
                     Nome = x.Nome,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    NomeUnico = x.NomeUnico,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
-                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Missas = x.Missas.Select(m => new MissaResponse
+                    {
+                        Id = m.Id,
+                        DiaSemana = m.DiaSemana,
+                        Horario = m.Horario.ToString(),
+                        Observacao = m.Observacao,
+                        FontePrincipal = m.FontePrincipal,
+                        UltimaValidacao = m.UltimaValidacao
+                    }).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
                     RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                     Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+
+                // Preencher confiança em memória após materialização
+                foreach (var ig in resultado.Items)
+                {
+                    DateTime? fallback = ig.Usuario != null ? ig.Alteracao : null;
+                    foreach (var m in ig.Missas)
+                        Services.ConfiancaCalculator.PreencherConfianca(m, fallback);
+                    ig.StatusConfianca = Services.ConfiancaCalculator.CalcularParaIgreja(ig.Missas);
+                }
+
                 return resultado;
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
@@ -189,6 +225,7 @@ namespace BuscaMissa.Services.v1
                 var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
+                .Include(x => x.Missas)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
                 .Include(x => x.Denuncia)
@@ -215,32 +252,50 @@ namespace BuscaMissa.Services.v1
                 if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
-                if(filtro.Denuncia)
+                if (filtro.Denuncia)
                     query = query.Where(x => x.Denuncia != null && string.IsNullOrEmpty(x.Denuncia.AcaoRealizada));
 
                 var aux = query.Select(x => new IgrejaResponse()
                 {
                     Id = x.Id,
                     Nome = x.Nome,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,   
+                    NomeUnico = x.NomeUnico,
+                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
                     Criacao = x.Criacao,
-                    ImagemUrl = x.ImagemUrl == null ? null: imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
+                    ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
-                    Missas = x.Missas.Select(m => (MissaResponse)m).ToList(),
+                    Missas = x.Missas.Select(m => new MissaResponse
+                    {
+                        Id = m.Id,
+                        DiaSemana = m.DiaSemana,
+                        Horario = m.Horario.ToString(),
+                        Observacao = m.Observacao,
+                        FontePrincipal = m.FontePrincipal,
+                        UltimaValidacao = m.UltimaValidacao
+                    }).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
                     RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                     Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
+
+                // Preencher confiança em memória após materialização
+                foreach (var ig in resultado.Items)
+                {
+                    DateTime? fallback = ig.Usuario != null ? ig.Alteracao : null;
+                    foreach (var m in ig.Missas)
+                        Services.ConfiancaCalculator.PreencherConfianca(m, fallback);
+                    ig.StatusConfianca = Services.ConfiancaCalculator.CalcularParaIgreja(ig.Missas);
+                }
+
                 return resultado;
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
@@ -266,11 +321,10 @@ namespace BuscaMissa.Services.v1
             try
             {
                 model.Alteracao = DateTime.Now;
-                if(request.Paroco is not null) 
+                if(request.Paroco is not null)
                     model.Paroco = request.Paroco;
 
                 var listExcluir = model.Missas.Where(x => !request.Missas.Any(y => y.Id == x.Id)).ToList();
-
                 await RemoverMissaAsync(listExcluir);
 
                 foreach (var item in request.Missas)
@@ -281,8 +335,16 @@ namespace BuscaMissa.Services.v1
                         temMissa.DiaSemana = item.DiaSemana;
                         temMissa.Horario = item.HorarioMissa;
                         temMissa.Observacao = item.Observacao;
-                    }else{
-                        model.Missas.Add((Missa)item!);
+                        // Edição pelo usuário = horário verificado agora
+                        temMissa.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
+                        temMissa.UltimaValidacao = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        var nova = (Missa)item!;
+                        nova.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
+                        nova.UltimaValidacao = DateTime.UtcNow;
+                        model.Missas.Add(nova);
                     }
                 }
 
@@ -302,14 +364,13 @@ namespace BuscaMissa.Services.v1
             try
             {
                 model.Alteracao = DateTime.Now;
-                if(request.Nome is not null) 
+                if(request.Nome is not null)
                     model.Nome = request.Nome;
 
-                if(request.Paroco is not null) 
+                if(request.Paroco is not null)
                     model.Paroco = request.Paroco;
 
                 var listExcluir = model.Missas.Where(x => !request.Missas.Any(y => y.Id == x.Id)).ToList();
-
                 await RemoverMissaAsync(listExcluir);
 
                 foreach (var item in request.Missas)
@@ -320,8 +381,16 @@ namespace BuscaMissa.Services.v1
                         temMissa.DiaSemana = item.DiaSemana;
                         temMissa.Horario = item.HorarioMissa;
                         temMissa.Observacao = item.Observacao;
-                    }else{
-                        model.Missas.Add((Missa)item!);
+                        // Edição pelo admin = horário verificado agora
+                        temMissa.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
+                        temMissa.UltimaValidacao = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        var nova = (Missa)item!;
+                        nova.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
+                        nova.UltimaValidacao = DateTime.UtcNow;
+                        model.Missas.Add(nova);
                     }
                 }
 

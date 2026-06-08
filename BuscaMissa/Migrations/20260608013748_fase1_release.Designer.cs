@@ -4,6 +4,7 @@ using BuscaMissa.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BuscaMissa.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608013748_fase1_release")]
+    partial class fase1_release
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -192,9 +195,6 @@ namespace BuscaMissa.Migrations
 
                     b.Property<bool?>("TelefoneWhatsAppValidado")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Website")
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -390,9 +390,6 @@ namespace BuscaMissa.Migrations
 
                     b.Property<DateTime>("Criacao")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("GooglePlaceId")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("ImagemUrl")
                         .HasColumnType("longtext");

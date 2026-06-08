@@ -3,6 +3,7 @@ using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Enums;
 using BuscaMissa.Models;
+using BuscaMissa.Services;
 
 namespace BuscaMissa.DTOs.IgrejaDto
 {
@@ -10,12 +11,14 @@ namespace BuscaMissa.DTOs.IgrejaDto
     {
         public int Id { get; set; }
         public string Nome { get; set; } = null!;
+        public string? NomeUnico { get; set; }
         public string? Paroco { get; set; }
         public string? ImagemUrl { get; set; }
         public bool Ativo { get; set; }
         public DenunciarIgrejaAdminResponse? Denuncia { get; set; }
         public DateTime Criacao { get; set; }
         public DateTime Alteracao { get; set; }
+        public StatusConfiancaEnum StatusConfianca { get; set; }
         public UsuarioDtoResponse? Usuario { get; set; } = default!;
         public EnderecoIgrejaResponse Endereco { get; set; } = default!;
         public IgrejaContatoResponse? Contato { get; set; }
@@ -29,6 +32,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
             {
                 Id = igreja.Id,
                 Nome = igreja.Nome,
+                NomeUnico = igreja.NomeUnico,
                 Paroco = igreja.Paroco,
                 ImagemUrl = igreja.ImagemUrl ?? string.Empty,
                 Ativo = igreja.Ativo,
