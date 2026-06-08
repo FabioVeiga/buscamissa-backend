@@ -1,6 +1,5 @@
 using BuscaMissa.Context;
 using BuscaMissa.DTOs.v2.ConfiabilidadeDto;
-using BuscaMissa.Enums;
 using BuscaMissa.Models;
 using BuscaMissa.Util;
 using Microsoft.EntityFrameworkCore;
@@ -48,52 +47,10 @@ public class ConfiabilidadeService(
     }
 
     /// <summary>
-    /// Registra um reporte de erro nos horários.
-    /// Verifica se o mesmo fingerprint/IP já reportou essa igreja nas últimas 24h para evitar spam.
+    /// Retorna o total de confirmações de uma igreja nos últimos N dias.
+    /// Reservado para futura evolução do score (fator de comunidade).
     /// </summary>
-    public async Task<bool> ReportarHorarioAsync(
-        int igrejaId,
-        ReportarHorarioRequest request,
-        string ip)
-    {
-        try
-        {
-            var hash = GeradorHash.Gerar(request.Fingerprint);
-            var limite = DateTime.UtcNow.AddHours(-24);
-
-            bool jaReportou = await context.ReportesHorario
-                .AnyAsync(x => x.IgrejaId == igrejaId &&
-                               x.DataCriacao >= limite &&
-                               (x.HashFingerprint == hash || x.EnderecoIp == ip));
-
-            if (jaReportou) return false;
-
-            context.ReportesHorario.Add(new ReporteHorario
-            {
-                IgrejaId        = igrejaId,
-                Motivos         = request.Motivos,
-                Descricao       = request.Descricao,
-                FonteInformacao = request.FonteInformacao,
-                HashFingerprint = hash,
-                EnderecoIp      = ip,
-                Status          = StatusReporteEnum.Pendente
-            });
-
-            await context.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erro ao reportar horário da Igreja {IgrejaId}", igrejaId);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Retorna o total de confirmações de uma igreja nos últimos 90 dias.
-    /// Usado pelo ConfiancaCalculator para enriquecer o score.
-    /// </summary>
-    public async Task<int> ContarConfirmacoeRecentesAsync(int igrejaId, int dias = 90)
+    public async Task<int> ContarConfirmacoesRecentesAsync(int igrejaId, int dias = 90)
     {
         var limite = DateTime.UtcNow.AddDays(-dias);
         return await context.ConfirmacoesHorario

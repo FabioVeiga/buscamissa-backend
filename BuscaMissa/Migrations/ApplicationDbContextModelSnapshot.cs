@@ -563,50 +563,6 @@ namespace BuscaMissa.Migrations
                     b.ToTable("RedesSociais");
                 });
 
-            modelBuilder.Entity("BuscaMissa.Models.ReporteHorario", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Descricao")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<string>("EnderecoIp")
-                        .HasMaxLength(45)
-                        .HasColumnType("varchar(45)");
-
-                    b.Property<string>("FonteInformacao")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("HashFingerprint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Motivos")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DataCriacao");
-
-                    b.HasIndex("IgrejaId", "Status");
-
-                    b.ToTable("ReportesHorario");
-                });
-
             modelBuilder.Entity("BuscaMissa.Models.Solicitacao", b =>
                 {
                     b.Property<int>("Id")
@@ -878,17 +834,6 @@ namespace BuscaMissa.Migrations
                 {
                     b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
                         .WithMany("RedesSociais")
-                        .HasForeignKey("IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.ReporteHorario", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
                         .HasForeignKey("IgrejaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

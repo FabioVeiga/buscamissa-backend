@@ -30,7 +30,6 @@ namespace BuscaMissa.Context
         public DbSet<EstatisticasEngajamentoIgreja> EstatisticasEngajamentoIgreja { get; set; }
 
         public DbSet<ConfirmacaoHorario> ConfirmacoesHorario { get; set; }
-        public DbSet<ReporteHorario> ReportesHorario { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,12 +52,6 @@ namespace BuscaMissa.Context
                 .IsUnique();
 
             modelBuilder.Entity<ConfirmacaoHorario>()
-                .HasIndex(x => x.DataCriacao);
-
-            modelBuilder.Entity<ReporteHorario>()
-                .HasIndex(x => new { x.IgrejaId, x.Status });
-
-            modelBuilder.Entity<ReporteHorario>()
                 .HasIndex(x => x.DataCriacao);
         }
 

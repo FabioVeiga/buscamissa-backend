@@ -19,7 +19,7 @@ public class ConfiabilidadeController(
 
     /// <summary>
     /// Confirma que os horários de uma igreja estão corretos.
-    /// Retorna 409 se o usuário já confirmou anteriormente.
+    /// Retorna 409 se o usuário já confirmou anteriormente (dedup por fingerprint + IP).
     /// </summary>
     [HttpPost("{igrejaId:int}/confirmar")]
     public async Task<IActionResult> ConfirmarHorariosAsync(
@@ -41,34 +41,6 @@ public class ConfiabilidadeController(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro ao confirmar horários IgrejaId={IgrejaId}", igrejaId);
-            return StatusCode(500, new ApiResponse<string>(ex.Message));
-        }
-    }
-
-    /// <summary>
-    /// Registra um reporte de erro nos horários.
-    /// Retorna 409 se o mesmo usuário já reportou essa igreja nas últimas 24h.
-    /// </summary>
-    [HttpPost("{igrejaId:int}/reportar")]
-    public async Task<IActionResult> ReportarHorarioAsync(
-        int igrejaId,
-        [FromBody] ReportarHorarioRequest request)
-    {
-        try
-        {
-            if (!ModelState.IsValid) return BadRequest();
-
-            var reportou = await confiabilidadeService.ReportarHorarioAsync(
-                igrejaId, request, ObterIp());
-
-            if (!reportou)
-                return Conflict(new ApiResponse<string>("Você já enviou um reporte para esta paróquia recentemente. Aguarde 24h para enviar outro."));
-
-            return Ok(new ApiResponse<string>("Reporte recebido! Sua contribuição será analisada antes de qualquer publicação."));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erro ao reportar horário IgrejaId={IgrejaId}", igrejaId);
             return StatusCode(500, new ApiResponse<string>(ex.Message));
         }
     }
