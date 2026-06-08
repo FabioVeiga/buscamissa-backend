@@ -11,7 +11,8 @@ namespace BuscaMissa.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Idempotente: adiciona colunas apenas se não existirem (MySQL não faz rollback DDL)
+            // Idempotente: adiciona colunas apenas se não existirem
+            // (MySQL não faz rollback DDL, então usamos SQL condicional em vez de AddColumn do EF)
             migrationBuilder.Sql(@"
                 SET @dbname = DATABASE();
                 SET @colexists = (SELECT COUNT(*) FROM information_schema.COLUMNS
@@ -31,19 +32,6 @@ namespace BuscaMissa.Migrations
                     'SELECT 1');
                 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
             ");
-
-            migrationBuilder.AddColumn<int>(
-                name: "FontePrincipal",
-                table: "Missas",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<DateTime>(
-                name: "UltimaValidacao",
-                table: "Missas",
-                type: "datetime(6)",
-                nullable: true);
 
             migrationBuilder.AlterColumn<string>(
                 name: "NomeUnico",
