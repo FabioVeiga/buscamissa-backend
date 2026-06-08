@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.Models;
 
@@ -7,15 +10,31 @@ public static class IgrejaHelper
 {
     public static string CriarNomeUnico(CriacaoIgrejaRequest request)
     {
-        if (request.RedeSociais != null && request.RedeSociais.Any())
-        {
-            return request.RedeSociais.FirstOrDefault()!.NomeDoPerfil.ToLower();
-        }
-        return $"{request.Endereco.Uf}_{request.Nome.Replace(" ", "").ToLower()}";
+        return NormalizarSlug($"{request.Endereco.Uf}-{request.Endereco.Localidade}-{request.Nome}");
     }
-    
+
+    // Gera slug com sufixo numérico para evitar colisões: "sp-campinas-nossa-senhora-2"
+    public static string CriarNomeUnicoComSufixo(string baseSlug, int sufixo)
+    {
+        return sufixo <= 1 ? baseSlug : $"{baseSlug}-{sufixo}";
+    }
+
     public static string CriarNomeUnico(Igreja model)
     {
-        return $"{model.Id}_{model.Nome.Replace(" ", "").ToLower()}";
+        return NormalizarSlug($"{model.Endereco.Uf}-{model.Endereco.Localidade}-{model.Nome}");
+    }
+
+    public static string NormalizarSlug(string texto)
+    {
+        var normalizado = texto.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+        foreach (var c in normalizado)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+
+        var semAcentos = sb.ToString().Normalize(NormalizationForm.FormC).ToLower();
+        return Regex.Replace(semAcentos, @"[^a-z0-9]+", "-").Trim('-');
     }
 }

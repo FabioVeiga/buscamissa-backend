@@ -14,37 +14,44 @@ namespace BuscaMissa.Controllers.v2
     [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class IgrejaController(
-        ILogger<IgrejaController> logger, 
-        EmailService emailService, 
-        BuscaMissa.Services.v2.IgrejaService igrejaServiceV2, 
-        IgrejaService igrejaService, 
-    ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
-    EnderecoService enderecoService, ContatoService contatoService, IgrejaDenunciaService igrejaDenunciaService) 
+        ILogger<IgrejaController> logger,
+        BuscaMissa.Services.v2.IgrejaService igrejaServiceV2,
+        IgrejaService igrejaService,
+        ControleService controleService,
+        ViaCepService viaCepService,
+        ImagemService imagemService,
+        IConfiguration configuration)
     : ControllerBase
     {
-        private readonly EmailService _emailService = emailService;
-        private readonly ContatoService _contatoService = contatoService;
+        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
 
+        // Item 7 (v2): retorna 409 Conflict quando NomeUnico já existe, com dados da igreja existente
         [HttpPost]
         [Authorize(Roles = "App")]
         public async Task<IActionResult> CriarIgrejaAsync([FromBody] PostIgrejaRequest request)
         {
             try
             {
-                if(!ModelState.IsValid) return BadRequest();
-                
-                var nomeUnico = await igrejaServiceV2.TemNomeNomeUnicoAsync(request.NomeUnico);
-                if(nomeUnico is not null)
-                    return BadRequest(new ApiResponse<dynamic>(new { messagemAplicacao = "Nome unico já existe." }));
-                
+                if (!ModelState.IsValid) return BadRequest();
+
+                var igrejaExistente = await igrejaServiceV2.TemNomeNomeUnicoAsync(request.NomeUnico);
+                if (igrejaExistente is not null)
+                    return Conflict(new ApiResponse<dynamic>(new
+                    {
+                        igrejaExistente = (IgrejaResponse)igrejaExistente,
+                        messagemAplicacao = "Nome único já existe. Carregar página com dados da igreja!"
+                    }));
+
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
 
                 var igreja = await igrejaServiceV2.InserirAsync(request);
                 var controle = new Controle() { Igreja = igreja, Status = Enums.StatusEnum.Igreja_Criacao };
                 controle = await controleService.InserirAsync(controle);
-                
-                if (!string.IsNullOrEmpty(request.Imagem)){
-                    igreja.ImagemUrl= $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+
+                // Item 8 (v2): imagem armazenada como blob, nunca como base64 na resposta
+                if (!string.IsNullOrEmpty(request.Imagem))
+                {
+                    igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
                     imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                     await igrejaService.EditarAsync(igreja);
                 }
@@ -55,8 +62,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
             }
         }
 
@@ -72,11 +78,10 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
             }
         }
-        
+
         [HttpGet("buscar-por-cep/{cep}")]
         [Authorize(Roles = "App,Admin")]
         public async Task<ActionResult> BuscarPorCepAsync(string cep)
@@ -87,29 +92,26 @@ namespace BuscaMissa.Controllers.v2
                 var endereco = await viaCepService.ConsultarCepAsync(CepHelper.FormatarCep(cep));
                 if (!temIgreja.Any())
                 {
-                    
-                    return NotFound(endereco is null 
-                        ? new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" }) 
+                    return NotFound(endereco is null
+                        ? new ApiResponse<dynamic>(new { messagemAplicacao = "Liberar campos do endereço para realizar o cadastro!" })
                         : new ApiResponse<dynamic>(new { endereco, messagemAplicacao = "Preencher campos do endereço!" }));
                 }
-                
-                return Ok(new ApiResponse<dynamic>( 
+
+                return Ok(new ApiResponse<dynamic>(
                     temIgreja.Select(x => new
-                    { 
+                    {
                         x.Id, x.Nome, x.NomeUnico, dadosEndereco = endereco
                     })));
             }
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
             }
         }
-        
+
         [HttpGet]
         [Route("buscar-por-filtro")]
-        //[Authorize(Roles = "App,Admin")]
         public async Task<ActionResult> BuscarPorFiltro([FromQuery] FiltroIgrejaV2Request filtro)
         {
             try
@@ -121,196 +123,29 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
             }
         }
-        
-        /*
-               
 
-               [HttpPut]
-               [Authorize(Roles = "App")]
-               public async Task<IActionResult> Atualizar([FromBody] AtualicaoIgrejaRequest request)
-               {
-                   try
-                   {
-                       if (!ModelState.IsValid) return BadRequest();
-                       var temIgreja = await igrejaService.BuscarPorIdAsync(request.Id);
-                       if (temIgreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
-                       var controle = await controleService.BuscarPorIgrejaIdAsync(request.Id);
-                       controle ??= await controleService.InserirAsync(new Controle() { Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido, IgrejaId = temIgreja.Id });
+        // Item 2: endpoint público para busca por NomeUnico (sem autenticação, para SEO)
+        // Item 5: retorna metadados de SEO junto com os dados da igreja
+        [HttpGet("{nomeUnico}")]
+        public async Task<ActionResult> BuscarPorNomeUnicoAsync(string nomeUnico)
+        {
+            try
+            {
+                var igreja = await igrejaServiceV2.BuscarPorNomeUnicoAsync(nomeUnico);
+                if (igreja is null) return NotFound();
 
-                       if(request.Imagem is not null)
-                       {
-                           if(temIgreja.ImagemUrl is not null && request.Imagem.Contains(temIgreja.ImagemUrl))
-                               request.Imagem = null;
-                       }
+                var seo = igrejaServiceV2.GerarSeoMetadata(igreja, FrontendBaseUrl);
 
-                       var resultado = await igrejaTemporariaService.InserirAsync(request);
-                       if (!resultado) return UnprocessableEntity();
-                       controle.Status = Enums.StatusEnum.Igreja_Atualizacao_Temporaria_Inserido;
-                       await controleService.EditarStatusAsync(controle.Status, controle.Id);
-                       var response = new CriacaoIgrejaReponse() { ControleId = controle.Id };
-                       return Ok(new ApiResponse<dynamic>(new { response, messagemAplicacao = "Seguir para usuário para criar código validador!" }));
-                   }
-                   catch (Exception ex)
-                   {
-                       logger.LogError("{Ex}", ex);
-                       var response = new ApiResponse<dynamic>(ex.Message);
-                       return StatusCode(StatusCodes.Status500InternalServerError, response);
-                   }
-               }
-
-               [HttpGet]
-               [Route("buscar-por-atualizacoes/{igrejaId}")]
-               [Authorize(Roles = "App")]
-               public async Task<ActionResult> BuscarPorIgrejaIdAsync(int igrejaId)
-               {
-                   try
-                   {
-                       var igreja = await igrejaService.BuscarPorIdAsync(igrejaId);
-                       if(igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
-
-                       var controle = await controleService.BuscarPorIgrejaIdAsync(igrejaId);
-                       var resultado = await igrejaTemporariaService.BuscarPorIgrejaIdAsync(igrejaId);
-                       if (resultado is null)
-                       {
-                           resultado = new AtualizacaoIgrejaResponse(){
-                               Id = igreja.Id,
-                               Nome = igreja.Nome,
-                               Paroco = igreja.Paroco,
-                               Endereco = new EnderecoIgrejaResponse()
-                               {
-                                   Id = igreja.Endereco!.Id,
-                                   Cep = igreja.Endereco.Cep,
-                                   Logradouro = igreja.Endereco.Logradouro,
-                                   Complemento = igreja.Endereco.Complemento,
-                                   Bairro = igreja.Endereco.Bairro,
-                                   Localidade = igreja.Endereco.Localidade,
-                                   Uf = igreja.Endereco.Uf,
-                                   Estado = igreja.Endereco.Estado,
-                                   Regiao = igreja.Endereco.Regiao,
-                                   Numero = igreja.Endereco.Numero,
-                               },
-                               MissasTemporaria = [.. igreja.Missas.Select(x => new MissaResponse(){
-                                   Id = x.Id,
-                                   DiaSemana = x.DiaSemana,
-                                   Horario = x.Horario.ToString(),
-                                   Observacao = x.Observacao
-                               })]
-                           };
-                       }
-                       if(!string.IsNullOrEmpty(resultado.ImagemUrl))
-                       {
-                           resultado.ImagemUrl = $"data:image/png;base64,{resultado.ImagemUrl}";
-                       }else{
-                           if(igreja.ImagemUrl is not null){
-                               resultado.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{igreja.ImagemUrl}");
-                           }else{
-                               resultado.ImagemUrl = null;
-                           }
-                       }
-                       return Ok(new ApiResponse<dynamic>(resultado));
-                   }
-                   catch (Exception ex)
-                   {
-                       logger.LogError("{Ex}", ex);
-                       var response = new ApiResponse<dynamic>(ex.Message);
-                       return StatusCode(StatusCodes.Status500InternalServerError, response);
-                   }
-               }
-
-               [HttpGet]
-               [Route("infos")]
-               [Authorize(Roles = "App")]
-               public ActionResult InformacoesGerais()
-               {
-                   try
-                   {
-                       var resultado = igrejaService.InformacoesGeraisResponse();
-                       return Ok(new ApiResponse<dynamic>(resultado));
-                   }
-                   catch (Exception ex)
-                   {
-                       logger.LogError("{Ex}", ex);
-                       var response = new ApiResponse<dynamic>(ex.Message);
-                       return StatusCode(StatusCodes.Status500InternalServerError, response);
-                   }
-               }
-
-               [HttpPost]
-               [Route("denunciar/{igrejaId}")]
-               [Authorize(Roles = "App")]
-               public async Task<ActionResult> Denunciar(int igrejaId, [FromBody] DenunciarIgrejaRequest request){
-                   try
-                   {
-                       if(!ModelState.IsValid) return BadRequest();
-                       var resultado = await igrejaService.BuscarPorIdAsync(igrejaId);
-                       if(resultado == null) return NotFound();
-                       request.IgrejaId = igrejaId;
-                       var denuncia = await igrejaDenunciaService.BuscarPorIgrejaIdAsync(igrejaId);
-                       var resultadoDenuncia = false;
-                       if(denuncia is not null && !string.IsNullOrEmpty(denuncia.AcaoRealizada))
-                       {
-                           denuncia.AcaoRealizada = null;
-                           denuncia.Descricao = request.Descricao;
-                           denuncia.Titulo = request.Titulo;
-                           denuncia.NomeDenunciador = request.NomeDenunciador;
-                           denuncia.EmailDenunciador = request.EmailDenunciador;
-                           resultadoDenuncia = await igrejaDenunciaService.AtualizarAsync(denuncia);
-                       }else{
-                           resultadoDenuncia = await igrejaDenunciaService.InserirAsync(request);
-                       }
-
-                       //return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
-                       return Ok(new ApiResponse<dynamic>(new { resultadoDenuncia, messagemAplicacao = "Aguarde a resposta do administrador!" }));
-                   }
-                   catch (Exception ex)
-                   {
-                       logger.LogError("{Ex}", ex);
-                       var response = new ApiResponse<dynamic>(ex.Message);
-                       return StatusCode(StatusCodes.Status500InternalServerError, response);
-                   }
-               }
-
-               [HttpGet]
-               [Route("obter-enderecos")]
-               [Authorize(Roles = "App")]
-               public async Task<ActionResult> ObterDadosDeBuscaAsync([FromQuery] EnderecoIgrejaBuscaRequest request)
-               {
-                   try
-                   {
-                       if(!ModelState.IsValid) return BadRequest();
-                       var resultado = await enderecoService.BuscarDadosBuscaAsync(request);
-                       return Ok(new ApiResponse<dynamic>(resultado));
-                   }
-                   catch (Exception ex)
-                   {
-                       logger.LogError("{Ex}", ex);
-                       var response = new ApiResponse<dynamic>(ex.Message);
-                       return StatusCode(StatusCodes.Status500InternalServerError, response);
-                   }
-               }
-
-               [HttpGet]
-               [Route("v2/obter-enderecos")]
-               [Authorize(Roles = "App")]
-               public async Task<ActionResult> ObterDadosDeBuscaAsync()
-               {
-                   try
-                   {
-                       var resultado = await enderecoService.OrganizarEnderecosAsync();
-                       return Ok(new ApiResponse<dynamic>(resultado));
-                   }
-                   catch (Exception ex)
-                   {
-                       logger.LogError("{Ex}", ex);
-                       var response = new ApiResponse<dynamic>(ex.Message);
-                       return StatusCode(StatusCodes.Status500InternalServerError, response);
-                   }
-               }
-           */
+                return Ok(new ApiResponse<dynamic>(new { igreja, seo }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+            }
+        }
     }
 }
-
