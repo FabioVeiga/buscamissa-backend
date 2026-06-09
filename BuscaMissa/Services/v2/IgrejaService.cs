@@ -113,6 +113,7 @@ public class IgrejaService(
                     Id = x.Id,
                     Nome = x.Nome,
                     NomeUnico = x.NomeUnico,
+                    Slug = x.Slug,
                     Endereco = (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
@@ -205,6 +206,97 @@ public class IgrejaService(
         }
     }
 
+    // Lista paróquias ativas de uma cidade (página /missas/{uf}/{cidade})
+    public async Task<IList<IgrejaResponse>> BuscarPorCidadeAsync(string uf, string cidadeSlug)
+    {
+        try
+        {
+            var model = await context.Igrejas
+                .Include(x => x.Endereco)
+                .Include(x => x.Missas)
+                .Include(x => x.Usuario)
+                .Include(x => x.Contato)
+                .Include(x => x.RedesSociais)
+                .AsNoTracking()
+                .Where(x => x.Ativo
+                    && x.Endereco.Uf == uf.ToUpper()
+                    && x.Endereco.CidadeSlug == cidadeSlug.ToLower())
+                .ToListAsync();
+
+            var responses = new List<IgrejaResponse>();
+            foreach (var m in model)
+            {
+                var r = (IgrejaResponse)m;
+                if (!string.IsNullOrEmpty(m.ImagemUrl))
+                    r.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{m.ImagemUrl}");
+
+                DateTime? fallback = m.Usuario != null ? m.Alteracao : null;
+                foreach (var miss in r.Missas)
+                    ConfiancaCalculator.PreencherConfianca(miss, fallback);
+                r.StatusConfianca = ConfiancaCalculator.CalcularParaIgreja(r.Missas);
+
+                responses.Add(r);
+            }
+            return responses;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while fetching Igrejas for cidade {Uf}/{Cidade}", uf, cidadeSlug);
+            throw;
+        }
+    }
+
+    // Paróquia individual por cidade + slug (página /paroquia/{uf}/{cidade}/{slug})
+    public async Task<IgrejaResponse?> BuscarPorCidadeESlugAsync(string uf, string cidadeSlug, string slug)
+    {
+        try
+        {
+            var model = await context.Igrejas
+                .Include(x => x.Endereco)
+                .Include(x => x.Missas)
+                .Include(x => x.Usuario)
+                .Include(x => x.Contato)
+                .Include(x => x.RedesSociais)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Ativo
+                    && x.Endereco.Uf == uf.ToUpper()
+                    && x.Endereco.CidadeSlug == cidadeSlug.ToLower()
+                    && x.Slug == slug.ToLower());
+
+            if (model == null) return null;
+
+            var response = (IgrejaResponse)model;
+            if (!string.IsNullOrEmpty(model.ImagemUrl))
+                response.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{model.ImagemUrl}");
+
+            DateTime? fallback = model.Usuario != null ? model.Alteracao : null;
+            foreach (var m in response.Missas)
+                ConfiancaCalculator.PreencherConfianca(m, fallback);
+            response.StatusConfianca = ConfiancaCalculator.CalcularParaIgreja(response.Missas);
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while fetching Igreja {Uf}/{Cidade}/{Slug}", uf, cidadeSlug, slug);
+            throw;
+        }
+    }
+
+    // SEO da página de cidade
+    public SeoMetadataResponse GerarSeoMetadataCidade(
+        string cidadeNome, string uf, string cidadeSlug, int total, string frontendBaseUrl)
+    {
+        return new SeoMetadataResponse
+        {
+            Title = $"Missas em {cidadeNome} - {uf} | Horários de Missa | BuscaMissa",
+            Description = $"Horários de missa em {cidadeNome}/{uf}. {total} paróquia(s) com endereço, contato e horários. Encontre a missa mais perto de você.",
+            CanonicalUrl = $"{frontendBaseUrl.TrimEnd('/')}/missas/{uf.ToLower()}/{cidadeSlug}",
+            Keywords = $"missa {cidadeNome}, horário de missa {cidadeNome}, igreja católica {cidadeNome}, missa hoje {cidadeNome}, missa domingo {cidadeNome}, {uf}",
+            OgImage = null
+        };
+    }
+
     public async Task<IList<SitemapIgrejaDto>> ObterDadosSitemapAsync()
     {
         try
@@ -228,11 +320,18 @@ public class IgrejaService(
             ? "Horários: " + string.Join(", ", igreja.Missas.Select(m => $"{m.DiaSemana} às {m.Horario}"))
             : "Consulte os horários de missa.";
 
+        // Canonical aponta para a nova URL /paroquia/{uf}/{cidade}/{slug}.
+        // Fallback para /igrejas/{nomeUnico} se o registro ainda não tiver slug/cidadeSlug (pré-backfill).
+        var temUrlNova = !string.IsNullOrEmpty(igreja.Endereco.CidadeSlug) && !string.IsNullOrEmpty(igreja.Slug);
+        var canonical = temUrlNova
+            ? $"{frontendBaseUrl.TrimEnd('/')}/paroquia/{igreja.Endereco.Uf.ToLower()}/{igreja.Endereco.CidadeSlug}/{igreja.Slug}"
+            : $"{frontendBaseUrl.TrimEnd('/')}/igrejas/{igreja.NomeUnico}";
+
         return new SeoMetadataResponse
         {
             Title = $"Missas em {igreja.Nome} - {igreja.Endereco.Localidade}/{igreja.Endereco.Uf} | BuscaMissa",
             Description = $"{igreja.Nome}, {igreja.Endereco.Bairro}, {igreja.Endereco.Localidade}/{igreja.Endereco.Uf}. {diasDescricao}",
-            CanonicalUrl = $"{frontendBaseUrl.TrimEnd('/')}/igrejas/{igreja.NomeUnico}",
+            CanonicalUrl = canonical,
             Keywords = $"missa, {igreja.Nome}, {igreja.Endereco.Localidade}, {igreja.Endereco.Uf}, horário de missa, {igreja.Endereco.Bairro}",
             OgImage = string.IsNullOrEmpty(igreja.ImagemUrl) ? null : igreja.ImagemUrl
         };

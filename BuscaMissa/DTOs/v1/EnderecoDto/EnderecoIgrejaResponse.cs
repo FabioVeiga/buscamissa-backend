@@ -10,7 +10,10 @@ namespace BuscaMissa.DTOs.EnderecoDto
         public string? Complemento { get; set; }
         public string Bairro { get; set; } = default!;
         public string Localidade { get; set; } = default!;
+        public string? CidadeSlug { get; set; }
         public string Uf { get; set; } = default!;
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
         public string Estado { get; set; } = default!;
         public string Regiao { get; set; } = default!;
         public int Numero { get; set; }
@@ -26,7 +29,10 @@ namespace BuscaMissa.DTOs.EnderecoDto
                 Complemento = endereco.Complemento,
                 Bairro = endereco.Bairro,
                 Localidade = endereco.Localidade,
+                CidadeSlug = endereco.CidadeSlug,
                 Uf = endereco.Uf,
+                Latitude = endereco.Latitude,
+                Longitude = endereco.Longitude,
                 Estado = endereco.Estado,
                 Regiao = endereco.Regiao,
                 Numero = endereco.Numero,

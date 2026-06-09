@@ -147,5 +147,47 @@ namespace BuscaMissa.Controllers.v2
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
             }
         }
+
+        // Página de cidade: lista paróquias + SEO (alvo "missa em {cidade}")
+        [HttpGet("cidade/{uf}/{cidadeSlug}")]
+        public async Task<ActionResult> BuscarPorCidadeAsync(string uf, string cidadeSlug)
+        {
+            try
+            {
+                var igrejas = await igrejaServiceV2.BuscarPorCidadeAsync(uf, cidadeSlug);
+                if (igrejas.Count == 0) return NotFound();
+
+                var cidadeNome = igrejas[0].Endereco.Localidade;
+                var seo = igrejaServiceV2.GerarSeoMetadataCidade(
+                    cidadeNome, uf.ToUpper(), cidadeSlug.ToLower(), igrejas.Count, FrontendBaseUrl);
+
+                return Ok(new ApiResponse<dynamic>(new { cidade = cidadeNome, uf = uf.ToUpper(), igrejas, seo }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+            }
+        }
+
+        // Paróquia individual pela URL canônica nova
+        [HttpGet("paroquia/{uf}/{cidadeSlug}/{slug}")]
+        public async Task<ActionResult> BuscarPorCidadeESlugAsync(string uf, string cidadeSlug, string slug)
+        {
+            try
+            {
+                var igreja = await igrejaServiceV2.BuscarPorCidadeESlugAsync(uf, cidadeSlug, slug);
+                if (igreja is null) return NotFound();
+
+                var seo = igrejaServiceV2.GerarSeoMetadata(igreja, FrontendBaseUrl);
+
+                return Ok(new ApiResponse<dynamic>(new { igreja, seo }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+            }
+        }
     }
 }
