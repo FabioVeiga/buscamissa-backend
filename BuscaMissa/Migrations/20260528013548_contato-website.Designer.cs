@@ -4,6 +4,7 @@ using BuscaMissa.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BuscaMissa.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528013548_contato-website")]
+    partial class contatowebsite
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,37 +128,6 @@ namespace BuscaMissa.Migrations
                     b.HasIndex("IgrejaId", "Aprovado");
 
                     b.ToTable("ComentariosIgreja");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.ConfirmacaoHorario", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("EnderecoIp")
-                        .HasMaxLength(45)
-                        .HasColumnType("varchar(45)");
-
-                    b.Property<string>("HashFingerprint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<int>("IgrejaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DataCriacao");
-
-                    b.HasIndex("IgrejaId", "HashFingerprint")
-                        .IsUnique();
-
-                    b.ToTable("ConfirmacoesHorario");
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.Contato", b =>
@@ -295,9 +267,6 @@ namespace BuscaMissa.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("CidadeSlug")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<string>("Complemento")
                         .HasColumnType("longtext");
 
@@ -308,8 +277,8 @@ namespace BuscaMissa.Migrations
                     b.Property<int>("IgrejaId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("decimal(10,7)");
+                    b.Property<string>("Latitude")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Localidade")
                         .IsRequired()
@@ -319,8 +288,8 @@ namespace BuscaMissa.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("decimal(10,7)");
+                    b.Property<string>("Longitude")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Numero")
                         .HasColumnType("int");
@@ -331,16 +300,12 @@ namespace BuscaMissa.Migrations
 
                     b.Property<string>("Uf")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.HasIndex("IgrejaId")
                         .IsUnique();
-
-                    b.HasIndex("Latitude", "Longitude");
-
-                    b.HasIndex("Uf", "CidadeSlug");
 
                     b.ToTable("Enderecos");
                 });
@@ -407,24 +372,15 @@ namespace BuscaMissa.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("NomeUnico")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Paroco")
                         .HasColumnType("longtext");
-
-                    b.Property<string>("Slug")
-                        .HasColumnType("varchar(255)");
 
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NomeUnico")
-                        .IsUnique()
-                        .HasFilter("NomeUnico IS NOT NULL");
-
-                    b.HasIndex("Slug");
 
                     b.HasIndex("UsuarioId");
 
@@ -502,9 +458,6 @@ namespace BuscaMissa.Migrations
                     b.Property<int>("DiaSemana")
                         .HasColumnType("int");
 
-                    b.Property<int>("FontePrincipal")
-                        .HasColumnType("int");
-
                     b.Property<TimeSpan>("Horario")
                         .HasColumnType("time(6)");
 
@@ -513,9 +466,6 @@ namespace BuscaMissa.Migrations
 
                     b.Property<string>("Observacao")
                         .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UltimaValidacao")
-                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -730,17 +680,6 @@ namespace BuscaMissa.Migrations
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.ComentarioIgreja", b =>
-                {
-                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
-                        .WithMany()
-                        .HasForeignKey("IgrejaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Igreja");
-                });
-
-            modelBuilder.Entity("BuscaMissa.Models.ConfirmacaoHorario", b =>
                 {
                     b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
                         .WithMany()
