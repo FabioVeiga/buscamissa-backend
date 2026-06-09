@@ -61,12 +61,20 @@ namespace BuscaMissa.Context
                 .HasIndex(x => x.NomeUnico)
                 .IsUnique()
                 .HasFilter("NomeUnico IS NOT NULL");
+
+            // Slug local — usado nas URLs /paroquia/{uf}/{cidade}/{slug}
+            modelBuilder.Entity<Igreja>()
+                .HasIndex(x => x.Slug);
         }
 
         private void ConfigurarEndereco(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Endereco>()
                 .HasIndex(x => new { x.Latitude, x.Longitude });
+
+            // CidadeSlug — busca por cidade e URLs /missas/{uf}/{cidade}
+            modelBuilder.Entity<Endereco>()
+                .HasIndex(x => new { x.Uf, x.CidadeSlug });
         }
         
         private void ConfigurarEstatisticas(ModelBuilder modelBuilder)
