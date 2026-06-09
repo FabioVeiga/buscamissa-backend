@@ -206,11 +206,17 @@ public class IgrejaService(
         }
     }
 
-    // Lista paróquias ativas de uma cidade (página /missas/{uf}/{cidade})
+    // Página de cidade SEO: lista completa (sem paginação), com cap de segurança.
+    // Paginar fragmentaria o conteúdo e prejudicaria a indexação. O cap protege
+    // o caso extremo (ex: SP capital). A solução de escala é sub-dividir por bairro.
+    private const int LimiteCidade = 300;
+
     public async Task<IList<IgrejaResponse>> BuscarPorCidadeAsync(string uf, string cidadeSlug)
     {
         try
         {
+            // No banco: filtra e aplica o cap pegando os mais recentemente atualizados
+            // (proxy de relevância, ordenável por índice). Confiança é reordenada em memória.
             var model = await context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Missas)
@@ -221,6 +227,8 @@ public class IgrejaService(
                 .Where(x => x.Ativo
                     && x.Endereco.Uf == uf.ToUpper()
                     && x.Endereco.CidadeSlug == cidadeSlug.ToLower())
+                .OrderByDescending(x => x.Alteracao)
+                .Take(LimiteCidade)
                 .ToListAsync();
 
             var responses = new List<IgrejaResponse>();
@@ -237,7 +245,12 @@ public class IgrejaService(
 
                 responses.Add(r);
             }
-            return responses;
+
+            // Exibição: mais confiáveis primeiro, depois alfabético
+            return responses
+                .OrderByDescending(r => r.StatusConfianca)
+                .ThenBy(r => r.Nome)
+                .ToList();
         }
         catch (Exception ex)
         {
