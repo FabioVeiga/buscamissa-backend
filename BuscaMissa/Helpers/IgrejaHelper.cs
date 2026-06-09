@@ -19,6 +19,12 @@ public static class IgrejaHelper
         return sufixo <= 1 ? baseSlug : $"{baseSlug}-{sufixo}";
     }
 
+    // Slug local à cidade — apenas o nome da paróquia (ex: "paroquia-sao-joao-bosco")
+    public static string CriarSlugLocal(string nome) => NormalizarSlug(nome);
+
+    // Slug da cidade (ex: "São José dos Campos" -> "sao-jose-dos-campos")
+    public static string CriarCidadeSlug(string localidade) => NormalizarSlug(localidade);
+
     public static string CriarNomeUnico(Igreja model)
     {
         return NormalizarSlug($"{model.Endereco.Uf}-{model.Endereco.Localidade}-{model.Nome}");
