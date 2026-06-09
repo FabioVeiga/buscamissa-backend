@@ -18,6 +18,8 @@ namespace BuscaMissa.Models
         public string Bairro { get; set; } = default!;
         [Required]
         public string Localidade { get; set; } = default!;
+        // Slug da cidade para URLs e busca (ex: "sao-jose-dos-campos"). Persistido e indexado.
+        public string? CidadeSlug { get; set; }
         [Required]
         public string Uf { get; set; } = default!;
         [Required]

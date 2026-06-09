@@ -65,6 +65,16 @@ namespace BuscaMissa.Services.v1
             {
                 var model = (Igreja)request;
                 model.NomeUnico = await GerarSlugUnicoAsync(IgrejaHelper.CriarNomeUnico(request));
+
+                // CidadeSlug (desnormalizado para URLs e busca por cidade)
+                model.Endereco.CidadeSlug = IgrejaHelper.CriarCidadeSlug(model.Endereco.Localidade);
+
+                // Slug local à cidade, único dentro de (Uf, CidadeSlug)
+                model.Slug = await GerarSlugLocalUnicoAsync(
+                    IgrejaHelper.CriarSlugLocal(model.Nome),
+                    model.Endereco.Uf,
+                    model.Endereco.CidadeSlug);
+
                 // Missas cadastradas por usuário nascem validadas
                 foreach (var missa in model.Missas)
                 {
@@ -87,6 +97,22 @@ namespace BuscaMissa.Services.v1
             var sufixo = 1;
             var slug = baseSlug;
             while (await context.Igrejas.AnyAsync(x => x.NomeUnico == slug))
+            {
+                sufixo++;
+                slug = IgrejaHelper.CriarNomeUnicoComSufixo(baseSlug, sufixo);
+            }
+            return slug;
+        }
+
+        // Garante unicidade do slug local dentro da cidade (Uf + CidadeSlug)
+        private async Task<string> GerarSlugLocalUnicoAsync(string baseSlug, string uf, string cidadeSlug)
+        {
+            var sufixo = 1;
+            var slug = baseSlug;
+            while (await context.Igrejas.AnyAsync(x =>
+                x.Slug == slug &&
+                x.Endereco.Uf == uf &&
+                x.Endereco.CidadeSlug == cidadeSlug))
             {
                 sufixo++;
                 slug = IgrejaHelper.CriarNomeUnicoComSufixo(baseSlug, sufixo);
