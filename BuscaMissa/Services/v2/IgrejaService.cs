@@ -317,7 +317,14 @@ public class IgrejaService(
             return await context.Igrejas
                 .AsNoTracking()
                 .Where(x => x.Ativo && x.NomeUnico != null)
-                .Select(x => new SitemapIgrejaDto { NomeUnico = x.NomeUnico!, Alteracao = x.Alteracao })
+                .Select(x => new SitemapIgrejaDto
+                {
+                    NomeUnico = x.NomeUnico!,
+                    Uf = x.Endereco.Uf,
+                    CidadeSlug = x.Endereco.CidadeSlug,
+                    Slug = x.Slug,
+                    Alteracao = x.Alteracao
+                })
                 .ToListAsync();
         }
         catch (Exception ex)
