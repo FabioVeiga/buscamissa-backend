@@ -15,6 +15,7 @@ namespace BuscaMissa.Models
         public string? DDDWhatsApp { get; set; }
         public string? TelefoneWhatsApp { get; set; }
         public bool? TelefoneWhatsAppValidado { get; set; } = false;
+        public string? Website { get; set; }
         
         public int IgrejaId { get; set; }
         public Igreja? Igreja { get; set; }

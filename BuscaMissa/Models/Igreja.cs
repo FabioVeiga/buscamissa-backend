@@ -18,6 +18,7 @@ namespace BuscaMissa.Models
         public string? NomeUnico { get; set; }
         // Slug local à cidade (ex: "paroquia-sao-joao-bosco"). Único dentro de (Uf, CidadeSlug).
         public string? Slug { get; set; }
+        public string? GooglePlaceId { get; set; }
         public int? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
         
