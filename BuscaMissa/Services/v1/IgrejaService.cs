@@ -110,15 +110,15 @@ namespace BuscaMissa.Services.v1
                     var cepFormatado = CepHelper.FormatarCep(item.Cep);
                     string logradouro, bairro, localidade, uf, estado, regiao;
 
-                    // Usa endereço do payload quando completo — evita chamada ao ViaCEP
-                    if (!string.IsNullOrWhiteSpace(item.Logradouro) &&
-                        !string.IsNullOrWhiteSpace(item.Localidade) &&
+                    // Usa endereço do payload quando há cidade + UF — evita chamada ao ViaCEP
+                    // (Logradouro pode vir vazio quando o ViaCEP não resolveu o CEP no cliente)
+                    if (!string.IsNullOrWhiteSpace(item.Localidade) &&
                         !string.IsNullOrWhiteSpace(item.Uf))
                     {
-                        logradouro = item.Logradouro;
+                        logradouro = item.Logradouro ?? string.Empty;
                         bairro     = item.Bairro ?? string.Empty;
                         localidade = item.Localidade;
-                        uf         = item.Uf.ToUpper();
+                        uf         = NormalizarUf(item.Uf);
                         estado     = item.Estado ?? string.Empty;
                         regiao     = item.Regiao ?? string.Empty;
                     }
@@ -144,14 +144,14 @@ namespace BuscaMissa.Services.v1
                         logradouro = viaCep.Logradouro;
                         bairro     = viaCep.Bairro;
                         localidade = viaCep.Localidade;
-                        uf         = viaCep.Uf.ToUpper();
+                        uf         = NormalizarUf(viaCep.Uf);
                         estado     = viaCep.Estado;
                         regiao     = viaCep.Regiao;
                     }
 
                     var cidadeSlug = IgrejaHelper.CriarCidadeSlug(localidade);
                     var slugLocal = IgrejaHelper.CriarSlugLocal(item.Nome);
-                    uf = uf.ToUpper();
+                    uf = NormalizarUf(uf);
 
                     var duplicata = await context.Igrejas
                         .AnyAsync(x =>
@@ -270,6 +270,13 @@ namespace BuscaMissa.Services.v1
             var nomeArquivo = $"{igrejaId}{extensao}";
             imagemService.UploadAzure(Convert.ToBase64String(bytes), "igreja", nomeArquivo);
             return nomeArquivo;
+        }
+
+        // UF sempre com 2 dígitos maiúsculos
+        private static string NormalizarUf(string? uf)
+        {
+            var limpo = (uf ?? string.Empty).Trim().ToUpper();
+            return limpo.Length > 2 ? limpo[..2] : limpo;
         }
 
         private static Contato? CriarContato(ImportacaoIgrejaItemRequest item)
