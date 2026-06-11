@@ -17,11 +17,20 @@ public class ImportacaoIgrejaItemRequest
 
     // Contato — todos opcionais
     public string? Email { get; set; }
-
-    // Telefone e WhatsApp em formato livre, ex: "(19) 3234-8269" ou "19 99235-4070"
     public string? Telefone { get; set; }
     public string? WhatsApp { get; set; }
     public string? Site { get; set; }
+
+    // Endereço completo — quando preenchido, ignora ViaCEP
+    public string? Logradouro { get; set; }
+    public string? Bairro { get; set; }
+    public string? Localidade { get; set; }
+    public string? Uf { get; set; }
+    public string? Estado { get; set; }
+    public string? Regiao { get; set; }
+
+    // URL pública da foto da paróquia — o backend baixa e sobe para o blob
+    public string? ImagemUrl { get; set; }
 }
 
 public class ImportacaoMissaRequest
