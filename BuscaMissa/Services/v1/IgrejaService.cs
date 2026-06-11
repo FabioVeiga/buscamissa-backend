@@ -108,27 +108,50 @@ namespace BuscaMissa.Services.v1
                 try
                 {
                     var cepFormatado = CepHelper.FormatarCep(item.Cep);
+                    string logradouro, bairro, localidade, uf, estado, regiao;
 
-                    if (!cepCache.TryGetValue(cepFormatado, out var viaCep))
+                    // Usa endereço do payload quando completo — evita chamada ao ViaCEP
+                    if (!string.IsNullOrWhiteSpace(item.Logradouro) &&
+                        !string.IsNullOrWhiteSpace(item.Localidade) &&
+                        !string.IsNullOrWhiteSpace(item.Uf))
                     {
-                        viaCep = await viaCepService.ConsultarCepAsync(cepFormatado);
-                        cepCache[cepFormatado] = viaCep;
+                        logradouro = item.Logradouro;
+                        bairro     = item.Bairro ?? string.Empty;
+                        localidade = item.Localidade;
+                        uf         = item.Uf.ToUpper();
+                        estado     = item.Estado ?? string.Empty;
+                        regiao     = item.Regiao ?? string.Empty;
                     }
-
-                    if (viaCep == null)
+                    else
                     {
-                        response.Erros.Add(new ImportacaoErroItem
+                        if (!cepCache.TryGetValue(cepFormatado, out var viaCep))
                         {
-                            Linha = linha,
-                            Nome = item.Nome,
-                            Motivo = $"CEP {item.Cep} não encontrado"
-                        });
-                        continue;
+                            viaCep = await viaCepService.ConsultarCepAsync(cepFormatado);
+                            cepCache[cepFormatado] = viaCep;
+                        }
+
+                        if (viaCep == null)
+                        {
+                            response.Erros.Add(new ImportacaoErroItem
+                            {
+                                Linha = linha,
+                                Nome = item.Nome,
+                                Motivo = $"CEP {item.Cep} não encontrado"
+                            });
+                            continue;
+                        }
+
+                        logradouro = viaCep.Logradouro;
+                        bairro     = viaCep.Bairro;
+                        localidade = viaCep.Localidade;
+                        uf         = viaCep.Uf.ToUpper();
+                        estado     = viaCep.Estado;
+                        regiao     = viaCep.Regiao;
                     }
 
-                    var cidadeSlug = IgrejaHelper.CriarCidadeSlug(viaCep.Localidade);
+                    var cidadeSlug = IgrejaHelper.CriarCidadeSlug(localidade);
                     var slugLocal = IgrejaHelper.CriarSlugLocal(item.Nome);
-                    var uf = viaCep.Uf.ToUpper();
+                    uf = uf.ToUpper();
 
                     var duplicata = await context.Igrejas
                         .AnyAsync(x =>
@@ -167,13 +190,13 @@ namespace BuscaMissa.Services.v1
                         Endereco = new Endereco
                         {
                             Cep = cepFormatado,
-                            Logradouro = viaCep.Logradouro,
-                            Bairro = viaCep.Bairro,
-                            Localidade = viaCep.Localidade,
+                            Logradouro = logradouro,
+                            Bairro = bairro,
+                            Localidade = localidade,
                             CidadeSlug = cidadeSlug,
                             Uf = uf,
-                            Estado = viaCep.Estado,
-                            Regiao = viaCep.Regiao,
+                            Estado = estado,
+                            Regiao = regiao,
                             Numero = item.Numero
                         }
                     };
@@ -187,6 +210,25 @@ namespace BuscaMissa.Services.v1
 
                     context.Igrejas.Add(igreja);
                     await context.SaveChangesAsync();
+
+                    // Foto: baixa da URL informada e sobe para o blob (falha não invalida a igreja)
+                    if (!string.IsNullOrWhiteSpace(item.ImagemUrl))
+                    {
+                        try
+                        {
+                            var nomeArquivo = await BaixarESalvarImagemAsync(item.ImagemUrl, igreja.Id);
+                            if (nomeArquivo != null)
+                            {
+                                igreja.ImagemUrl = nomeArquivo;
+                                await context.SaveChangesAsync();
+                            }
+                        }
+                        catch (Exception exImg)
+                        {
+                            logger.LogWarning(exImg, "Falha ao baixar imagem da igreja {Nome}: {Url}", item.Nome, item.ImagemUrl);
+                        }
+                    }
+
                     response.Inseridas++;
                 }
                 catch (Exception ex)
@@ -202,6 +244,32 @@ namespace BuscaMissa.Services.v1
             }
 
             return response;
+        }
+
+        private static readonly HttpClient _httpImagem = new() { Timeout = TimeSpan.FromSeconds(30) };
+
+        // Baixa a imagem da URL e sobe para o blob na pasta "igreja". Retorna o nome do arquivo salvo.
+        private async Task<string?> BaixarESalvarImagemAsync(string url, int igrejaId)
+        {
+            using var resposta = await _httpImagem.GetAsync(url);
+            if (!resposta.IsSuccessStatusCode) return null;
+
+            var bytes = await resposta.Content.ReadAsByteArrayAsync();
+            if (bytes.Length == 0) return null;
+
+            var contentType = resposta.Content.Headers.ContentType?.MediaType ?? string.Empty;
+            var extensao = contentType switch
+            {
+                "image/png"  => ".png",
+                "image/gif"  => ".gif",
+                "image/bmp"  => ".bmp",
+                "image/webp" => ".webp",
+                _            => ".jpg"
+            };
+
+            var nomeArquivo = $"{igrejaId}{extensao}";
+            imagemService.UploadAzure(Convert.ToBase64String(bytes), "igreja", nomeArquivo);
+            return nomeArquivo;
         }
 
         private static Contato? CriarContato(ImportacaoIgrejaItemRequest item)
