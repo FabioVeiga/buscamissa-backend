@@ -4,6 +4,8 @@ using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.DTOs.v1.IgrejaDto;
+using BuscaMissa.Enums;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +13,11 @@ using Microsoft.EntityFrameworkCore;
 namespace BuscaMissa.Services.v1
 {
     public class IgrejaService(
-        ApplicationDbContext context, 
-        ILogger<IgrejaService> logger, 
-        IgrejaTemporariaService igrejaTemporariaService, 
-        ImagemService imagemService)
+        ApplicationDbContext context,
+        ILogger<IgrejaService> logger,
+        IgrejaTemporariaService igrejaTemporariaService,
+        ImagemService imagemService,
+        ViaCepService viaCepService)
     {
         public async Task<Igreja?> BuscarPorIdAsync(int id)
         {
@@ -91,6 +94,160 @@ namespace BuscaMissa.Services.v1
                 throw;
             }
         }
+
+        public async Task<ImportacaoIgrejaLoteResponse> ImportarLoteAsync(ImportacaoIgrejaLoteRequest request)
+        {
+            var response = new ImportacaoIgrejaLoteResponse();
+            var cepCache = new Dictionary<string, EnderecoViaCepResponse?>();
+
+            for (var i = 0; i < request.Igrejas.Count; i++)
+            {
+                var item = request.Igrejas[i];
+                var linha = i + 1;
+
+                try
+                {
+                    var cepFormatado = CepHelper.FormatarCep(item.Cep);
+
+                    if (!cepCache.TryGetValue(cepFormatado, out var viaCep))
+                    {
+                        viaCep = await viaCepService.ConsultarCepAsync(cepFormatado);
+                        cepCache[cepFormatado] = viaCep;
+                    }
+
+                    if (viaCep == null)
+                    {
+                        response.Erros.Add(new ImportacaoErroItem
+                        {
+                            Linha = linha,
+                            Nome = item.Nome,
+                            Motivo = $"CEP {item.Cep} não encontrado"
+                        });
+                        continue;
+                    }
+
+                    var cidadeSlug = IgrejaHelper.CriarCidadeSlug(viaCep.Localidade);
+                    var slugLocal = IgrejaHelper.CriarSlugLocal(item.Nome);
+                    var uf = viaCep.Uf.ToUpper();
+
+                    var duplicata = await context.Igrejas
+                        .AnyAsync(x =>
+                            x.Slug == slugLocal &&
+                            x.Endereco.CidadeSlug == cidadeSlug &&
+                            x.Endereco.Uf == uf);
+
+                    if (duplicata)
+                    {
+                        response.Puladas++;
+                        continue;
+                    }
+
+                    var missas = item.Missas
+                        .Select(m => new { Dia = MapearDiaSemana(m.DiaSemana), Horario = m.Horario })
+                        .Where(m => m.Dia.HasValue && TimeSpan.TryParse(m.Horario, out _))
+                        .GroupBy(m => (m.Dia, m.Horario))
+                        .Select(g => g.First())
+                        .Select(m => new Missa
+                        {
+                            DiaSemana = m.Dia!.Value,
+                            Horario = TimeSpan.Parse(m.Horario),
+                            FontePrincipal = FontePrincipalEnum.Usuario,
+                            UltimaValidacao = DateTime.UtcNow
+                        })
+                        .ToList();
+
+                    var igreja = new Igreja
+                    {
+                        Nome = item.Nome,
+                        Paroco = item.Paroco,
+                        Ativo = true,
+                        Criacao = DateTime.Now,
+                        Alteracao = DateTime.Now,
+                        Missas = missas,
+                        Endereco = new Endereco
+                        {
+                            Cep = cepFormatado,
+                            Logradouro = viaCep.Logradouro,
+                            Bairro = viaCep.Bairro,
+                            Localidade = viaCep.Localidade,
+                            CidadeSlug = cidadeSlug,
+                            Uf = uf,
+                            Estado = viaCep.Estado,
+                            Regiao = viaCep.Regiao,
+                            Numero = item.Numero
+                        }
+                    };
+
+                    var baseNomeUnico = IgrejaHelper.CriarNomeUnico(igreja);
+                    igreja.NomeUnico = await GerarSlugUnicoAsync(baseNomeUnico);
+                    igreja.Slug = await GerarSlugLocalUnicoAsync(slugLocal, uf, cidadeSlug);
+
+                    var contato = CriarContato(item);
+                    if (contato != null) igreja.Contato = contato;
+
+                    context.Igrejas.Add(igreja);
+                    await context.SaveChangesAsync();
+                    response.Inseridas++;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Erro ao importar igreja linha {Linha}: {Nome}", linha, item.Nome);
+                    response.Erros.Add(new ImportacaoErroItem
+                    {
+                        Linha = linha,
+                        Nome = item.Nome,
+                        Motivo = "Erro interno ao processar"
+                    });
+                }
+            }
+
+            return response;
+        }
+
+        private static Contato? CriarContato(ImportacaoIgrejaItemRequest item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Email) &&
+                string.IsNullOrWhiteSpace(item.Telefone) &&
+                string.IsNullOrWhiteSpace(item.WhatsApp) &&
+                string.IsNullOrWhiteSpace(item.Site))
+                return null;
+
+            var (ddd, tel) = ParseFone(item.Telefone);
+            var (dddWa, wa) = ParseFone(item.WhatsApp);
+
+            return new Contato
+            {
+                EmailContato = item.Email,
+                DDD = ddd,
+                Telefone = tel,
+                DDDWhatsApp = dddWa,
+                TelefoneWhatsApp = wa,
+                Website = item.Site
+            };
+        }
+
+        // Converte "(19) 3234-8269" → ("19", "32348269")
+        private static (string? ddd, string? numero) ParseFone(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return (null, null);
+            var digits = new string(raw.Where(char.IsDigit).ToArray());
+            if (digits.Length < 10) return (null, null);
+            var ddd = digits[..2];
+            var numero = digits[2..];
+            return (ddd, numero);
+        }
+
+        private static DiaDaSemanaEnum? MapearDiaSemana(string dia) => dia.Trim().ToLower() switch
+        {
+            "domingo" => DiaDaSemanaEnum.Domingo,
+            "segunda" or "segunda-feira" => DiaDaSemanaEnum.SegundaFeira,
+            "terça" or "terca" or "terça-feira" or "terca-feira" => DiaDaSemanaEnum.TercaFeira,
+            "quarta" or "quarta-feira" => DiaDaSemanaEnum.QuartaFeira,
+            "quinta" or "quinta-feira" => DiaDaSemanaEnum.QuintaFeira,
+            "sexta" or "sexta-feira" => DiaDaSemanaEnum.SextaFeira,
+            "sábado" or "sabado" => DiaDaSemanaEnum.Sabado,
+            _ => null
+        };
 
         private async Task<string> GerarSlugUnicoAsync(string baseSlug)
         {
