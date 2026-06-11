@@ -40,4 +40,7 @@ public class ImportacaoMissaRequest
 
     // Formato: "HH:mm"
     public string Horario { get; set; } = default!;
+
+    // Observação por missa (ex: "1ª sexta do mês", "Missa pela saúde")
+    public string? Observacao { get; set; }
 }
