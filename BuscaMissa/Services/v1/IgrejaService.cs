@@ -4,6 +4,8 @@ using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.DTOs.v1.IgrejaDto;
+using BuscaMissa.Enums;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +13,11 @@ using Microsoft.EntityFrameworkCore;
 namespace BuscaMissa.Services.v1
 {
     public class IgrejaService(
-        ApplicationDbContext context, 
-        ILogger<IgrejaService> logger, 
-        IgrejaTemporariaService igrejaTemporariaService, 
-        ImagemService imagemService)
+        ApplicationDbContext context,
+        ILogger<IgrejaService> logger,
+        IgrejaTemporariaService igrejaTemporariaService,
+        ImagemService imagemService,
+        ViaCepService viaCepService)
     {
         public async Task<Igreja?> BuscarPorIdAsync(int id)
         {
@@ -91,6 +94,235 @@ namespace BuscaMissa.Services.v1
                 throw;
             }
         }
+
+        public async Task<ImportacaoIgrejaLoteResponse> ImportarLoteAsync(ImportacaoIgrejaLoteRequest request)
+        {
+            var response = new ImportacaoIgrejaLoteResponse();
+            var cepCache = new Dictionary<string, EnderecoViaCepResponse?>();
+
+            for (var i = 0; i < request.Igrejas.Count; i++)
+            {
+                var item = request.Igrejas[i];
+                var linha = i + 1;
+
+                try
+                {
+                    var cepFormatado = CepHelper.FormatarCep(item.Cep);
+                    string logradouro, bairro, localidade, uf, estado, regiao;
+
+                    // Usa endereço do payload quando há cidade + UF — evita chamada ao ViaCEP
+                    // (Logradouro pode vir vazio quando o ViaCEP não resolveu o CEP no cliente)
+                    if (!string.IsNullOrWhiteSpace(item.Localidade) &&
+                        !string.IsNullOrWhiteSpace(item.Uf))
+                    {
+                        logradouro = item.Logradouro ?? string.Empty;
+                        bairro     = item.Bairro ?? string.Empty;
+                        localidade = item.Localidade;
+                        uf         = NormalizarUf(item.Uf);
+                        estado     = item.Estado ?? string.Empty;
+                        regiao     = item.Regiao ?? string.Empty;
+                    }
+                    else
+                    {
+                        if (!cepCache.TryGetValue(cepFormatado, out var viaCep))
+                        {
+                            viaCep = await viaCepService.ConsultarCepAsync(cepFormatado);
+                            cepCache[cepFormatado] = viaCep;
+                        }
+
+                        if (viaCep == null)
+                        {
+                            response.Erros.Add(new ImportacaoErroItem
+                            {
+                                Linha = linha,
+                                Nome = item.Nome,
+                                Motivo = $"CEP {item.Cep} não encontrado"
+                            });
+                            continue;
+                        }
+
+                        logradouro = viaCep.Logradouro;
+                        bairro     = viaCep.Bairro;
+                        localidade = viaCep.Localidade;
+                        uf         = NormalizarUf(viaCep.Uf);
+                        estado     = viaCep.Estado;
+                        regiao     = viaCep.Regiao;
+                    }
+
+                    var cidadeSlug = IgrejaHelper.CriarCidadeSlug(localidade);
+                    var slugLocal = IgrejaHelper.CriarSlugLocal(item.Nome);
+                    uf = NormalizarUf(uf);
+
+                    var duplicata = await context.Igrejas
+                        .AnyAsync(x =>
+                            x.Slug == slugLocal &&
+                            x.Endereco.CidadeSlug == cidadeSlug &&
+                            x.Endereco.Uf == uf);
+
+                    if (duplicata)
+                    {
+                        response.Puladas++;
+                        continue;
+                    }
+
+                    var missas = item.Missas
+                        .Select(m => new { Dia = MapearDiaSemana(m.DiaSemana), Horario = m.Horario })
+                        .Where(m => m.Dia.HasValue && TimeSpan.TryParse(m.Horario, out _))
+                        .GroupBy(m => (m.Dia, m.Horario))
+                        .Select(g => g.First())
+                        .Select(m => new Missa
+                        {
+                            DiaSemana = m.Dia!.Value,
+                            Horario = TimeSpan.Parse(m.Horario),
+                            FontePrincipal = FontePrincipalEnum.Usuario,
+                            UltimaValidacao = DateTime.UtcNow
+                        })
+                        .ToList();
+
+                    var igreja = new Igreja
+                    {
+                        Nome = item.Nome,
+                        Paroco = item.Paroco,
+                        Ativo = true,
+                        Criacao = DateTime.Now,
+                        Alteracao = DateTime.Now,
+                        Missas = missas,
+                        Endereco = new Endereco
+                        {
+                            Cep = cepFormatado,
+                            Logradouro = logradouro,
+                            Bairro = bairro,
+                            Localidade = localidade,
+                            CidadeSlug = cidadeSlug,
+                            Uf = uf,
+                            Estado = estado,
+                            Regiao = regiao,
+                            Numero = item.Numero
+                        }
+                    };
+
+                    var baseNomeUnico = IgrejaHelper.CriarNomeUnico(igreja);
+                    igreja.NomeUnico = await GerarSlugUnicoAsync(baseNomeUnico);
+                    igreja.Slug = await GerarSlugLocalUnicoAsync(slugLocal, uf, cidadeSlug);
+
+                    var contato = CriarContato(item);
+                    if (contato != null) igreja.Contato = contato;
+
+                    context.Igrejas.Add(igreja);
+                    await context.SaveChangesAsync();
+
+                    // Foto: baixa da URL informada e sobe para o blob (falha não invalida a igreja)
+                    if (!string.IsNullOrWhiteSpace(item.ImagemUrl))
+                    {
+                        try
+                        {
+                            var nomeArquivo = await BaixarESalvarImagemAsync(item.ImagemUrl, igreja.Id);
+                            if (nomeArquivo != null)
+                            {
+                                igreja.ImagemUrl = nomeArquivo;
+                                await context.SaveChangesAsync();
+                            }
+                        }
+                        catch (Exception exImg)
+                        {
+                            logger.LogWarning(exImg, "Falha ao baixar imagem da igreja {Nome}: {Url}", item.Nome, item.ImagemUrl);
+                        }
+                    }
+
+                    response.Inseridas++;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Erro ao importar igreja linha {Linha}: {Nome}", linha, item.Nome);
+                    response.Erros.Add(new ImportacaoErroItem
+                    {
+                        Linha = linha,
+                        Nome = item.Nome,
+                        Motivo = "Erro interno ao processar"
+                    });
+                }
+            }
+
+            return response;
+        }
+
+        private static readonly HttpClient _httpImagem = new() { Timeout = TimeSpan.FromSeconds(30) };
+
+        // Baixa a imagem da URL e sobe para o blob na pasta "igreja". Retorna o nome do arquivo salvo.
+        private async Task<string?> BaixarESalvarImagemAsync(string url, int igrejaId)
+        {
+            using var resposta = await _httpImagem.GetAsync(url);
+            if (!resposta.IsSuccessStatusCode) return null;
+
+            var bytes = await resposta.Content.ReadAsByteArrayAsync();
+            if (bytes.Length == 0) return null;
+
+            var contentType = resposta.Content.Headers.ContentType?.MediaType ?? string.Empty;
+            var extensao = contentType switch
+            {
+                "image/png"  => ".png",
+                "image/gif"  => ".gif",
+                "image/bmp"  => ".bmp",
+                "image/webp" => ".webp",
+                _            => ".jpg"
+            };
+
+            var nomeArquivo = $"{igrejaId}{extensao}";
+            imagemService.UploadAzure(Convert.ToBase64String(bytes), "igreja", nomeArquivo);
+            return nomeArquivo;
+        }
+
+        // UF sempre com 2 dígitos maiúsculos
+        private static string NormalizarUf(string? uf)
+        {
+            var limpo = (uf ?? string.Empty).Trim().ToUpper();
+            return limpo.Length > 2 ? limpo[..2] : limpo;
+        }
+
+        private static Contato? CriarContato(ImportacaoIgrejaItemRequest item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Email) &&
+                string.IsNullOrWhiteSpace(item.Telefone) &&
+                string.IsNullOrWhiteSpace(item.WhatsApp) &&
+                string.IsNullOrWhiteSpace(item.Site))
+                return null;
+
+            var (ddd, tel) = ParseFone(item.Telefone);
+            var (dddWa, wa) = ParseFone(item.WhatsApp);
+
+            return new Contato
+            {
+                EmailContato = item.Email,
+                DDD = ddd,
+                Telefone = tel,
+                DDDWhatsApp = dddWa,
+                TelefoneWhatsApp = wa,
+                Website = item.Site
+            };
+        }
+
+        // Converte "(19) 3234-8269" → ("19", "32348269")
+        private static (string? ddd, string? numero) ParseFone(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return (null, null);
+            var digits = new string(raw.Where(char.IsDigit).ToArray());
+            if (digits.Length < 10) return (null, null);
+            var ddd = digits[..2];
+            var numero = digits[2..];
+            return (ddd, numero);
+        }
+
+        private static DiaDaSemanaEnum? MapearDiaSemana(string dia) => dia.Trim().ToLower() switch
+        {
+            "domingo" => DiaDaSemanaEnum.Domingo,
+            "segunda" or "segunda-feira" => DiaDaSemanaEnum.SegundaFeira,
+            "terça" or "terca" or "terça-feira" or "terca-feira" => DiaDaSemanaEnum.TercaFeira,
+            "quarta" or "quarta-feira" => DiaDaSemanaEnum.QuartaFeira,
+            "quinta" or "quinta-feira" => DiaDaSemanaEnum.QuintaFeira,
+            "sexta" or "sexta-feira" => DiaDaSemanaEnum.SextaFeira,
+            "sábado" or "sabado" => DiaDaSemanaEnum.Sabado,
+            _ => null
+        };
 
         private async Task<string> GerarSlugUnicoAsync(string baseSlug)
         {

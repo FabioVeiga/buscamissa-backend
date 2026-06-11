@@ -4,6 +4,7 @@ using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.SolicitacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.DTOs.v1.IgrejaDto;
 using BuscaMissa.Enums;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
@@ -412,6 +413,29 @@ namespace BuscaMissa.Controllers.v1
             }
         }
         
+        #endregion
+
+        #region Importação em lote
+
+        [HttpPost("igrejas/lote")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ImportarLote([FromBody] ImportacaoIgrejaLoteRequest request)
+        {
+            try
+            {
+                if (request.Igrejas == null || request.Igrejas.Count == 0)
+                    return BadRequest("Nenhuma igreja informada.");
+
+                var resultado = await _igrejaService.ImportarLoteAsync(request);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         #endregion
 
     }
