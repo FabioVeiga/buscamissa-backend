@@ -67,14 +67,20 @@ namespace BuscaMissa.Services.v1
             try
             {
                 var model = (Igreja)request;
-                model.NomeUnico = await GerarSlugUnicoAsync(IgrejaHelper.CriarNomeUnico(request));
 
                 // CidadeSlug (desnormalizado para URLs e busca por cidade)
                 model.Endereco.CidadeSlug = IgrejaHelper.CriarCidadeSlug(model.Endereco.Localidade);
 
+                model.NomeUnico = await GerarSlugUnicoAsync(
+                    IgrejaHelper.CriarNomeUnico(request),
+                    model.Endereco.Bairro,
+                    model.Endereco.Logradouro);
+
                 // Slug local à cidade, único dentro de (Uf, CidadeSlug)
                 model.Slug = await GerarSlugLocalUnicoAsync(
                     IgrejaHelper.CriarSlugLocal(model.Nome),
+                    model.Endereco.Bairro,
+                    model.Endereco.Logradouro,
                     model.Endereco.Uf,
                     model.Endereco.CidadeSlug);
 
@@ -99,6 +105,8 @@ namespace BuscaMissa.Services.v1
         {
             var response = new ImportacaoIgrejaLoteResponse();
             var cepCache = new Dictionary<string, EnderecoViaCepResponse?>();
+            // Dedup por chave de negócio (nome+logradouro+numero) por cidade, atualizado a cada inserção
+            var dedupCache = new Dictionary<string, HashSet<string>>();
 
             for (var i = 0; i < request.Igrejas.Count; i++)
             {
@@ -153,13 +161,23 @@ namespace BuscaMissa.Services.v1
                     var slugLocal = IgrejaHelper.CriarSlugLocal(item.Nome);
                     uf = NormalizarUf(uf);
 
-                    var duplicata = await context.Igrejas
-                        .AnyAsync(x =>
-                            x.Slug == slugLocal &&
-                            x.Endereco.CidadeSlug == cidadeSlug &&
-                            x.Endereco.Uf == uf);
+                    // Dedup por chave de negócio: Nome + Logradouro + Numero, dentro de (Cidade, UF).
+                    // Tudo normalizado para que "Rua/R." e acentos não criem falsos distintos.
+                    var ckey = $"{cidadeSlug}|{uf}";
+                    if (!dedupCache.TryGetValue(ckey, out var chaves))
+                    {
+                        var existentes = await context.Igrejas
+                            .Where(x => x.Endereco.CidadeSlug == cidadeSlug && x.Endereco.Uf == uf)
+                            .Select(x => new { x.Nome, x.Endereco.Logradouro, x.Endereco.Numero })
+                            .ToListAsync();
+                        chaves = existentes
+                            .Select(e => ChaveNegocio(e.Nome, e.Logradouro, e.Numero))
+                            .ToHashSet();
+                        dedupCache[ckey] = chaves;
+                    }
 
-                    if (duplicata)
+                    var chaveNegocio = ChaveNegocio(item.Nome, logradouro, item.Numero);
+                    if (chaves.Contains(chaveNegocio))
                     {
                         response.Puladas++;
                         continue;
@@ -203,14 +221,15 @@ namespace BuscaMissa.Services.v1
                     };
 
                     var baseNomeUnico = IgrejaHelper.CriarNomeUnico(igreja);
-                    igreja.NomeUnico = await GerarSlugUnicoAsync(baseNomeUnico);
-                    igreja.Slug = await GerarSlugLocalUnicoAsync(slugLocal, uf, cidadeSlug);
+                    igreja.NomeUnico = await GerarSlugUnicoAsync(baseNomeUnico, bairro, logradouro);
+                    igreja.Slug = await GerarSlugLocalUnicoAsync(slugLocal, bairro, logradouro, uf, cidadeSlug);
 
                     var contato = CriarContato(item);
                     if (contato != null) igreja.Contato = contato;
 
                     context.Igrejas.Add(igreja);
                     await context.SaveChangesAsync();
+                    chaves.Add(chaveNegocio); // evita reinserir a mesma igreja dentro do lote
 
                     // Foto: baixa da URL informada e sobe para o blob (falha não invalida a igreja)
                     if (!string.IsNullOrWhiteSpace(item.ImagemUrl))
@@ -325,32 +344,27 @@ namespace BuscaMissa.Services.v1
             _ => null
         };
 
-        private async Task<string> GerarSlugUnicoAsync(string baseSlug)
+        // Chave de negócio para dedup: Nome + Logradouro + Numero, tudo normalizado.
+        private static string ChaveNegocio(string nome, string? logradouro, int numero) =>
+            $"{IgrejaHelper.NormalizarSlug(nome)}|{IgrejaHelper.NormalizarLogradouro(logradouro)}|{numero}";
+
+        // NomeUnico global: desempata homônimas por bairro/logradouro (sem sufixo numérico)
+        private async Task<string> GerarSlugUnicoAsync(string baseSlug, string? bairro, string? logradouro)
         {
-            var sufixo = 1;
-            var slug = baseSlug;
-            while (await context.Igrejas.AnyAsync(x => x.NomeUnico == slug))
-            {
-                sufixo++;
-                slug = IgrejaHelper.CriarNomeUnicoComSufixo(baseSlug, sufixo);
-            }
-            return slug;
+            foreach (var cand in IgrejaHelper.CandidatosSlug(baseSlug, bairro, logradouro))
+                if (!await context.Igrejas.AnyAsync(x => x.NomeUnico == cand))
+                    return cand;
+            return $"{baseSlug}-{Guid.NewGuid().ToString("N")[..6]}";
         }
 
-        // Garante unicidade do slug local dentro da cidade (Uf + CidadeSlug)
-        private async Task<string> GerarSlugLocalUnicoAsync(string baseSlug, string uf, string cidadeSlug)
+        // Slug local à cidade (Uf + CidadeSlug): mesma escalada por bairro/logradouro
+        private async Task<string> GerarSlugLocalUnicoAsync(string baseSlug, string? bairro, string? logradouro, string uf, string cidadeSlug)
         {
-            var sufixo = 1;
-            var slug = baseSlug;
-            while (await context.Igrejas.AnyAsync(x =>
-                x.Slug == slug &&
-                x.Endereco.Uf == uf &&
-                x.Endereco.CidadeSlug == cidadeSlug))
-            {
-                sufixo++;
-                slug = IgrejaHelper.CriarNomeUnicoComSufixo(baseSlug, sufixo);
-            }
-            return slug;
+            foreach (var cand in IgrejaHelper.CandidatosSlug(baseSlug, bairro, logradouro))
+                if (!await context.Igrejas.AnyAsync(x =>
+                        x.Slug == cand && x.Endereco.Uf == uf && x.Endereco.CidadeSlug == cidadeSlug))
+                    return cand;
+            return $"{baseSlug}-{Guid.NewGuid().ToString("N")[..6]}";
         }
 
         public async Task<bool> AtivarAsync(Controle model, Usuario usuario)
