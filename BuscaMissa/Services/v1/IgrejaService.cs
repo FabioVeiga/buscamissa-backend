@@ -202,7 +202,7 @@ namespace BuscaMissa.Services.v1
                     {
                         Nome = item.Nome,
                         Paroco = item.Paroco,
-                        Ativo = true,
+                        Ativo = item.Ativo ?? true,
                         Criacao = DateTime.Now,
                         Alteracao = DateTime.Now,
                         Missas = missas,
@@ -216,7 +216,9 @@ namespace BuscaMissa.Services.v1
                             Uf = uf,
                             Estado = estado,
                             Regiao = regiao,
-                            Numero = item.Numero
+                            Numero = item.Numero,
+                            Latitude = item.Latitude,
+                            Longitude = item.Longitude
                         }
                     };
 
