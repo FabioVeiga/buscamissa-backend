@@ -166,7 +166,7 @@ namespace BuscaMissa.Services.v1
                     }
 
                     var missas = item.Missas
-                        .Select(m => new { Dia = MapearDiaSemana(m.DiaSemana), Horario = m.Horario })
+                        .Select(m => new { Dia = MapearDiaSemana(m.DiaSemana), m.Horario, m.Observacao })
                         .Where(m => m.Dia.HasValue && TimeSpan.TryParse(m.Horario, out _))
                         .GroupBy(m => (m.Dia, m.Horario))
                         .Select(g => g.First())
@@ -174,6 +174,7 @@ namespace BuscaMissa.Services.v1
                         {
                             DiaSemana = m.Dia!.Value,
                             Horario = TimeSpan.Parse(m.Horario),
+                            Observacao = string.IsNullOrWhiteSpace(m.Observacao) ? null : m.Observacao.Trim(),
                             FontePrincipal = FontePrincipalEnum.Usuario,
                             UltimaValidacao = DateTime.UtcNow
                         })
