@@ -107,6 +107,8 @@ namespace BuscaMissa.Services.v1
             var cepCache = new Dictionary<string, EnderecoViaCepResponse?>();
             // Dedup por chave de negócio (nome+logradouro+numero) por cidade, atualizado a cada inserção
             var dedupCache = new Dictionary<string, HashSet<string>>();
+            // Dados das igrejas existentes por cidade (chaveNegocio -> Id/ImagemUrl) para backfill de foto no re-import
+            var existentesCache = new Dictionary<string, Dictionary<string, (int Id, string? ImagemUrl)>>();
 
             for (var i = 0; i < request.Igrejas.Count; i++)
             {
@@ -168,17 +170,51 @@ namespace BuscaMissa.Services.v1
                     {
                         var existentes = await context.Igrejas
                             .Where(x => x.Endereco.CidadeSlug == cidadeSlug && x.Endereco.Uf == uf)
-                            .Select(x => new { x.Nome, x.Endereco.Logradouro, x.Endereco.Numero })
+                            .Select(x => new { x.Id, x.Nome, x.Endereco.Logradouro, x.Endereco.Numero, x.ImagemUrl })
                             .ToListAsync();
-                        chaves = existentes
-                            .Select(e => ChaveNegocio(e.Nome, e.Logradouro, e.Numero))
-                            .ToHashSet();
+                        chaves = new HashSet<string>();
+                        var dadosExistentes = new Dictionary<string, (int Id, string? ImagemUrl)>();
+                        foreach (var e in existentes)
+                        {
+                            var ck = ChaveNegocio(e.Nome, e.Logradouro, e.Numero);
+                            chaves.Add(ck);
+                            dadosExistentes[ck] = (e.Id, e.ImagemUrl); // primeira ocorrência da chave
+                        }
                         dedupCache[ckey] = chaves;
+                        existentesCache[ckey] = dadosExistentes;
                     }
+                    var dadosCidade = existentesCache[ckey];
 
                     var chaveNegocio = ChaveNegocio(item.Nome, logradouro, item.Numero);
                     if (chaves.Contains(chaveNegocio))
                     {
+                        // Backfill de foto: igreja já existe; se está sem imagem e o item traz ImagemUrl, baixa e seta SOMENTE a imagem.
+                        if (!string.IsNullOrWhiteSpace(item.ImagemUrl) &&
+                            dadosCidade.TryGetValue(chaveNegocio, out var existente) &&
+                            string.IsNullOrWhiteSpace(existente.ImagemUrl))
+                        {
+                            try
+                            {
+                                var nomeArquivo = await BaixarESalvarImagemAsync(item.ImagemUrl, existente.Id);
+                                if (nomeArquivo != null)
+                                {
+                                    var igrejaExistente = await context.Igrejas.FindAsync(existente.Id);
+                                    if (igrejaExistente != null)
+                                    {
+                                        igrejaExistente.ImagemUrl = nomeArquivo;
+                                        igrejaExistente.Alteracao = DateTime.Now;
+                                        await context.SaveChangesAsync();
+                                        // atualiza cache para não baixar de novo no mesmo lote
+                                        dadosCidade[chaveNegocio] = (existente.Id, nomeArquivo);
+                                    }
+                                }
+                            }
+                            catch (Exception exImg)
+                            {
+                                logger.LogWarning(exImg, "Falha ao backfill de imagem da igreja {Nome}: {Url}", item.Nome, item.ImagemUrl);
+                            }
+                        }
+
                         response.Puladas++;
                         continue;
                     }
