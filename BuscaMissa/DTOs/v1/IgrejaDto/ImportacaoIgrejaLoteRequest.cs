@@ -31,6 +31,13 @@ public class ImportacaoIgrejaItemRequest
 
     // URL pública da foto da paróquia — o backend baixa e sobe para o blob
     public string? ImagemUrl { get; set; }
+
+    // Status ativo — default true; permite importar pontos incompletos como inativos
+    public bool? Ativo { get; set; }
+
+    // Coordenadas (geocodificadas) — localizam o ponto mesmo sem CEP
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
 }
 
 public class ImportacaoMissaRequest
