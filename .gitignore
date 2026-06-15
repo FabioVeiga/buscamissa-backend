@@ -404,3 +404,5 @@ importantes/*
 BuscaMissa/appsettings.Staging.json
 BuscaMissa/appsettings.Production.json
 BuscaMissa/appsettings.Local.json
+
+BuscaMissa/importantes/scripts.txt

@@ -1,9 +1,11 @@
 using Asp.Versioning;
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
+using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.SolicitacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.DTOs.v1.EnderecoDto;
 using BuscaMissa.DTOs.v1.IgrejaDto;
 using BuscaMissa.Enums;
 using BuscaMissa.Helpers;
@@ -21,18 +23,10 @@ namespace BuscaMissa.Controllers.v1
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
         ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService,
         IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService,
-        ControleService controleService
+        ControleService controleService,
+        ViaCepService viaCepService
         ) : ControllerBase
     {
-        private readonly ILogger<AdminController> _logger = logger;
-        private readonly UsuarioService _usuarioService = usuarioService;
-        private readonly IgrejaService _igrejaService = igrejaService;
-        private readonly ImagemService _imagemService = imagemService;
-        private readonly RedeSociaisService _redeSociaisService = redeSociaisService;
-        private readonly ContatoService _contatoService = contatoService;
-        private readonly IgrejaDenunciaService _igrejaDenunciaService = igrejaDenunciaService;
-        private readonly EmailService _emailService = emailService;
-        private readonly SolicitacaoService _solicitacaoService = solicitacaoService;
         private readonly ControleService _controleService = controleService;
 
         #region Usuario
@@ -44,7 +38,7 @@ namespace BuscaMissa.Controllers.v1
             try
             {
 
-                var usuario = await _usuarioService.BuscarPorCodigo(codigo);
+                var usuario = await usuarioService.BuscarPorCodigo(codigo);
                 if (usuario == null)
                     return NotFound();
                 UsuarioResponse usuarioResponse = (UsuarioResponse)usuario;
@@ -55,7 +49,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -69,7 +63,7 @@ namespace BuscaMissa.Controllers.v1
             try
             {
 
-                var usuarios = await _usuarioService.BuscarPorFiltroAsync(filtro);
+                var usuarios = await usuarioService.BuscarPorFiltroAsync(filtro);
                 if (usuarios == null)
                     return NotFound();
                 return Ok(new ApiResponse<dynamic>(new
@@ -79,7 +73,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -93,10 +87,10 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) BadRequest();
-                var temUsuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
+                var temUsuario = await usuarioService.BuscarPorEmailAsync(request.Email);
                 if (temUsuario is not null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Email já cadastrado!" }));
 
-                var usuarioCriado = await _usuarioService.InserirAsync(request);
+                var usuarioCriado = await usuarioService.InserirAsync(request);
                 return Ok(new ApiResponse<dynamic>(new
                 {
                     usuario = usuarioCriado
@@ -104,7 +98,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -118,16 +112,16 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) return BadRequest();
-                var model = await _usuarioService.BuscarPorCodigo(id);
+                var model = await usuarioService.BuscarPorCodigo(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Usuário não encontrado"));
                 model.Bloqueado = request.Bloqueado;
                 model.MotivoBloqueio = request.MotivoBloqueio;
-                var resultado = await _usuarioService.EditarAsync(model);
+                var resultado = await usuarioService.EditarAsync(model);
                 return Ok(new ApiResponse<dynamic>(new { resultado }));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -144,21 +138,21 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
-                var igrejaResponse = await _igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
+                var igrejaResponse = await igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
                 if (igrejaResponse is not null) return BadRequest(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Igreja já cadastrada!" }));
 
                 if (!ModelState.IsValid) return BadRequest();
 
-                var igreja = await _igrejaService.InserirAsync(request);
+                var igreja = await igrejaService.InserirAsync(request);
                 igreja.Ativo = true;
 
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    var urlTemp2 = _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
+                    var urlTemp2 = imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                 }
 
-                igreja = await _igrejaService.EditarAsync(igreja);
+                igreja = await igrejaService.EditarAsync(igreja);
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
             }
@@ -177,13 +171,13 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) return BadRequest();
-                var igreja = await _igrejaService.BuscarPorIdAsync(request.Id);
+                var igreja = await igrejaService.BuscarPorIdAsync(request.Id);
                 if (igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
 
                 if (!string.IsNullOrEmpty(request.Imagem))
                 {
                     igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    _imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
+                    imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
                 }
 
                 if (request.RedeSociais is not null)
@@ -199,7 +193,7 @@ namespace BuscaMissa.Controllers.v1
                         {
                             var rede = (RedeSocial)item;
                             rede.IgrejaId = igreja.Id;
-                            await _redeSociaisService.InserirAsync(rede);
+                            await redeSociaisService.InserirAsync(rede);
                         }
                     }
                 }
@@ -215,26 +209,58 @@ namespace BuscaMissa.Controllers.v1
                         igreja.Contato.DDDWhatsApp = request.Contato.DDDWhatsApp;
                         igreja.Contato.TelefoneWhatsApp = request.Contato.TelefoneWhatsApp;
                         igreja.Contato.EmailContato = request.Contato.EmailContato;
+                        igreja.Contato.Website = request.Contato.Website;
                     }
                     else
                     {
                         var contato = (Contato)request.Contato;
                         contato.IgrejaId = igreja.Id;
-                        await _contatoService.InserirAsync(contato);
+                        await contatoService.InserirAsync(contato);
                     }
                 }
 
-                await _igrejaService.EditarAsync(igreja, request);
+                await igrejaService.EditarAsync(igreja, request);
 
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
+        }
+        
+        // ─── Rota: POST /admin/igreja/endereco/reverso ────────────────────
+        [HttpPost("igreja/endereco/reverso")]
+        [ProducesResponseType(typeof(IEnumerable<EnderecoViaCepResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> BuscarCepPorEndereco(
+            [FromBody] EnderecoReversoRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Uf)         ||
+                string.IsNullOrWhiteSpace(request.Cidade)     ||
+                string.IsNullOrWhiteSpace(request.Logradouro))
+            {
+                return BadRequest(new { mensagem = "UF, Cidade e Logradouro são obrigatórios." });
+            }
+
+            logger.LogInformation(
+                "Requisição de CEP reverso — UF: {Uf}, Cidade: {Cidade}, Logradouro: {Logradouro}",
+                request.Uf, request.Cidade, request.Logradouro);
+
+            var resultados = await viaCepService.ConsultarCepPorEnderecoAsync(
+                request.Uf,
+                request.Cidade,
+                request.Logradouro,
+                request.Bairro);
+
+            if (!resultados.Any())
+                return NotFound(new { mensagem = "Nenhum CEP encontrado para o endereço informado." });
+
+            return Ok(resultados);
         }
 
         [HttpPut]
@@ -245,15 +271,39 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) return BadRequest();
-                var usuario = await _usuarioService.BuscarPorCodigo(usuarioId);
+                var usuario = await usuarioService.BuscarPorCodigo(usuarioId);
                 if (usuario is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Usuário não encontrado!" }));
 
-                await _igrejaService.AtivarAsync(igrejaId, usuario.Id);
+                await igrejaService.AtivarAsync(igrejaId, usuario.Id);
                 return Ok(new ApiResponse<dynamic>(new { mensagemAplicacao = "Igreja ativada com sucesso!" }));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+        
+        [HttpDelete]
+        [Authorize(Roles = "Admin")]
+        [Route("igreja/deletar/{id}")]
+        public async Task<IActionResult> DeletarIgreja(int id)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest();
+
+                var resultado = await igrejaService.DeletarAsync(id);
+
+                if (!resultado)
+                    return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
+
+                return Ok(new ApiResponse<dynamic>(new { mensagemAplicacao = "Igreja deletada com sucesso!" }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -267,12 +317,12 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) return BadRequest();
-                await _redeSociaisService.DeletarAsync(igrejaId, tipoRedeSocial);
+                await redeSociaisService.DeletarAsync(igrejaId, tipoRedeSocial);
                 return Ok(new ApiResponse<dynamic>(new { mensagemAplicacao = "Rede social deletada com sucesso!" }));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -285,12 +335,12 @@ namespace BuscaMissa.Controllers.v1
         {
             try
             {
-                var resultado = _igrejaService.InformacoesGeraisResponse();
+                var resultado = igrejaService.InformacoesGeraisResponse();
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -304,13 +354,13 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) return BadRequest();
-                var model = await _igrejaDenunciaService.BuscarPorIdAsync(id);
+                var model = await igrejaDenunciaService.BuscarPorIdAsync(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Denuncia não encontrada"));
                 model.AcaoRealizada = request.Solucao;
-                var response = await _igrejaDenunciaService.SolucaoAsync(model);
+                var response = await igrejaDenunciaService.SolucaoAsync(model);
                 if (request.EnviarEmailDenunciador)
                 {
-                    var responseEmail = await _emailService.EnviarEmail(
+                    var responseEmail = await emailService.EnviarEmail(
                         [model.EmailDenunciador],
                         $"Resposta da denuncia - {model.Igreja.Nome}",
                         Contant.EmailDenuncia
@@ -325,7 +375,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -339,13 +389,13 @@ namespace BuscaMissa.Controllers.v1
         {
             try
             {
-                var resultado = await _igrejaService.BuscarPorFiltrosAsync(filtro);
+                var resultado = await igrejaService.BuscarPorFiltrosAsync(filtro);
                 if (resultado.TotalItems == 0) return NotFound();
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -362,16 +412,16 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
-                var model = await _solicitacaoService.BuscarPorId(id);
+                var model = await solicitacaoService.BuscarPorId(id);
                 if (model == null) return NotFound(new ApiResponse<dynamic>("Solicitação não encontrada"));
                 model.Resposta = request.Resposta;
                 model.Solucao = request.Solucao;
                 model.Resolvido = request.Resolvido;
                 model.EnviarResposta = request.EnviarResposta;
-                await _solicitacaoService.EditarAsync(model);
+                await solicitacaoService.EditarAsync(model);
                 if (request.EnviarResposta)
                 {
-                    var responseEmail = await _emailService.EnviarEmail(
+                    var responseEmail = await emailService.EnviarEmail(
                         [model.EmailSolicitante],
                         $"Resposta da  solicitação - {model.Tipo}",
                         Contant.EmailSolicitacaoResposta
@@ -388,7 +438,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -401,13 +451,13 @@ namespace BuscaMissa.Controllers.v1
         {
             try
             {
-                var resultado = await _solicitacaoService.BuscarTodosAsync(resolvida);
+                var resultado = await solicitacaoService.BuscarTodosAsync(resolvida);
                 if (resultado.Count() == 0) return NotFound();
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -426,12 +476,12 @@ namespace BuscaMissa.Controllers.v1
                 if (request.Igrejas == null || request.Igrejas.Count == 0)
                     return BadRequest("Nenhuma igreja informada.");
 
-                var resultado = await _igrejaService.ImportarLoteAsync(request);
+                var resultado = await igrejaService.ImportarLoteAsync(request);
                 return Ok(resultado);
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Ex}", ex);
+                logger.LogError("{Ex}", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

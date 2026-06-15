@@ -15,6 +15,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string? DDDWhatsApp { get; set; }
         [RegularExpression(@"^\d{8,9}$", ErrorMessage = "O TelefoneWhatsApp deve conter apenas números e ter 8 ou 9 dígitos.")]
         public string? TelefoneWhatsApp { get; set; }
+        public string? Website { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
