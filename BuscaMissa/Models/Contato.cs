@@ -27,7 +27,8 @@ namespace BuscaMissa.Models
                 Telefone = request.Telefone,
                 EmailContato = request.EmailContato,
                 DDDWhatsApp = request.DDDWhatsApp,
-                TelefoneWhatsApp = request.TelefoneWhatsApp
+                TelefoneWhatsApp = request.TelefoneWhatsApp,
+                Website = request.Website
             };
         }
     }
