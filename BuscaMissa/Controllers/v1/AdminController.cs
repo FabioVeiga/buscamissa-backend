@@ -138,9 +138,6 @@ namespace BuscaMissa.Controllers.v1
             try
             {
                 request.Endereco.Cep = CepHelper.FormatarCep(request.Endereco.Cep);
-                var igrejaResponse = await igrejaService.BuscarPorCepAsync(request.Endereco.Cep);
-                if (igrejaResponse is not null) return BadRequest(new ApiResponse<dynamic>(new { igrejaResponse, messagemAplicacao = "Igreja já cadastrada!" }));
-
                 if (!ModelState.IsValid) return BadRequest();
 
                 var igreja = await igrejaService.InserirAsync(request);

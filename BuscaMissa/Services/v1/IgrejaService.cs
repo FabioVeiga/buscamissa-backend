@@ -435,18 +435,24 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
-                var model = await context.Controles
-                    .Include(x => x.Igreja)
+                var model = await context.Igrejas
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+                    .FirstOrDefaultAsync(x => x.Id == igrejaId);
 
                 if (model == null) return false;
 
-                model.Igreja!.Ativo = true;
-                model.Igreja.Alteracao = DateTime.Now;
-                model.Igreja.UsuarioId = usuarioId;
-                model.Status = Enums.StatusEnum.Finalizado;
-                context.Controles.Update(model);
+                model.Ativo = true;
+                model.Alteracao = DateTime.Now;
+                model.UsuarioId = usuarioId;
+                context.Igrejas.Update(model);
+                
+                //Verifica que se tem controle aberto
+                var controle = await context.Controles.FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
+                if (controle != null)
+                {
+                    controle.Status = StatusEnum.Finalizado;
+                }
+                
                 var resultado = await context.SaveChangesAsync();
                 return resultado > 0;
             }
