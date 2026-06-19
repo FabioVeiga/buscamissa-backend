@@ -44,4 +44,27 @@ public class ConfiabilidadeController(
             return StatusCode(500, new ApiResponse<string>(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Resumo de prova social: quantas pessoas confirmaram os horários
+    /// nos últimos 90 dias e quando foi a confirmação mais recente.
+    /// </summary>
+    [HttpGet("{igrejaId:int}/resumo")]
+    public async Task<IActionResult> ObterResumoAsync(int igrejaId)
+    {
+        try
+        {
+            var (total, ultima) = await confiabilidadeService.ObterResumoConfirmacoesAsync(igrejaId);
+            return Ok(new ApiResponse<dynamic>(new
+            {
+                totalConfirmacoes = total,
+                ultimaConfirmacao = ultima
+            }));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro ao obter resumo de confirmações IgrejaId={IgrejaId}", igrejaId);
+            return StatusCode(500, new ApiResponse<string>(ex.Message));
+        }
+    }
 }
