@@ -15,6 +15,7 @@ namespace BuscaMissa.Services.v2;
 public class IgrejaService(
     ApplicationDbContext context,
     ImagemService imagemService,
+    GeocodingService geocodingService,
     ILogger<IgrejaService> logger
     )
 {
@@ -45,6 +46,12 @@ public class IgrejaService(
             Igreja model = (Igreja)request;
             context.Igrejas.Add(model);
             await context.SaveChangesAsync();
+
+            // Geocodificar após salvar — falha silenciosa, coordenadas são melhoria não bloqueante
+            await geocodingService.GeocodeAsync(model.Endereco);
+            if (model.Endereco.Latitude is not null)
+                await context.SaveChangesAsync();
+
             return model;
         }
         catch (Exception ex)
@@ -106,6 +113,13 @@ public class IgrejaService(
 
                 if (filtro.Horarios.Count > 0)
                     query = query.Where(x => x.Missas.Any(y => filtro.HorarioMissa.Contains(y.Horario)));
+
+                if (filtro.FaixaPeriodo is not null)
+                {
+                    var de = filtro.FaixaPeriodo.Value.De;
+                    var ate = filtro.FaixaPeriodo.Value.Ate;
+                    query = query.Where(x => x.Missas.Any(y => y.Horario >= de && y.Horario <= ate));
+                }
 
 
                 var aux = query.Select(x => new IgrejaResponse()
