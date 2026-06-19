@@ -56,4 +56,23 @@ public class ConfiabilidadeService(
         return await context.ConfirmacoesHorario
             .CountAsync(x => x.IgrejaId == igrejaId && x.DataCriacao >= limite);
     }
+
+    /// <summary>
+    /// Resumo de prova social para a página da paróquia: total de confirmações
+    /// nos últimos N dias + data da confirmação mais recente.
+    /// </summary>
+    public async Task<(int Total, DateTime? Ultima)> ObterResumoConfirmacoesAsync(int igrejaId, int dias = 90)
+    {
+        var limite = DateTime.UtcNow.AddDays(-dias);
+
+        var recentes = context.ConfirmacoesHorario
+            .Where(x => x.IgrejaId == igrejaId && x.DataCriacao >= limite);
+
+        var total = await recentes.CountAsync();
+        DateTime? ultima = total > 0
+            ? await recentes.MaxAsync(x => (DateTime?)x.DataCriacao)
+            : null;
+
+        return (total, ultima);
+    }
 }
