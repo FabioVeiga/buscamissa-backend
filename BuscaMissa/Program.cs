@@ -57,6 +57,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<ViaCepService>();
+builder.Services.AddHttpClient<BuscaMissa.Services.GeocodingService>();
 builder.Services.AddScoped<CodigoValidacaoService>();
 builder.Services.AddScoped<ControleService>();
 builder.Services.AddScoped<EmailService>();
@@ -71,6 +72,7 @@ builder.Services.AddScoped<SolicitacaoService>();
 builder.Services.AddScoped<RedeSociaisService>();
 builder.Services.AddScoped<ContribuidoresService>();
 builder.Services.AddScoped<BuscaMissa.Services.v2.IgrejaService>();
+builder.Services.AddScoped<BuscaMissa.Services.v2.ProximasMissasService>();
 builder.Services.AddScoped<ServicoModeracaoComentarios>();
 builder.Services.AddScoped<ServicoEngajamentoIgreja>();
 builder.Services.AddScoped<BuscaMissa.Services.v2.ConfiabilidadeService>();
