@@ -4,11 +4,11 @@ namespace BuscaMissa.DTOs.v2.IgrejaDto;
 
 public class ProximasMissasRequest
 {
-    [Required]
-    public decimal Lat { get; set; }
+    /// <summary>Latitude do usuário. Se null junto com Lng, usa fallback SP metro.</summary>
+    public decimal? Lat { get; set; }
 
-    [Required]
-    public decimal Lng { get; set; }
+    /// <summary>Longitude do usuário. Se null junto com Lat, usa fallback SP metro.</summary>
+    public decimal? Lng { get; set; }
 
     /// <summary>Raio de busca em km. Padrão: 10. Máximo: 50.</summary>
     [Range(0.1, 50)]

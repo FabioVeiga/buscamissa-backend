@@ -26,8 +26,21 @@ public class ProximasMissasService(
         return TimeZoneInfo.Utc; // fallback improvável — UTC-0 melhor do que exceção
     }
 
+    // Coords SP metro usadas quando usuário não fornece localização
+    private const double FallbackLat = -23.5505;
+    private const double FallbackLng = -46.6333;
+    private const double FallbackRaioKm = 30;
+
     public async Task<List<ProximaMissaDto>> BuscarAsync(ProximasMissasRequest request)
     {
+        // Validação: não aceitar apenas um dos dois
+        if (request.Lat.HasValue != request.Lng.HasValue)
+            throw new ArgumentException("Lat e Lng devem ser informados juntos ou ambos omitidos.");
+
+        var lat  = request.Lat.HasValue ? (double)request.Lat.Value : FallbackLat;
+        var lng  = request.Lng.HasValue ? (double)request.Lng.Value : FallbackLng;
+        var raio = request.Lat.HasValue ? (double)request.RaioKm   : FallbackRaioKm;
+
         try
         {
             var agora = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, FusoBrasilia);
@@ -49,12 +62,11 @@ public class ProximasMissasService(
             foreach (var igreja in igrejas)
             {
                 var distancia = GeoHelper.DistanciaKm(
-                    (double)request.Lat,
-                    (double)request.Lng,
+                    lat, lng,
                     (double)igreja.Endereco.Latitude!,
                     (double)igreja.Endereco.Longitude!);
 
-                if (distancia > (double)request.RaioKm)
+                if (distancia > raio)
                     continue;
 
                 var candidata = EncontrarProximaMissa(igreja.Missas, janelaDe, janelaAte);
@@ -90,7 +102,7 @@ public class ProximasMissasService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao buscar próximas missas para lat={Lat} lng={Lng}", request.Lat, request.Lng);
+            logger.LogError(ex, "Erro ao buscar próximas missas para lat={Lat} lng={Lng}", lat, lng);
             throw;
         }
     }
