@@ -257,7 +257,10 @@ namespace BuscaMissa.Controllers.v1
             if (!resultados.Any())
                 return NotFound(new { mensagem = "Nenhum CEP encontrado para o endereço informado." });
 
-            return Ok(resultados);
+            return Ok(new ApiResponse<dynamic>(new
+            {
+                candidatos = resultados
+            }));
         }
 
         [HttpPut]
