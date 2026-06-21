@@ -673,6 +673,8 @@ namespace BuscaMissa.Services.v1
                     model.Endereco.Estado = request.Endereco.Estado;
                     model.Endereco.Regiao = request.Endereco.Regiao;
                     model.Endereco.Numero = request.Endereco.Numero;
+                    model.Endereco.Latitude = request.Endereco.Latitude;
+                    model.Endereco.Longitude = request.Endereco.Longitude;
                     model.Endereco.CidadeSlug = IgrejaHelper.CriarCidadeSlug(request.Endereco.Localidade);
                 }
                 else if (string.IsNullOrWhiteSpace(model.Endereco.CidadeSlug))

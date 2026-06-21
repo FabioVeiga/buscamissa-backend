@@ -42,56 +42,86 @@ namespace BuscaMissa.Services.v1
             return null;
         }
         
-        // ─── NOVO: Busca reversa (endereço → CEP) ───────────────────────────
         /// <summary>
-        /// Consulta o CEP a partir de UF, cidade e logradouro via ViaCEP.
-        /// Opcionalmente filtra pelo bairro nos resultados retornados.
+        /// Busca possíveis CEPs candidatos a partir de UF, cidade e endereço/logradouro via ViaCEP.
+        /// Exemplo:
+        /// https://viacep.com.br/ws/SP/S%C3%A3o%20Paulo/Rua%20Ernesto%20Boscariol/json/
         /// </summary>
         public async Task<IEnumerable<EnderecoViaCepResponse>> ConsultarCepPorEnderecoAsync(
             string uf,
             string cidade,
-            string logradouro,
+            string endereco,
             string? bairro = null)
         {
-            var ufEncoded       = Uri.EscapeDataString(uf.Trim().ToUpper());
-            var cidadeEncoded   = Uri.EscapeDataString(cidade.Trim());
-            var logradouroEncoded = Uri.EscapeDataString(logradouro.Trim());
+            var ufTratada = uf.Trim().ToUpperInvariant();
+            var cidadeTratada = cidade.Trim();
+            var enderecoTratado = endereco.Trim();
 
-            var url = $"https://viacep.com.br/ws/{ufEncoded}/{cidadeEncoded}/{logradouroEncoded}/json/";
+            var ufEncoded = Uri.EscapeDataString(ufTratada);
+            var cidadeEncoded = Uri.EscapeDataString(cidadeTratada);
+            var enderecoEncoded = Uri.EscapeDataString(enderecoTratado);
+
+            var url = $"https://viacep.com.br/ws/{ufEncoded}/{cidadeEncoded}/{enderecoEncoded}/json/";
 
             logger.LogInformation(
-                "Consulta reversa de CEP — UF: {Uf}, Cidade: {Cidade}, Logradouro: {Logradouro}, Bairro: {Bairro}",
-                uf, cidade, logradouro, bairro ?? "não informado");
+                "Buscando candidatos de endereço no ViaCEP — UF: {Uf}, Cidade: {Cidade}, Endereco: {Endereco}, Bairro: {Bairro}",
+                ufTratada,
+                cidadeTratada,
+                enderecoTratado,
+                bairro ?? "não informado");
 
             try
             {
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
 
-                var jsonDocs = await httpClient.GetFromJsonAsync<List<JsonDocument>>(url);
+                var response = await httpClient.GetFromJsonAsync<List<EnderecoViaCepResponse>>(url);
 
-                if (jsonDocs == null || jsonDocs.Count == 0)
+                if (response == null || response.Count == 0)
                 {
-                    logger.LogWarning("Nenhum CEP encontrado para o endereço informado.");
+                    logger.LogWarning(
+                        "Nenhum candidato encontrado no ViaCEP para UF: {Uf}, Cidade: {Cidade}, Endereco: {Endereco}",
+                        ufTratada,
+                        cidadeTratada,
+                        enderecoTratado);
+
                     return Enumerable.Empty<EnderecoViaCepResponse>();
                 }
 
-                var resultados = jsonDocs
-                    .Select(doc => MapResponseReverso(doc))
-                    .Where(r => r != null && !r.Erro)
-                    .Cast<EnderecoViaCepResponse>();
+                var candidatos = response
+                    .Where(r => !r.Erro)
+                    .Select(r =>
+                    {
+                        r.Estado = string.IsNullOrWhiteSpace(r.Estado)
+                            ? GetEstado(r.Uf)
+                            : r.Estado;
 
-                // Filtra pelo bairro se informado (comparação case-insensitive)
+                        r.Regiao = string.IsNullOrWhiteSpace(r.Regiao)
+                            ? GetRegiao(r.Uf)
+                            : r.Regiao;
+
+                        return r;
+                    });
+
                 if (!string.IsNullOrWhiteSpace(bairro))
                 {
-                    resultados = resultados.Where(r =>
-                        r.Bairro.Contains(bairro.Trim(), StringComparison.OrdinalIgnoreCase));
+                    var bairroTratado = bairro.Trim();
+
+                    candidatos = candidatos.Where(r =>
+                        !string.IsNullOrWhiteSpace(r.Bairro) &&
+                        r.Bairro.Contains(bairroTratado, StringComparison.OrdinalIgnoreCase));
                 }
 
-                return resultados.ToList();
+                return candidatos.ToList();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Erro ao realizar consulta reversa de CEP.");
+                logger.LogError(
+                    ex,
+                    "Erro ao buscar candidatos de endereço no ViaCEP — UF: {Uf}, Cidade: {Cidade}, Endereco: {Endereco}",
+                    ufTratada,
+                    cidadeTratada,
+                    enderecoTratado);
+
                 return Enumerable.Empty<EnderecoViaCepResponse>();
             }
         }
