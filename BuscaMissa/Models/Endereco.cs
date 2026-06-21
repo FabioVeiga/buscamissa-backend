@@ -50,6 +50,8 @@ namespace BuscaMissa.Models
                 Regiao = request.Regiao,
                 Uf = request.Uf,
                 Numero = request.Numero,
+                Latitude = request.Latitude,
+                Longitude = request.Longitude
             };
         }
     }
