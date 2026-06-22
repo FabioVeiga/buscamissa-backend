@@ -1,19 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using BuscaMissa.Enums;
 using BuscaMissa.Filters;
+using BuscaMissa.Helpers;
 
 namespace BuscaMissa.DTOs.MissaDto
 {
     public class MissaRequest : IValidatableObject
     {
         public int? Id { get; set; }
-        [Required]
-        public DiaDaSemanaEnum DiaSemana { get; set; }
-        [Required]
-        public string Horario { get; set; } = default!;
+        [Required] public DiaDaSemanaEnum DiaSemana { get; set; }
+        [Required] public string Horario { get; set; } = default!;
         internal TimeSpan HorarioMissa { get; set; } = default!;
-        [NoProfanity]
-        public string? Observacao { get; set; }
+        [NoProfanity] public string? Observacao { get; set; }
         internal int IgrejaId { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -21,14 +19,14 @@ namespace BuscaMissa.DTOs.MissaDto
             var results = new List<ValidationResult>();
             if (!string.IsNullOrEmpty(Horario))
             {
-                if (!TimeSpan.TryParse(Horario, out var horario))
+                if (!DataHoraHelper.TryParseHorarioMissa(Horario, out var horario))
                 {
-                    results.Add(new ValidationResult("Formato do horario invalido.", [nameof(Horario)]));
+                    results.Add(new ValidationResult("Formato do horário inválido.", [nameof(Horario)]));
                 }
                 else
                 {
-                    // Adjust seconds to 00 if they are not already
-                    HorarioMissa = new TimeSpan(horario.Hours, horario.Minutes, 0);
+                    HorarioMissa = horario;
+                    Horario = horario.ToString(@"hh\:mm");
                 }
             }
 
@@ -36,6 +34,7 @@ namespace BuscaMissa.DTOs.MissaDto
             {
                 results.Add(new ValidationResult("Dia da semana invalido.", [nameof(DiaSemana)]));
             }
+
             return results;
         }
     }

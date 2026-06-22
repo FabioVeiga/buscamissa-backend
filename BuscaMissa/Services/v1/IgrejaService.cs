@@ -88,7 +88,7 @@ namespace BuscaMissa.Services.v1
                 foreach (var missa in model.Missas)
                 {
                     missa.FontePrincipal = Enums.FontePrincipalEnum.Usuario;
-                    missa.UltimaValidacao = DateTime.UtcNow;
+                    missa.UltimaValidacao = DateTime.Now;
                 }
 
                 context.Igrejas.Add(model);
