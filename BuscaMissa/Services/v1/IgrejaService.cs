@@ -179,7 +179,11 @@ namespace BuscaMissa.Services.v1
                         {
                             var ck = ChaveNegocio(e.Nome, e.Logradouro, e.Numero);
                             chaves.Add(ck);
-                            dadosExistentes[ck] = (e.Id, e.ImagemUrl); // primeira ocorrência da chave
+                            dadosExistentes[ck] = (e.Id, e.ImagemUrl);
+                            // Indexa também sem número para capturar OSM (numero=0) vs cadastro manual
+                            var ckSemNum = ChaveNegocioSemNumero(e.Nome, e.Logradouro);
+                            chaves.Add(ckSemNum);
+                            dadosExistentes.TryAdd(ckSemNum, (e.Id, e.ImagemUrl));
                         }
 
                         dedupCache[ckey] = chaves;
@@ -188,7 +192,10 @@ namespace BuscaMissa.Services.v1
 
                     var dadosCidade = existentesCache[ckey];
 
-                    var chaveNegocio = ChaveNegocio(item.Nome, logradouro, item.Numero);
+                    // Se vier sem número (OSM), compara só por nome+logradouro
+                    var chaveNegocio = item.Numero == 0
+                        ? ChaveNegocioSemNumero(item.Nome, logradouro)
+                        : ChaveNegocio(item.Nome, logradouro, item.Numero);
                     if (chaves.Contains(chaveNegocio))
                     {
                         // Backfill de foto: igreja já existe; se está sem imagem e o item traz ImagemUrl, baixa e seta SOMENTE a imagem.
@@ -387,9 +394,14 @@ namespace BuscaMissa.Services.v1
             _ => null
         };
 
-        // Chave de negócio para dedup: Nome + Logradouro + Numero, tudo normalizado.
+        // Chave de negócio para dedup: Nome (sem prefixo eclesiástico) + Logradouro + Numero.
+        // "Igreja São João" e "Paróquia São João" geram a mesma chave.
         private static string ChaveNegocio(string nome, string? logradouro, int numero) =>
-            $"{IgrejaHelper.NormalizarSlug(nome)}|{IgrejaHelper.NormalizarLogradouro(logradouro)}|{numero}";
+            $"{IgrejaHelper.NormalizarNomeDedup(nome)}|{IgrejaHelper.NormalizarLogradouro(logradouro)}|{numero}";
+
+        // Chave sem número — usada quando o item vem com numero=0 (OSM sem número cadastrado)
+        private static string ChaveNegocioSemNumero(string nome, string? logradouro) =>
+            $"{IgrejaHelper.NormalizarNomeDedup(nome)}|{IgrejaHelper.NormalizarLogradouro(logradouro)}";
 
         // NomeUnico global: desempata homônimas por bairro/logradouro (sem sufixo numérico)
         private async Task<string> GerarSlugUnicoAsync(string baseSlug, string? bairro, string? logradouro)
