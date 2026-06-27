@@ -5,6 +5,7 @@ using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.SolicitacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
+using BuscaMissa.DTOs.v1.EmailHtmlGenerator;
 using BuscaMissa.DTOs.v1.EnderecoDto;
 using BuscaMissa.DTOs.v1.IgrejaDto;
 using BuscaMissa.Enums;
@@ -13,6 +14,7 @@ using BuscaMissa.Models;
 using BuscaMissa.Services.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace BuscaMissa.Controllers.v1
 {
@@ -24,10 +26,12 @@ namespace BuscaMissa.Controllers.v1
         ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService,
         IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService,
         ControleService controleService,
-        ViaCepService viaCepService
+        ViaCepService viaCepService,
+        IConfiguration configuration
         ) : ControllerBase
     {
         private readonly ControleService _controleService = controleService;
+        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
 
         #region Usuario
         [HttpGet]
@@ -150,15 +154,21 @@ namespace BuscaMissa.Controllers.v1
                 }
 
                 igreja = await igrejaService.EditarAsync(igreja);
+
+                await EnviarEmailAsync(igreja);
+
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
+        
 
         [HttpPut]
         [Authorize(Roles = "Admin")]
@@ -217,6 +227,13 @@ namespace BuscaMissa.Controllers.v1
                 }
 
                 await igrejaService.EditarAsync(igreja, request);
+                
+                if (!string.IsNullOrWhiteSpace(request.TipoEmailContato) &&
+                    !string.IsNullOrWhiteSpace(request.Contato?.EmailContato))
+                {
+                    var tipo = request.TipoEmailContato.Contains("criacao") ? true : false;
+                    await  EnviarEmailAsync(igreja, tipo);
+                }
 
                 var response = (IgrejaResponse)igreja;
                 return Ok(new ApiResponse<dynamic>(new { response }));
@@ -487,6 +504,77 @@ namespace BuscaMissa.Controllers.v1
         }
 
         #endregion
+        
+        private async Task EnviarEmailAsync(Igreja igreja, bool criacao = true)
+        {
+            try
+            {
+                var emailContato = igreja.Contato?.EmailContato;
+                var html = string.Empty;
+                if (string.IsNullOrWhiteSpace(emailContato))
+                    return;
+
+                var url = string.Concat(
+                    FrontendBaseUrl,
+                    "/paroquia/",
+                    igreja.Endereco.Uf.ToLower(),
+                    "/",
+                    igreja.Endereco.CidadeSlug,
+                    "/",
+                    igreja.Slug
+                );
+
+                if (criacao)
+                {
+                    html = EmailHtmlGenerator.GerarHtmlEmailCriacao(
+                        igreja.Nome,
+                        igreja.Endereco.Logradouro,
+                        igreja.Endereco.Numero,
+                        igreja.Endereco.Bairro,
+                        igreja.Endereco.Localidade,
+                        igreja.Endereco.Estado,
+                        igreja.Paroco,
+                        url
+                    );
+                }
+                else
+                {
+                    html = EmailHtmlGenerator.GerarHtmlEmailAlteracao(
+                        igreja.Nome,
+                        igreja.Endereco.Logradouro,
+                        igreja.Endereco.Numero,
+                        igreja.Endereco.Bairro,
+                        igreja.Endereco.Localidade,
+                        igreja.Endereco.Estado,
+                        igreja.Paroco,
+                        url
+                    );
+                }
+
+                var responseEmail = await emailService.EnviarEmail(
+                    [emailContato],
+                    $"Sua Igreja {igreja.Nome} foi cadastrada no Busca Missa!",
+                    html
+                );
+
+                if (string.IsNullOrWhiteSpace(responseEmail))
+                {
+                    logger.LogWarning(
+                        "Igreja criada com sucesso, mas o e-mail não foi enviado. IgrejaId: {IgrejaId}, Email: {Email}",
+                        igreja.Id,
+                        emailContato
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    ex,
+                    "Igreja criada com sucesso, mas ocorreu erro ao enviar e-mail. IgrejaId: {IgrejaId}",
+                    igreja.Id
+                );
+            }
+        }
 
     }
 }

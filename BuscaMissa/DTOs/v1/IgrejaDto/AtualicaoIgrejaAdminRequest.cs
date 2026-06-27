@@ -16,5 +16,12 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public EnderecoIgrejaRequest? Endereco { get; set; }
         public IgrejaContatoRequest? Contato { get; set; }
         public IList<RedeSolcialIgrejaRequest>? RedeSociais { get; set; }
+
+        /// <summary>
+        /// Define se deve enviar e-mail para o contato da igreja.
+        /// Valores aceitos: "criacao" ou "alteracao".
+        /// Se null/vazio, nenhum e-mail será enviado.
+        /// </summary>
+        public string? TipoEmailContato { get; set; }
     }
 }
