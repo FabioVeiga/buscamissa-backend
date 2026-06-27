@@ -514,10 +514,14 @@ namespace BuscaMissa.Services.v1
                     Nome = x.Nome,
                     NomeUnico = x.NomeUnico,
                     Slug = x.Slug,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
+                    Endereco = x.Endereco == null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
+                    EmailCriacaoEnviado = context.EmailEventosIgreja.Any(e =>
+                        e.IgrejaId == x.Id &&
+                        e.Tipo == TipoEmailEventoIgrejaEnum.Criacao &&
+                        e.Enviado),
                     Criacao = x.Criacao,
                     ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
@@ -600,10 +604,14 @@ namespace BuscaMissa.Services.v1
                     Nome = x.Nome,
                     NomeUnico = x.NomeUnico,
                     Slug = x.Slug,
-                    Endereco = (EnderecoIgrejaResponse)x.Endereco,
+                    Endereco = x.Endereco == null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)x.Endereco,
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
+                    EmailCriacaoEnviado = context.EmailEventosIgreja.Any(e =>
+                        e.IgrejaId == x.Id &&
+                        e.Tipo == TipoEmailEventoIgrejaEnum.Criacao &&
+                        e.Enviado),
                     Criacao = x.Criacao,
                     ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
