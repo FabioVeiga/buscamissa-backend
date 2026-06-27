@@ -43,6 +43,21 @@ public static class IgrejaHelper
         return NormalizarSlug($"{model.Endereco.Uf}-{model.Endereco.Localidade}-{model.Nome}");
     }
 
+    // Prefixos eclesiásticos removidos antes da comparação de duplicidade
+    private static readonly Regex _prefixoEclesiastico = new(
+        @"^(paroquia|paroquia|igreja|capela|santuario|catedral|basilica|" +
+        @"matriz|comunidade|mosteiro|abadia|convento|ermida|oratorio)\s+",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // Remove o prefixo eclesiástico do nome para comparação de duplicidade.
+    // "Igreja São João" e "Paróquia São João" → "sao-joao" (mesma chave)
+    public static string NormalizarNomeDedup(string nome)
+    {
+        var slug = NormalizarSlug(nome);
+        var semPrefixo = _prefixoEclesiastico.Replace(slug.Replace("-", " "), "").Trim();
+        return Regex.Replace(semPrefixo, @"\s+", "-").Trim('-');
+    }
+
     // Expansões de tipo de via — unifica abreviações antes de normalizar
     private static readonly Dictionary<string, string> _tiposVia = new()
     {
