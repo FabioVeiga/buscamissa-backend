@@ -72,10 +72,12 @@ builder.Services.AddScoped<SolicitacaoService>();
 builder.Services.AddScoped<RedeSociaisService>();
 builder.Services.AddScoped<ContribuidoresService>();
 builder.Services.AddScoped<BuscaMissa.Services.v2.IgrejaService>();
-builder.Services.AddScoped<BuscaMissa.Services.v2.ProximasMissasService>();
+builder.Services.AddScoped<ProximasMissasService>();
 builder.Services.AddScoped<ServicoModeracaoComentarios>();
 builder.Services.AddScoped<ServicoEngajamentoIgreja>();
-builder.Services.AddScoped<BuscaMissa.Services.v2.ConfiabilidadeService>();
+builder.Services.AddScoped<ConfiabilidadeService>();
+builder.Services.AddScoped<EmailEventoIgrejaService>();
+
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
 builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));

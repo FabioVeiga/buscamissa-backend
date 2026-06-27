@@ -279,6 +279,72 @@ namespace BuscaMissa.Migrations
                     b.ToTable("CurtidasIgreja");
                 });
 
+            modelBuilder.Entity("BuscaMissa.Models.EmailEventoIgreja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Assunto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("DataAlteracao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DataEnvio")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EmailDestino")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("Enviado")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Html")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("IgrejaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NomeDestino")
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataCriacao");
+
+                    b.HasIndex("EmailDestino");
+
+                    b.HasIndex("IgrejaId");
+
+                    b.HasIndex("Tipo");
+
+                    b.HasIndex("IgrejaId", "Tipo");
+
+                    b.ToTable("EmailEventosIgreja");
+                });
+
             modelBuilder.Entity("BuscaMissa.Models.Endereco", b =>
                 {
                     b.Property<int>("Id")
@@ -772,6 +838,17 @@ namespace BuscaMissa.Migrations
                 });
 
             modelBuilder.Entity("BuscaMissa.Models.CurtidaIgreja", b =>
+                {
+                    b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
+                        .WithMany()
+                        .HasForeignKey("IgrejaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Igreja");
+                });
+
+            modelBuilder.Entity("BuscaMissa.Models.EmailEventoIgreja", b =>
                 {
                     b.HasOne("BuscaMissa.Models.Igreja", "Igreja")
                         .WithMany()

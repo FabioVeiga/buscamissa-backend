@@ -30,6 +30,8 @@ namespace BuscaMissa.Context
         public DbSet<EstatisticasEngajamentoIgreja> EstatisticasEngajamentoIgreja { get; set; }
 
         public DbSet<ConfirmacaoHorario> ConfirmacoesHorario { get; set; }
+        public DbSet<EmailEventoIgreja> EmailEventosIgreja { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +45,25 @@ namespace BuscaMissa.Context
             ConfigurarVisualizacoes(modelBuilder);
             ConfigurarEstatisticas(modelBuilder);
             ConfigurarConfiabilidade(modelBuilder);
+            ConfigurarEmailEventosIgreja(modelBuilder);
+        }
+        
+        private void ConfigurarEmailEventosIgreja(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<EmailEventoIgreja>()
+                .HasIndex(x => x.IgrejaId);
+
+            modelBuilder.Entity<EmailEventoIgreja>()
+                .HasIndex(x => x.Tipo);
+
+            modelBuilder.Entity<EmailEventoIgreja>()
+                .HasIndex(x => x.EmailDestino);
+
+            modelBuilder.Entity<EmailEventoIgreja>()
+                .HasIndex(x => x.DataCriacao);
+
+            modelBuilder.Entity<EmailEventoIgreja>()
+                .HasIndex(x => new { x.IgrejaId, x.Tipo });
         }
 
         private void ConfigurarConfiabilidade(ModelBuilder modelBuilder)

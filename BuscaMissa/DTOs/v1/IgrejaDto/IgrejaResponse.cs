@@ -27,6 +27,8 @@ namespace BuscaMissa.DTOs.IgrejaDto
 
         public IList<IgrejaRedesSociaisResponse> RedesSociais { get; set; } = [];
         
+        public bool EmailCriacaoEnviado { get; set; }
+        
         public static explicit operator IgrejaResponse(Igreja igreja)
         {
             var modelo = new IgrejaResponse
@@ -38,6 +40,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Paroco = igreja.Paroco,
                 ImagemUrl = igreja.ImagemUrl ?? string.Empty,
                 Ativo = igreja.Ativo,
+                EmailCriacaoEnviado = false,
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,
                 Usuario = igreja.Usuario is null ? null : (UsuarioDtoResponse)igreja.Usuario,
