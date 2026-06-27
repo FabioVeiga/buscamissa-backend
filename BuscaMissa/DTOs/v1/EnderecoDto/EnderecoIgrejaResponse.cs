@@ -22,6 +22,7 @@ namespace BuscaMissa.DTOs.EnderecoDto
 
         public static explicit operator EnderecoIgrejaResponse(Endereco endereco)
         {
+            if (endereco is null) return new EnderecoIgrejaResponse();
             return new EnderecoIgrejaResponse{
                 Id = endereco.Id,
                 Cep = endereco.Cep,
