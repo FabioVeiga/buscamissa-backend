@@ -8,8 +8,7 @@ namespace BuscaMissa.DTOs.SolicitacaoDto
         public bool Resolvido { get; set; } = false;
         [Required]
         public string Solucao { get; set; } = default!;
-        [Required]
-        public string Resposta { get; set; } = default!;
+        public string? Resposta { get; set; }
         [Required]
         public bool EnviarResposta { get; set; } = false;
     }
