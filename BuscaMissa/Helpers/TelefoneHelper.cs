@@ -7,13 +7,13 @@ namespace BuscaMissa.Helpers
         
         public static bool ValidarCelular(string telefone)
         {
-            string pattern = @"^\d{11}$";
+            string pattern = @"^\d{10,11}$";
             return Regex.IsMatch(telefone, pattern);
         }
 
         public static bool ValidarTelefone(string telefone)
         {
-            string pattern = @"^\d{10}$";
+            string pattern = @"^\d{10,11}$";
             return Regex.IsMatch(telefone, pattern);
         }
 
