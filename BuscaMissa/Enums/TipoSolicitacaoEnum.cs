@@ -14,6 +14,8 @@ namespace BuscaMissa.Enums
         Atualizacao_dados = 4,
         [Description("Email bloqueado")]
         Email_bloqueado = 5,
+        [Description("Incluir Cidade")]
+        IncluirCidade = 5,
         [Description("Outro")]
         Outro = 1000
     }
