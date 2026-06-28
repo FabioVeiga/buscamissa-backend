@@ -604,6 +604,10 @@ namespace BuscaMissa.Controllers.v1
                     return BadRequest("Nenhuma igreja informada.");
 
                 var resultado = await igrejaService.ImportarLoteAsync(request);
+
+                foreach (var igreja in resultado.IgrejasInseridas.Where(i => i.Ativo && !string.IsNullOrWhiteSpace(i.Contato?.EmailContato)))
+                    await EnviarEmailAsync(igreja, criacao: true);
+
                 return Ok(resultado);
             }
             catch (Exception ex)
