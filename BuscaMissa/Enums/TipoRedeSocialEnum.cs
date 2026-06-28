@@ -5,6 +5,7 @@ namespace BuscaMissa.Enums
         Facebook = 1,
         Instagram = 2,
         YouTube = 3,
-        TikTok = 4
+        TikTok = 4,
+        Twitter = 5
     }
 }
