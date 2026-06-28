@@ -300,6 +300,7 @@ namespace BuscaMissa.Services.v1
                     }
 
                     response.Inseridas++;
+                    response.IgrejasInseridas.Add(igreja);
                 }
                 catch (Exception ex)
                 {
