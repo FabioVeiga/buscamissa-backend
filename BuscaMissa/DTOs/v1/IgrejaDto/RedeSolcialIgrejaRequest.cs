@@ -16,12 +16,15 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             var results = new List<ValidationResult>();
-            if(!EnumHelper.ValidarEnum<TipoRedeSocialEnum>((int)TipoRedeSocial))
+            if (!EnumHelper.ValidarEnum<TipoRedeSocialEnum>((int)TipoRedeSocial))
             {
                 results.Add(new ValidationResult($"Tipo de rede social inválido: {TipoRedeSocial}", [nameof(TipoRedeSocial)]));
-            }else{
-                isValido = RedeSocialHelper.ValidarRedesSociais(this).Result;
-                if(!isValido)
+            }
+            else
+            {
+                NomeDoPerfil = RedeSocialHelper.NormalizarHandle(TipoRedeSocial, NomeDoPerfil);
+                isValido = RedeSocialHelper.ValidarRedesSociais(this);
+                if (!isValido)
                 {
                     results.Add(new ValidationResult($"Rede social inválida: {NomeDoPerfil}", [nameof(NomeDoPerfil)]));
                 }
