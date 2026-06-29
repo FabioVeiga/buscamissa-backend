@@ -108,7 +108,7 @@ namespace BuscaMissa.Controllers.v2
                 return Ok(new ApiResponse<dynamic>(
                     temIgreja.Select(x => new
                     {
-                        x.Id, x.Nome, x.NomeUnico, dadosEndereco = endereco
+                        x.Id, x.Nome, x.NomeUnico, x.Slug, CidadeSlug = x.Endereco?.CidadeSlug, dadosEndereco = endereco
                     })));
             }
             catch (Exception ex)
