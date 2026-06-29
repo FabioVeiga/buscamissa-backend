@@ -106,6 +106,25 @@ namespace BuscaMissa.DTOs.v1.EmailHtmlGenerator
             return sb.ToString();
         }
 
+        public static string GerarLayout(string titulo, string corpo)
+        {
+            var sb = new StringBuilder();
+            sb.Append(GetHtmlHeader());
+            sb.Append($@"
+                    <tr>
+                        <td style=""background-color: #bc5d10; color: #ffffff; padding: 16px 30px; text-align: center; font-size: 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;"">
+                            {titulo}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class=""content"">
+                            {corpo}
+                        </td>
+                    </tr>");
+            sb.Append(GetHtmlFooter());
+            return sb.ToString();
+        }
+
         // Parte inicial do HTML (cabeçalho, estilos, logo)
         private static string GetHtmlHeader()
         {
