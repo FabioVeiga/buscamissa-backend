@@ -11,7 +11,7 @@ namespace BuscaMissa.Controllers.v1
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, ControleService controleService,
-    CodigoValidacaoService codigoValidacaoService, EmailService emailService)
+    CodigoValidacaoService codigoValidacaoService, EmailService emailService, IConfiguration configuration)
     : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger = logger;
@@ -19,6 +19,8 @@ namespace BuscaMissa.Controllers.v1
         private readonly ControleService _controleService = controleService;
         private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
         private readonly EmailService _emailService = emailService;
+        private readonly IConfiguration _configuration = configuration;
+        private const string EmailAdmin = "suporte@buscamissa.com.br";
 
         [HttpPost]
         [Route("autenticar")]
@@ -31,7 +33,18 @@ namespace BuscaMissa.Controllers.v1
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 if (usuario == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não existe!" }));
                 if (usuario.Bloqueado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário bloqueado!" }));
-                var autenticado = _usuarioService.Autenticar(request, usuario);
+
+                bool autenticado;
+                if (string.Equals(request.Email, EmailAdmin, StringComparison.OrdinalIgnoreCase))
+                {
+                    var senhaAdmin = _configuration["SenhaAdmin"];
+                    autenticado = !string.IsNullOrEmpty(senhaAdmin) && request.Senha == senhaAdmin;
+                }
+                else
+                {
+                    autenticado = _usuarioService.Autenticar(request, usuario);
+                }
+
                 if (!autenticado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "E-mail ou Senha invalido!" }));
                 var usuarioResponse = _usuarioService.GerarTokenAsync(usuario);
                 return Ok(new ApiResponse<dynamic>(new { usuario = usuarioResponse }));
