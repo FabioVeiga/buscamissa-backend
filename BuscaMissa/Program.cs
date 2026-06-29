@@ -44,8 +44,12 @@ builder.Configuration.AddAzureKeyVault(
 var secret = builder.Configuration["SecretApp"];
 var key = Encoding.ASCII.GetBytes(secret!);
 
+var mySqlConnection = builder.Configuration["MySqlConnection"];
+if (!mySqlConnection!.Contains("ConvertZeroDateTime", StringComparison.OrdinalIgnoreCase))
+    mySqlConnection += ";ConvertZeroDateTime=True";
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(builder.Configuration["MySqlConnection"], new MySqlServerVersion(new Version(8, 0, 33)), mySqlOptions =>
+    options.UseMySql(mySqlConnection, new MySqlServerVersion(new Version(8, 0, 33)), mySqlOptions =>
     {
         mySqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
