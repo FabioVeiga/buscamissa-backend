@@ -196,6 +196,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
+    await context.Database.MigrateAsync();
     DatabaseSeeder.Seed(context, builder.Configuration["SenhaAdmin"]!);
     BuscaMissa.Services.SlugBackfillService.Executar(context);
 }
