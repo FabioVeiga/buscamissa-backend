@@ -64,5 +64,18 @@ namespace BuscaMissa.Helpers
                 _ => string.Empty,
             };
         }
+
+        public static string ObterUrlBase(TipoRedeSocialEnum tipoRedeSocialEnum)
+        {
+            return tipoRedeSocialEnum switch
+            {
+                TipoRedeSocialEnum.Facebook => "https://www.facebook.com/",
+                TipoRedeSocialEnum.Instagram => "https://www.instagram.com/",
+                TipoRedeSocialEnum.YouTube => "https://www.youtube.com/@",
+                TipoRedeSocialEnum.TikTok => "https://www.tiktok.com/@",
+                TipoRedeSocialEnum.Twitter => "https://x.com/",
+                _ => string.Empty,
+            };
+        }
     }
 }
