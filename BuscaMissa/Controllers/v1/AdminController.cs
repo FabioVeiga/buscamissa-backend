@@ -605,9 +605,6 @@ namespace BuscaMissa.Controllers.v1
 
                 var resultado = await igrejaService.ImportarLoteAsync(request);
 
-                foreach (var igreja in resultado.IgrejasInseridas.Where(i => i.Ativo && !string.IsNullOrWhiteSpace(i.Contato?.EmailContato)))
-                    await EnviarEmailAsync(igreja, criacao: true);
-
                 return Ok(resultado);
             }
             catch (Exception ex)
