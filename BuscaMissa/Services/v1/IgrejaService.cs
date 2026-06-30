@@ -578,6 +578,9 @@ namespace BuscaMissa.Services.v1
                         x.Ativo == filtro.Ativo)
                     .AsQueryable();
 
+                if (filtro.Id is not null)
+                    query = query.Where(x => x.Id == filtro.Id);
+
                 if (!string.IsNullOrEmpty(filtro.Uf))
                     query = query.Where(x => x.Endereco.Uf == filtro.Uf.ToUpper());
 
@@ -587,8 +590,14 @@ namespace BuscaMissa.Services.v1
                 if (!string.IsNullOrEmpty(filtro.Bairro))
                     query = query.Where(x => x.Endereco.Bairro == filtro.Bairro);
 
+                if (!string.IsNullOrEmpty(filtro.Cep))
+                    query = query.Where(x => x.Endereco.Cep == CepHelper.FormatarCep(filtro.Cep));
+
                 if (!string.IsNullOrEmpty(filtro.Nome))
                     query = query.Where(x => x.Nome.ToUpper().Contains(filtro.Nome.ToUpper()));
+
+                if (!string.IsNullOrEmpty(filtro.Paroco))
+                    query = query.Where(x => x.Paroco != null && x.Paroco.ToUpper().Contains(filtro.Paroco.ToUpper()));
 
                 if (filtro.DiaDaSemana is not null)
                     query = query.Where(x => x.Missas.Any(y => y.DiaSemana == filtro.DiaDaSemana));
@@ -598,6 +607,9 @@ namespace BuscaMissa.Services.v1
 
                 if (filtro.Denuncia)
                     query = query.Where(x => x.Denuncia != null && string.IsNullOrEmpty(x.Denuncia.AcaoRealizada));
+
+                if (filtro.SemCoordenadas)
+                    query = query.Where(x => x.Endereco.Latitude == null);
 
                 var aux = query.Select(x => new IgrejaResponse()
                 {

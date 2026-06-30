@@ -186,6 +186,34 @@ public class IgrejaService(
         }
     }
 
+    public async Task<IgrejaResponse?> BuscarPorIdAdminAsync(int id)
+    {
+        try
+        {
+            var model = await context.Igrejas
+                .Include(x => x.Endereco)
+                .Include(x => x.Missas)
+                .Include(x => x.Usuario)
+                .Include(x => x.Contato)
+                .Include(x => x.RedesSociais)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (model == null) return null;
+
+            var response = (IgrejaResponse)model;
+            if (!string.IsNullOrEmpty(model.ImagemUrl))
+                response.ImagemUrl = imagemService.ObterUrlAzureBlob($"igreja/{model.ImagemUrl}");
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while searching Igreja by id (admin) {Id}", id);
+            throw;
+        }
+    }
+
     public async Task<IgrejaResponse?> BuscarPorNomeUnicoAsync(string nomeUnico)
     {
         try
