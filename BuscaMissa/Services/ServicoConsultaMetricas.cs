@@ -21,10 +21,12 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
         if (dataFim is not null)
             query = query.Where(x => x.Data <= dataFim);
 
-        return await query
+        var rows = await query
             .GroupBy(x => x.TipoMetrica)
-            .Select(g => new MetricaResumoResponse(g.Key, g.Sum(x => x.Quantidade)))
+            .Select(g => new { TipoMetrica = g.Key, Quantidade = g.Sum(x => x.Quantidade) })
             .ToListAsync();
+
+        return rows.Select(x => new MetricaResumoResponse(x.TipoMetrica, x.Quantidade)).ToList();
     }
 
     /// <summary>Métricas de uma entidade nos últimos 30 dias, agrupadas por tipo.</summary>
@@ -33,15 +35,17 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
     {
         var dataInicio = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
 
-        return await context.MetricasDiarias
+        var rows = await context.MetricasDiarias
             .AsNoTracking()
             .Where(x =>
                 x.TipoEntidade == tipoEntidade &&
                 x.EntidadeId == entidadeId &&
                 x.Data >= dataInicio)
             .GroupBy(x => x.TipoMetrica)
-            .Select(g => new MetricaResumoResponse(g.Key, g.Sum(x => x.Quantidade)))
+            .Select(g => new { TipoMetrica = g.Key, Quantidade = g.Sum(x => x.Quantidade) })
             .ToListAsync();
+
+        return rows.Select(x => new MetricaResumoResponse(x.TipoMetrica, x.Quantidade)).ToList();
     }
 
     public async Task<IList<RankingItemResponse>> ObterRankingMaisVisualizadasAsync(int top = 10, int dias = 30)
@@ -61,17 +65,21 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
     {
         var dataInicio = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-dias);
 
-        return await context.MetricasDiarias
+        // Projeção com tipo anônimo para compatibilidade com EF Core/MySQL:
+        // records com construtor parametrizado não são suportados na tradução SQL.
+        var rows = await context.MetricasDiarias
             .AsNoTracking()
             .Where(x =>
                 x.TipoEntidade == TipoEntidadeMetricaEnum.Igreja &&
                 x.TipoMetrica == tipoMetrica &&
                 x.Data >= dataInicio)
             .GroupBy(x => x.EntidadeId)
-            .Select(g => new RankingItemResponse(g.Key, g.Sum(x => x.Quantidade)))
+            .Select(g => new { EntidadeId = g.Key, Quantidade = g.Sum(x => x.Quantidade) })
             .OrderByDescending(x => x.Quantidade)
             .Take(top)
             .ToListAsync();
+
+        return rows.Select(x => new RankingItemResponse(x.EntidadeId, x.Quantidade)).ToList();
     }
 
     /// <summary>Resolve o ranking (Id + Quantidade) para o formato exibível no dashboard, com o nome da igreja.</summary>
