@@ -84,6 +84,7 @@ builder.Services.AddScoped<ConfiabilidadeService>();
 builder.Services.AddScoped<EmailEventoIgrejaService>();
 builder.Services.AddScoped<IMetricaDiariaRepositorio, MetricaDiariaRepositorio>();
 builder.Services.AddScoped<BuscaMissa.Services.ServicoMetricas>();
+builder.Services.AddScoped<BuscaMissa.Services.ServicoConsultaMetricas>();
 
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
