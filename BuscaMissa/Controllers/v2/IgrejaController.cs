@@ -160,6 +160,25 @@ namespace BuscaMissa.Controllers.v2
             _ => null
         };
 
+        // Endpoint admin: busca completa por Id, sem filtrar por Ativo (uso no painel administrativo)
+        [HttpGet("admin/{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> BuscarPorIdAdminAsync(int id)
+        {
+            try
+            {
+                var igreja = await igrejaServiceV2.BuscarPorIdAdminAsync(id);
+                if (igreja is null) return NotFound();
+
+                return Ok(new ApiResponse<dynamic>(new { igreja }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+            }
+        }
+
         // Item 2: endpoint público para busca por NomeUnico (sem autenticação, para SEO)
         // Item 5: retorna metadados de SEO junto com os dados da igreja
         [HttpGet("{nomeUnico}")]
