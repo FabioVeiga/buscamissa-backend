@@ -28,7 +28,8 @@ namespace BuscaMissa.Controllers.v1
         ControleService controleService,
         ViaCepService viaCepService,
         IConfiguration configuration,
-        EmailEventoIgrejaService emailEventoIgrejaService
+        EmailEventoIgrejaService emailEventoIgrejaService,
+        BuscaMissa.Services.ServicoConsultaMetricas servicoConsultaMetricas
         ) : ControllerBase
     {
         private readonly ControleService _controleService = controleService;
@@ -357,6 +358,24 @@ namespace BuscaMissa.Controllers.v1
             {
                 var resultado = igrejaService.InformacoesGeraisResponse();
                 return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpGet]
+        [Route("igreja/{id}/metricas")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> ObterMetricasIgreja(int id)
+        {
+            try
+            {
+                var metricas = await servicoConsultaMetricas.ObterMetricasUltimos30DiasAsync(TipoEntidadeMetricaEnum.Igreja, id);
+                return Ok(new ApiResponse<dynamic>(metricas));
             }
             catch (Exception ex)
             {
