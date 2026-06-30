@@ -385,6 +385,24 @@ namespace BuscaMissa.Controllers.v1
             }
         }
 
+        [HttpGet]
+        [Route("metricas/dashboard")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> ObterDashboardMetricas()
+        {
+            try
+            {
+                var dashboard = await servicoConsultaMetricas.ObterDashboardAsync();
+                return Ok(new ApiResponse<dynamic>(dashboard));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         [HttpPut]
         [Route("igreja/denunciar/{id}")]
         [Authorize(Roles = "Admin")]
