@@ -32,6 +32,7 @@ namespace BuscaMissa.Context
         public DbSet<ConfirmacaoHorario> ConfirmacoesHorario { get; set; }
         public DbSet<EmailEventoIgreja> EmailEventosIgreja { get; set; }
 
+        public DbSet<MetricaDiaria> MetricasDiarias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,7 @@ namespace BuscaMissa.Context
             ConfigurarEstatisticas(modelBuilder);
             ConfigurarConfiabilidade(modelBuilder);
             ConfigurarEmailEventosIgreja(modelBuilder);
+            ConfigurarMetricasDiarias(modelBuilder);
         }
         
         private void ConfigurarEmailEventosIgreja(ModelBuilder modelBuilder)
@@ -160,8 +162,20 @@ namespace BuscaMissa.Context
                 .HasIndex(x => x.EnderecoIp);
         }
 
+        private void ConfigurarMetricasDiarias(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MetricaDiaria>()
+                .HasIndex(x => new { x.TipoEntidade, x.EntidadeId, x.TipoMetrica, x.Data })
+                .IsUnique();
+
+            modelBuilder.Entity<MetricaDiaria>()
+                .HasIndex(x => new { x.TipoEntidade, x.EntidadeId });
+
+            modelBuilder.Entity<MetricaDiaria>()
+                .HasIndex(x => x.Data);
+        }
     }
-    
+
 
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
