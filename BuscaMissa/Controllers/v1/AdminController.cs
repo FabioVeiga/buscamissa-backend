@@ -594,6 +594,32 @@ namespace BuscaMissa.Controllers.v1
             }
         }
 
+        [HttpPost]
+        [Route("email-evento/registrar-contato")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegistrarContato([FromBody] RegistrarContatoRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var igreja = await igrejaService.BuscarPorIdAsync(request.IgrejaId);
+                if (igreja is null)
+                    return NotFound(new ApiResponse<dynamic>(new { mensagemAplicacao = "Igreja não encontrada." }));
+
+                var model = await emailEventoIgrejaService.RegistrarContatoAsync(request);
+                var response = (EmailEventoIgrejaResponse)model;
+
+                return Ok(new ApiResponse<dynamic>(new { response }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         [HttpPut]
         [Route("email-evento/atualizar/{id}")]
         [Authorize(Roles = "Admin")]

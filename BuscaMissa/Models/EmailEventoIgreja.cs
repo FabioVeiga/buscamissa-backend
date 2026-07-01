@@ -34,4 +34,8 @@ public class EmailEventoIgreja
     public DateTime? DataAlteracao { get; set; }
 
     [MaxLength(500)] public string? Observacao { get; set; }
+
+    public CanalContatoEnum Canal { get; set; } = CanalContatoEnum.Email;
+
+    [MaxLength(300)] public string? DestinoContato { get; set; }
 }
