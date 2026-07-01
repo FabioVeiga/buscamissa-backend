@@ -11,10 +11,7 @@ public class CriarEmailEventoIgrejaRequest
 
     [Required] [MaxLength(200)] public string Assunto { get; set; } = null!;
 
-    [Required]
-    [EmailAddress]
-    [MaxLength(255)]
-    public string EmailDestino { get; set; } = null!;
+    [Required] [EmailAddress] [MaxLength(255)] public string EmailDestino { get; set; } = null!;
 
     [MaxLength(120)] public string? NomeDestino { get; set; }
 
