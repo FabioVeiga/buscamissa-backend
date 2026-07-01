@@ -49,8 +49,17 @@ public class EmailEventoIgrejaService(
         if (filtro.IgrejaId.HasValue)
             query = query.Where(x => x.IgrejaId == filtro.IgrejaId.Value);
 
+        if (!string.IsNullOrWhiteSpace(filtro.IgrejaNome))
+            query = query.Where(x => x.Igreja.Nome.Contains(filtro.IgrejaNome));
+
+        if (!string.IsNullOrWhiteSpace(filtro.Cidade))
+            query = query.Where(x => x.Igreja.Endereco.Localidade.Contains(filtro.Cidade));
+
         if (filtro.Tipo.HasValue)
             query = query.Where(x => x.Tipo == filtro.Tipo.Value);
+
+        if (filtro.Canal.HasValue)
+            query = query.Where(x => x.Canal == filtro.Canal.Value);
 
         if (!string.IsNullOrWhiteSpace(filtro.EmailDestino))
             query = query.Where(x => x.EmailDestino.Contains(filtro.EmailDestino));
@@ -60,6 +69,12 @@ public class EmailEventoIgrejaService(
 
         if (filtro.Enviado.HasValue)
             query = query.Where(x => x.Enviado == filtro.Enviado.Value);
+
+        if (filtro.DataEnvioInicio.HasValue)
+            query = query.Where(x => x.DataEnvio >= filtro.DataEnvioInicio.Value);
+
+        if (filtro.DataEnvioFim.HasValue)
+            query = query.Where(x => x.DataEnvio <= filtro.DataEnvioFim.Value);
 
         if (filtro.DataCriacaoInicio.HasValue)
             query = query.Where(x => x.DataCriacao >= filtro.DataCriacaoInicio.Value);
@@ -92,6 +107,7 @@ public class EmailEventoIgrejaService(
             {
                 IgrejaId = request.IgrejaId,
                 Tipo = request.Tipo,
+                Canal = CanalContatoEnum.Email,
                 Assunto = request.Assunto,
                 EmailDestino = request.EmailDestino,
                 NomeDestino = request.NomeDestino,
@@ -111,6 +127,38 @@ public class EmailEventoIgrejaService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro ao inserir evento de e-mail da igreja {IgrejaId}", request.IgrejaId);
+            throw;
+        }
+    }
+
+    public async Task<EmailEventoIgreja> RegistrarContatoAsync(RegistrarContatoRequest request)
+    {
+        try
+        {
+            var model = new EmailEventoIgreja
+            {
+                IgrejaId = request.IgrejaId,
+                Tipo = request.Tipo,
+                Canal = request.Canal,
+                DestinoContato = request.DestinoContato,
+                Assunto = string.Empty,
+                EmailDestino = string.Empty,
+                Html = string.Empty,
+                Ativo = true,
+                Enviado = true,
+                DataEnvio = request.DataEnvio,
+                Observacao = request.Observacao,
+                DataCriacao = DateTime.UtcNow
+            };
+
+            context.Set<EmailEventoIgreja>().Add(model);
+            await context.SaveChangesAsync();
+
+            return model;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro ao registrar contato manual da igreja {IgrejaId}", request.IgrejaId);
             throw;
         }
     }
