@@ -82,6 +82,7 @@ builder.Services.AddScoped<ServicoModeracaoComentarios>();
 builder.Services.AddScoped<ServicoEngajamentoIgreja>();
 builder.Services.AddScoped<ConfiabilidadeService>();
 builder.Services.AddScoped<EmailEventoIgrejaService>();
+builder.Services.AddScoped<DivulgacaoService>();
 builder.Services.AddScoped<IMetricaDiariaRepositorio, MetricaDiariaRepositorio>();
 builder.Services.AddScoped<BuscaMissa.Services.ServicoMetricas>();
 builder.Services.AddScoped<BuscaMissa.Services.ServicoConsultaMetricas>();

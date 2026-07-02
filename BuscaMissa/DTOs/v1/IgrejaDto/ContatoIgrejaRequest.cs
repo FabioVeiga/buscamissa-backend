@@ -9,7 +9,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string? EmailContato { get; set; }
         [RegularExpression(@"^\d{2}$", ErrorMessage = "DDD deve conter apenas números e ter 2 dígitos.")]
         public string? DDD { get; set; }
-        [RegularExpression(@"^\d{8}$", ErrorMessage = "O Telefone deve conter apenas números e ter 8 dígitos.")]
+        [RegularExpression(@"^\d{8,9}$", ErrorMessage = "O Telefone deve conter apenas números e ter 8 ou 9 dígitos.")]
         public string? Telefone { get; set; }
         [RegularExpression(@"^\d{2}$", ErrorMessage = "DDDWhatsApp deve conter apenas números e ter 2 dígitos.")]
         public string? DDDWhatsApp { get; set; }

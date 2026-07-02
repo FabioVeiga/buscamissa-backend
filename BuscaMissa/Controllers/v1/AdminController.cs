@@ -15,6 +15,7 @@ using BuscaMissa.Services.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BuscaMissa.DTOs.v1.EmailEventoIgrejaDto;
+using BuscaMissa.DTOs.v1.DivulgacaoDto;
 
 namespace BuscaMissa.Controllers.v1
 {
@@ -29,6 +30,7 @@ namespace BuscaMissa.Controllers.v1
         ViaCepService viaCepService,
         IConfiguration configuration,
         EmailEventoIgrejaService emailEventoIgrejaService,
+        DivulgacaoService divulgacaoService,
         BuscaMissa.Services.ServicoConsultaMetricas servicoConsultaMetricas
         ) : ControllerBase
     {
@@ -157,7 +159,7 @@ namespace BuscaMissa.Controllers.v1
 
                 igreja = await igrejaService.EditarAsync(igreja);
 
-                await EnviarEmailAsync(igreja);
+                await divulgacaoService.EnviarEmailAsync(igreja, true);
 
                 var response = (IgrejaResponse)igreja;
                 response.EmailCriacaoEnviado = await emailEventoIgrejaService.EmailCriacaoJaEnviadoAsync(igreja.Id);
@@ -234,7 +236,7 @@ namespace BuscaMissa.Controllers.v1
                     !string.IsNullOrWhiteSpace(request.Contato?.EmailContato))
                 {
                     var tipo = request.TipoEmailContato.Contains("criacao") ? true : false;
-                    await  EnviarEmailAsync(igreja, tipo);
+                    await divulgacaoService.EnviarEmailAsync(igreja, tipo);
                 }
 
                 var response = (IgrejaResponse)igreja;
@@ -679,133 +681,60 @@ namespace BuscaMissa.Controllers.v1
 
         #endregion
 
-        private async Task EnviarEmailAsync(Igreja igreja, bool criacao = true)
-        {
-            var emailContato = igreja.Contato?.EmailContato;
-            var html = string.Empty;
-            var assunto = string.Empty;
-            var tipoEvento = criacao
-                ? TipoEmailEventoIgrejaEnum.Criacao
-                : TipoEmailEventoIgrejaEnum.Alteracao;
+        #region Divulgacao
 
+        [HttpGet]
+        [Route("divulgacao/dashboard")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DivulgacaoDashboard()
+        {
             try
             {
-                if (string.IsNullOrWhiteSpace(emailContato))
-                    return;
-
-                var url = string.Concat(
-                    FrontendBaseUrl,
-                    "/paroquia/",
-                    igreja.Endereco.Uf.ToLower(),
-                    "/",
-                    igreja.Endereco.CidadeSlug,
-                    "/",
-                    igreja.Slug
-                );
-
-                if (criacao)
-                {
-                    assunto = $"#Busca Missa - Cadastro da igreja {igreja.Nome}";
-
-                    html = EmailHtmlGenerator.GerarHtmlEmailCriacao(
-                        igreja.Nome,
-                        igreja.Endereco.Logradouro,
-                        igreja.Endereco.Numero,
-                        igreja.Endereco.Bairro,
-                        igreja.Endereco.Localidade,
-                        igreja.Endereco.Estado,
-                        igreja.Paroco,
-                        url
-                    );
-                }
-                else
-                {
-                    assunto = $"#Busca Missa - Atualização das informações da igreja {igreja.Nome}";
-
-                    html = EmailHtmlGenerator.GerarHtmlEmailAlteracao(
-                        igreja.Nome,
-                        igreja.Endereco.Logradouro,
-                        igreja.Endereco.Numero,
-                        igreja.Endereco.Bairro,
-                        igreja.Endereco.Localidade,
-                        igreja.Endereco.Estado,
-                        igreja.Paroco,
-                        url
-                    );
-                }
-
-                var responseEmail = await emailService.EnviarEmail(
-                    [emailContato],
-                    assunto,
-                    html
-                );
-
-                var enviado = !string.IsNullOrWhiteSpace(responseEmail);
-
-                await emailEventoIgrejaService.InserirAsync(new CriarEmailEventoIgrejaRequest
-                {
-                    IgrejaId = igreja.Id,
-                    Tipo = tipoEvento,
-                    Assunto = assunto,
-                    EmailDestino = emailContato,
-                    NomeDestino = igreja.Nome,
-                    Html = html,
-                    Ativo = true,
-                    Enviado = enviado,
-                    DataEnvio = enviado ? DateTime.UtcNow : null,
-                    Observacao = enviado
-                        ? "E-mail enviado automaticamente pelo fluxo administrativo."
-                        : "Tentativa automática de envio realizada, porém o serviço de e-mail não retornou confirmação."
-                });
-
-                if (!enviado)
-                {
-                    logger.LogWarning(
-                        "Igreja processada com sucesso, mas o e-mail não foi enviado. IgrejaId: {IgrejaId}, Email: {Email}",
-                        igreja.Id,
-                        emailContato
-                    );
-                }
+                var response = await divulgacaoService.ObterDashboardAsync();
+                return Ok(new ApiResponse<dynamic>(response));
             }
             catch (Exception ex)
             {
-                logger.LogError(
-                    ex,
-                    "Igreja processada com sucesso, mas ocorreu erro ao enviar ou registrar e-mail. IgrejaId: {IgrejaId}",
-                    igreja.Id
-                );
-
-                if (!string.IsNullOrWhiteSpace(emailContato))
-                {
-                    try
-                    {
-                        await emailEventoIgrejaService.InserirAsync(new CriarEmailEventoIgrejaRequest
-                        {
-                            IgrejaId = igreja.Id,
-                            Tipo = tipoEvento,
-                            Assunto = string.IsNullOrWhiteSpace(assunto)
-                                ? $"Notificação da igreja {igreja.Nome}"
-                                : assunto,
-                            EmailDestino = emailContato,
-                            NomeDestino = igreja.Nome,
-                            Html = html,
-                            Ativo = true,
-                            Enviado = false,
-                            DataEnvio = null,
-                            Observacao = $"Erro ao enviar ou registrar e-mail: {ex.Message}"
-                        });
-                    }
-                    catch (Exception eventoEx)
-                    {
-                        logger.LogError(
-                            eventoEx,
-                            "Erro ao registrar falha de evento de e-mail. IgrejaId: {IgrejaId}",
-                            igreja.Id
-                        );
-                    }
-                }
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
+        [HttpGet]
+        [Route("divulgacao/igrejas")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DivulgacaoIgrejas([FromQuery] FiltroIgrejaDivulgacaoRequest filtro)
+        {
+            try
+            {
+                var response = await divulgacaoService.BuscarIgrejasAsync(filtro);
+                return Ok(new ApiResponse<dynamic>(response));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPost]
+        [Route("divulgacao/enviar-email-lote")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DivulgacaoEnviarEmailLote([FromBody] EnviarEmailLoteRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest();
+                var response = await divulgacaoService.EnviarEmailLoteAsync(request);
+                return Ok(new ApiResponse<dynamic>(response));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        #endregion
     }
 }

@@ -1,7 +1,6 @@
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.ControleDto;
-using BuscaMissa.DTOs.v1.EmailHtmlGenerator;
 using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services.v1;
@@ -14,11 +13,11 @@ namespace BuscaMissa.Controllers.v1
     [Route("api/v{version:apiVersion}/[controller]")]
     public class CodigoValidadorController(ILogger<CodigoValidadorController> logger, EmailService emailService, UsuarioService usuarioService,
     IgrejaService igrejaService, ControleService controleService, CodigoValidacaoService codigoValidacaoService, IgrejaTemporariaService igrejaTemporariaService,
+    DivulgacaoService divulgacaoService,
     IConfiguration configuration)
     : ControllerBase
     {
-        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
-        
+
         [HttpPost]
         [Route("validar-igreja")]
         [Authorize(Roles = "App")]
@@ -43,14 +42,14 @@ namespace BuscaMissa.Controllers.v1
                         case Enums.StatusEnum.Igreja_Criacao_Aguardando_Codigo_Validador:
                             await igrejaService.AtivarAsync(controle, usuario);
                             if(controle.Igreja.Contato is not null)
-                                await EnviarEmail(controle.Igreja);
+                                await divulgacaoService.EnviarEmailAsync(controle.Igreja, true);
                             break;
                         case Enums.StatusEnum.Igreja_Atualizacao_Aguardando_Codigo_Validador:
                             var temporaria = await igrejaTemporariaService.BuscarPorIgrejaIdAsync(controle.Igreja.Id);
                             await igrejaService.EditarPorTemporariaAsync(controle.Igreja, temporaria!);
                             await igrejaService.AtivarAsync(controle, usuario);
                             if(controle.Igreja.Contato is not null)
-                                await EnviarEmail(controle.Igreja);
+                                await divulgacaoService.EnviarEmailAsync(controle.Igreja, false);
                             break;
                         default:
                             return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Não há validação para esta operação!" }));
@@ -91,54 +90,6 @@ namespace BuscaMissa.Controllers.v1
                 logger.LogError("{Ex}", ex);
                 var response = new ApiResponse<dynamic>(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
-        
-        private async Task EnviarEmail(Igreja igreja, bool criacao = true)
-        {
-            try
-            {
-                var url = string.Concat(FrontendBaseUrl, "/paroquia/", igreja.Endereco.Uf.ToLower(), "/", igreja.Endereco.CidadeSlug, "/", igreja.NomeUnico);
-                string assunto;
-                string htmlEmail;
-                if (criacao)
-                {
-                    // Gerar o HTML para criação
-                    htmlEmail = EmailHtmlGenerator.GerarHtmlEmailCriacao(
-                        igreja.Nome, 
-                        igreja.Endereco.Logradouro, 
-                        igreja.Endereco.Numero, 
-                        igreja.Endereco.Bairro, 
-                        igreja.Endereco.Localidade, 
-                        igreja.Endereco.Estado,
-                        igreja.Paroco,
-                        url
-                    );
-                    assunto= $"Sua Igreja {igreja.Nome} foi cadastrada no Busca Missa!";
-                }
-                else
-                {
-                    // Gerar o HTML para alteração
-                    htmlEmail = EmailHtmlGenerator.GerarHtmlEmailCriacao(
-                        igreja.Nome, 
-                        igreja.Endereco.Logradouro, 
-                        igreja.Endereco.Numero, 
-                        igreja.Endereco.Bairro, 
-                        igreja.Endereco.Localidade, 
-                        igreja.Endereco.Estado,
-                        igreja.Paroco,
-                        url
-                    );
-                    assunto = $"Atualização das informações da igreja {igreja.Nome} no Busca Missa";
-
-                }
-            
-                await emailService.EnviarEmail(new[] { igreja.Contato?.EmailContato! }, assunto, htmlEmail);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                
             }
         }
     }
