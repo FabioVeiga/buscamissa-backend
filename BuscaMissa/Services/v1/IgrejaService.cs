@@ -506,7 +506,9 @@ namespace BuscaMissa.Services.v1
                 if (filtro.DiaDaSemana is not null)
                     query = query.Where(x => x.Missas.Any(y => y.DiaSemana == filtro.DiaDaSemana));
 
-                if (!string.IsNullOrEmpty(filtro.Horario))
+                if (!string.IsNullOrEmpty(filtro.Horario) && !string.IsNullOrEmpty(filtro.HorarioFim))
+                    query = query.Where(x => x.Missas.Any(y => y.Horario >= filtro.HorarioMissa && y.Horario <= filtro.HorarioFimMissa));
+                else if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
                 var aux = query.Select(x => new IgrejaResponse()
