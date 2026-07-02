@@ -28,7 +28,8 @@ namespace BuscaMissa.Controllers.v1
         ControleService controleService,
         ViaCepService viaCepService,
         IConfiguration configuration,
-        EmailEventoIgrejaService emailEventoIgrejaService
+        EmailEventoIgrejaService emailEventoIgrejaService,
+        BuscaMissa.Services.ServicoConsultaMetricas servicoConsultaMetricas
         ) : ControllerBase
     {
         private readonly ControleService _controleService = controleService;
@@ -366,6 +367,42 @@ namespace BuscaMissa.Controllers.v1
             }
         }
 
+        [HttpGet]
+        [Route("igreja/{id}/metricas")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> ObterMetricasIgreja(int id)
+        {
+            try
+            {
+                var metricas = await servicoConsultaMetricas.ObterMetricasUltimos30DiasAsync(TipoEntidadeMetricaEnum.Igreja, id);
+                return Ok(new ApiResponse<dynamic>(metricas));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpGet]
+        [Route("metricas/dashboard")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> ObterDashboardMetricas()
+        {
+            try
+            {
+                var dashboard = await servicoConsultaMetricas.ObterDashboardAsync();
+                return Ok(new ApiResponse<dynamic>(dashboard));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         [HttpPut]
         [Route("igreja/denunciar/{id}")]
         [Authorize(Roles = "Admin")]
@@ -545,6 +582,32 @@ namespace BuscaMissa.Controllers.v1
                     return NotFound(new ApiResponse<dynamic>(new { mensagemAplicacao = "Igreja não encontrada." }));
 
                 var model = await emailEventoIgrejaService.InserirAsync(request);
+                var response = (EmailEventoIgrejaResponse)model;
+
+                return Ok(new ApiResponse<dynamic>(new { response }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpPost]
+        [Route("email-evento/registrar-contato")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegistrarContato([FromBody] RegistrarContatoRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var igreja = await igrejaService.BuscarPorIdAsync(request.IgrejaId);
+                if (igreja is null)
+                    return NotFound(new ApiResponse<dynamic>(new { mensagemAplicacao = "Igreja não encontrada." }));
+
+                var model = await emailEventoIgrejaService.RegistrarContatoAsync(request);
                 var response = (EmailEventoIgrejaResponse)model;
 
                 return Ok(new ApiResponse<dynamic>(new { response }));

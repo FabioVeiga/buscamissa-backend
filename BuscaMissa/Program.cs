@@ -4,6 +4,7 @@ using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.SettingsDto;
 using BuscaMissa.Middlewares;
+using BuscaMissa.Repositorios;
 using BuscaMissa.Services.v1;
 using MailerSendNetCore.Common.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -81,6 +82,9 @@ builder.Services.AddScoped<ServicoModeracaoComentarios>();
 builder.Services.AddScoped<ServicoEngajamentoIgreja>();
 builder.Services.AddScoped<ConfiabilidadeService>();
 builder.Services.AddScoped<EmailEventoIgrejaService>();
+builder.Services.AddScoped<IMetricaDiariaRepositorio, MetricaDiariaRepositorio>();
+builder.Services.AddScoped<BuscaMissa.Services.ServicoMetricas>();
+builder.Services.AddScoped<BuscaMissa.Services.ServicoConsultaMetricas>();
 
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));

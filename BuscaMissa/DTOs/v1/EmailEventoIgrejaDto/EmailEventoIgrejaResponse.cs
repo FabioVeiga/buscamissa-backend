@@ -11,6 +11,12 @@ public class EmailEventoIgrejaResponse
 
     public string? IgrejaNome { get; set; }
 
+    public string? IgrejaUf { get; set; }
+
+    public string? IgrejaCidadeSlug { get; set; }
+
+    public string? IgrejaSlug { get; set; }
+
     public TipoEmailEventoIgrejaEnum Tipo { get; set; }
 
     public string TipoDescricao => Tipo.ToString();
@@ -35,6 +41,10 @@ public class EmailEventoIgrejaResponse
 
     public string? Observacao { get; set; }
 
+    public CanalContatoEnum Canal { get; set; }
+
+    public string? DestinoContato { get; set; }
+
     public static explicit operator EmailEventoIgrejaResponse(EmailEventoIgreja model)
     {
         return new EmailEventoIgrejaResponse
@@ -42,6 +52,9 @@ public class EmailEventoIgrejaResponse
             Id = model.Id,
             IgrejaId = model.IgrejaId,
             IgrejaNome = model.Igreja?.Nome,
+            IgrejaUf = model.Igreja?.Endereco?.Uf?.ToLower(),
+            IgrejaCidadeSlug = model.Igreja?.Endereco?.CidadeSlug,
+            IgrejaSlug = model.Igreja?.Slug,
             Tipo = model.Tipo,
             Assunto = model.Assunto,
             EmailDestino = model.EmailDestino,
@@ -52,7 +65,9 @@ public class EmailEventoIgrejaResponse
             DataEnvio = model.DataEnvio,
             DataCriacao = model.DataCriacao,
             DataAlteracao = model.DataAlteracao,
-            Observacao = model.Observacao
+            Observacao = model.Observacao,
+            Canal = model.Canal,
+            DestinoContato = model.DestinoContato
         };
     }
 }
