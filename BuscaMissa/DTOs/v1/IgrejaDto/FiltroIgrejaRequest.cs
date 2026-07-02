@@ -17,6 +17,8 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public DiaDaSemanaEnum? DiaDaSemana { get; set; }
         public string? Horario { get; set; }
         internal TimeSpan? HorarioMissa { get; set; }
+        public string? HorarioFim { get; set; }
+        internal TimeSpan? HorarioFimMissa { get; set; }
         public PaginacaoRequest Paginacao { get; set; } = default!;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -28,6 +30,14 @@ namespace BuscaMissa.DTOs.IgrejaDto
                     results.Add(new ValidationResult("Formato do horario invalido.", [nameof(Horario)]));
                 else
                     HorarioMissa = horario;
+            }
+
+            if (!string.IsNullOrEmpty(HorarioFim))
+            {
+                if (!TimeSpan.TryParse(HorarioFim, out var horarioFim))
+                    results.Add(new ValidationResult("Formato do horario fim invalido.", [nameof(HorarioFim)]));
+                else
+                    HorarioFimMissa = horarioFim;
             }
             
             if(DiaDaSemana is not null && !Enum.IsDefined(typeof(DiaDaSemanaEnum), DiaDaSemana))
