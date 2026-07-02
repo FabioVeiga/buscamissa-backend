@@ -6,16 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BuscaMissa.Services.v1
 {
-    public class IgrejaDenunciaService(ApplicationDbContext context, ILogger<IgrejaDenunciaService> logger)
+    public class IgrejaReportarProblemaService(ApplicationDbContext context, ILogger<IgrejaReportarProblemaService> logger)
     {
         private readonly ApplicationDbContext _context = context;
-        private readonly ILogger<IgrejaDenunciaService> _logger = logger;
+        private readonly ILogger<IgrejaReportarProblemaService> _logger = logger;
 
-        public async Task<IgrejaDenuncia?> BuscarPorIdAsync(int id)
+        public async Task<IgrejaReportarProblema?> BuscarPorIdAsync(int id)
         {
             try
             {
-               return await _context.IgrejaDenuncias
+               return await _context.IgrejaReportarProblemas
                .Include(id => id.Igreja)
                .AsNoTracking()
                .FirstOrDefaultAsync(x => x.Id == id);
@@ -27,11 +27,11 @@ namespace BuscaMissa.Services.v1
             }
         }
 
-        public async Task<IgrejaDenuncia?> BuscarPorIgrejaIdAsync(int igrejaId)
+        public async Task<IgrejaReportarProblema?> BuscarPorIgrejaIdAsync(int igrejaId)
         {
             try
             {
-               return await _context.IgrejaDenuncias
+               return await _context.IgrejaReportarProblemas
                .Include(id => id.Igreja)
                .AsNoTracking()
                .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
@@ -43,11 +43,11 @@ namespace BuscaMissa.Services.v1
             }
         }
 
-        public async Task<IgrejaDenuncia?> TemDenunciaPorIgrejaIdAsync(int igrejaId)
+        public async Task<IgrejaReportarProblema?> TemProblemaReportadoPorIgrejaIdAsync(int igrejaId)
         {
             try
             {
-                return await _context.IgrejaDenuncias
+                return await _context.IgrejaReportarProblemas
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.IgrejaId == igrejaId);
             }
@@ -59,10 +59,10 @@ namespace BuscaMissa.Services.v1
         }
         
 
-        public async Task<bool> InserirAsync(DenunciarIgrejaRequest request)
+        public async Task<bool> InserirAsync(ReportarProblemaRequest request)
         {
             try{
-                var model = (IgrejaDenuncia)request;
+                var model = (IgrejaReportarProblema)request;
                 _context.Add(model);
                 var resultado = await _context.SaveChangesAsync();
                 return resultado > 0;
@@ -74,7 +74,7 @@ namespace BuscaMissa.Services.v1
             }
         }
 
-        public async Task<bool> AtualizarAsync(IgrejaDenuncia request)
+        public async Task<bool> AtualizarAsync(IgrejaReportarProblema request)
         {
             try
             {
@@ -89,17 +89,17 @@ namespace BuscaMissa.Services.v1
             }
         }
 
-        public async Task<bool> SolucaoAsync(IgrejaDenuncia igrejaDenuncia)
+        public async Task<bool> SolucaoAsync(IgrejaReportarProblema problemaReportado)
         {
             try
             {
-                _context.Update(igrejaDenuncia);
+                _context.Update(problemaReportado);
                 var resultado = await _context.SaveChangesAsync();
                 return resultado > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao solucionar para a igreja ID: {igrejaId}", igrejaDenuncia.Id);
+                _logger.LogError(ex, "Erro ao solucionar para a igreja ID: {igrejaId}", problemaReportado.Id);
                 return false;
             }
         }

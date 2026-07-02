@@ -2,11 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BuscaMissa.DTOs.IgrejaDto
 {
-    public class DenunciarIgrejaAdminRequest
+    public class ReportarProblemaAdminRequest
     {
         [Required]
         public string Solucao { get; set; } = default!;
         [Required]
-        public bool EnviarEmailDenunciador { get; set; }
+        public bool EnviarEmail { get; set; }
     }
 }

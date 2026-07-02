@@ -72,7 +72,7 @@ builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ImagemService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
 builder.Services.AddScoped<ContatoService>();
-builder.Services.AddScoped<IgrejaDenunciaService>();
+builder.Services.AddScoped<IgrejaReportarProblemaService>();
 builder.Services.AddScoped<SolicitacaoService>();
 builder.Services.AddScoped<RedeSociaisService>();
 builder.Services.AddScoped<ContribuidoresService>();
