@@ -16,7 +16,7 @@ namespace BuscaMissa.Controllers.v1
     [Route("api/v{version:apiVersion}/[controller]")]
     public class IgrejaController(ILogger<IgrejaController> logger, EmailService emailService, IgrejaService igrejaService, 
     ControleService controleService, ViaCepService viaCepService, IgrejaTemporariaService igrejaTemporariaService, ImagemService imagemService,
-    EnderecoService enderecoService, ContatoService contatoService, IgrejaDenunciaService igrejaDenunciaService) 
+    EnderecoService enderecoService, ContatoService contatoService, IgrejaReportarProblemaService igrejaReportarProblemaService)
     : ControllerBase
     {
         private readonly EmailService _emailService = emailService;
@@ -223,31 +223,29 @@ namespace BuscaMissa.Controllers.v1
         }
     
         [HttpPost]
-        [Route("denunciar/{igrejaId}")]
+        [Route("reportar-problema/{igrejaId}")]
         [Authorize(Roles = "App")]
-        public async Task<ActionResult> Denunciar(int igrejaId, [FromBody] DenunciarIgrejaRequest request){
+        public async Task<ActionResult> ReportarProblema(int igrejaId, [FromBody] ReportarProblemaRequest request){
             try
             {
                 if(!ModelState.IsValid) return BadRequest();
                 var resultado = await igrejaService.BuscarPorIdAsync(igrejaId);
                 if(resultado == null) return NotFound();
                 request.IgrejaId = igrejaId;
-                var denuncia = await igrejaDenunciaService.BuscarPorIgrejaIdAsync(igrejaId);
-                var resultadoDenuncia = false;
-                if(denuncia is not null && !string.IsNullOrEmpty(denuncia.AcaoRealizada))
+                var problemaReportado = await igrejaReportarProblemaService.BuscarPorIgrejaIdAsync(igrejaId);
+                var resultadoReportarProblema = false;
+                if(problemaReportado is not null && !string.IsNullOrEmpty(problemaReportado.AcaoRealizada))
                 {
-                    denuncia.AcaoRealizada = null;
-                    denuncia.Descricao = request.Descricao;
-                    denuncia.Titulo = request.Titulo;
-                    denuncia.NomeDenunciador = request.NomeDenunciador;
-                    denuncia.EmailDenunciador = request.EmailDenunciador;
-                    resultadoDenuncia = await igrejaDenunciaService.AtualizarAsync(denuncia);
+                    problemaReportado.AcaoRealizada = null;
+                    problemaReportado.Descricao = request.Descricao;
+                    problemaReportado.Nome = request.Nome;
+                    problemaReportado.Email = request.Email;
+                    resultadoReportarProblema = await igrejaReportarProblemaService.AtualizarAsync(problemaReportado);
                 }else{
-                    resultadoDenuncia = await igrejaDenunciaService.InserirAsync(request);
+                    resultadoReportarProblema = await igrejaReportarProblemaService.InserirAsync(request);
                 }
 
-                //return Ok(new ApiResponse<dynamic>(resultadoDenuncia));
-                return Ok(new ApiResponse<dynamic>(new { resultadoDenuncia, messagemAplicacao = "Aguarde a resposta do administrador!" }));
+                return Ok(new ApiResponse<dynamic>(new { resultadoReportarProblema, messagemAplicacao = "Aguarde a resposta do administrador!" }));
             }
             catch (Exception ex)
             {

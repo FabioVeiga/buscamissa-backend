@@ -16,7 +16,7 @@ namespace BuscaMissa.Context
         public DbSet<IgrejaTemporaria> IgrejaTemporarias { get; set; }
         public DbSet<RedeSocial> RedesSociais { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
-        public DbSet<IgrejaDenuncia> IgrejaDenuncias { get; set; }
+        public DbSet<IgrejaReportarProblema> IgrejaReportarProblemas { get; set; }
         public DbSet<Solicitacao> Solicitacoes { get; set; }
         public DbSet<Contribuidor> Contribuidores { get; set; }
         public DbSet<CurtidaIgreja> CurtidasIgreja { get; set; }

@@ -22,7 +22,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         internal TimeSpan? HorarioMissa { get; set; }
         public PaginacaoRequest Paginacao { get; set; } = default!;
         public bool Solicitacao { get; set; } = false;
-        public bool Denuncia { get; set; } = false;
+        public bool ReportarProblema { get; set; } = false;
         public bool SemCoordenadas { get; set; } = false;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

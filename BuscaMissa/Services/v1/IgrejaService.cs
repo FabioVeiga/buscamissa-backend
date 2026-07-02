@@ -481,13 +481,14 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
+                // Endpoint público (site) — não inclui ReportarProblema nem calcula EmailCriacaoEnviado,
+                // dados de uso exclusivo do painel administrativo.
                 var query = context.Igrejas
                     .Include(x => x.Endereco)
                     .Include(x => x.Usuario)
                     .Include(x => x.Missas)
                     .Include(Igreja => Igreja.Contato)
                     .Include(Igreja => Igreja.RedesSociais)
-                    .Include(x => x.Denuncia)
                     .AsNoTracking()
                     .Where(x =>
                         x.Endereco.Uf == filtro.Uf.ToUpper()
@@ -521,10 +522,7 @@ namespace BuscaMissa.Services.v1
                     Usuario = x.Usuario == null ? null : (UsuarioDtoResponse)x.Usuario,
                     Alteracao = x.Alteracao,
                     Ativo = x.Ativo,
-                    EmailCriacaoEnviado = context.EmailEventosIgreja.Any(e =>
-                        e.IgrejaId == x.Id &&
-                        e.Tipo == TipoEmailEventoIgrejaEnum.Criacao &&
-                        e.Enviado),
+                    EmailCriacaoEnviado = false,
                     Criacao = x.Criacao,
                     ImagemUrl = x.ImagemUrl == null ? null : imagemService.ObterUrlAzureBlob($"igreja/{x.ImagemUrl!}"),
                     Paroco = x.Paroco,
@@ -541,8 +539,7 @@ namespace BuscaMissa.Services.v1
                     RedesSociais = x.RedesSociais == null
                         ? Array.Empty<IgrejaRedesSociaisResponse>()
                         : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
-                    Denuncia = x.Denuncia == null ? null :
-                        string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
+                    ReportarProblema = null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
@@ -574,7 +571,7 @@ namespace BuscaMissa.Services.v1
                     .Include(x => x.Missas)
                     .Include(Igreja => Igreja.Contato)
                     .Include(Igreja => Igreja.RedesSociais)
-                    .Include(x => x.Denuncia)
+                    .Include(x => x.ReportarProblema)
                     .AsNoTracking()
                     .Where(x =>
                         x.Ativo == filtro.Ativo)
@@ -607,8 +604,8 @@ namespace BuscaMissa.Services.v1
                 if (!string.IsNullOrEmpty(filtro.Horario))
                     query = query.Where(x => x.Missas.Any(y => y.Horario == filtro.HorarioMissa));
 
-                if (filtro.Denuncia)
-                    query = query.Where(x => x.Denuncia != null && string.IsNullOrEmpty(x.Denuncia.AcaoRealizada));
+                if (filtro.ReportarProblema)
+                    query = query.Where(x => x.ReportarProblema != null && string.IsNullOrEmpty(x.ReportarProblema.AcaoRealizada));
 
                 if (filtro.SemCoordenadas)
                     query = query.Where(x => x.Endereco.Latitude == null);
@@ -643,8 +640,8 @@ namespace BuscaMissa.Services.v1
                     RedesSociais = x.RedesSociais == null
                         ? Array.Empty<IgrejaRedesSociaisResponse>()
                         : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
-                    Denuncia = x.Denuncia == null ? null :
-                        string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
+                    ReportarProblema = x.ReportarProblema == null ? null :
+                        string.IsNullOrEmpty(x.ReportarProblema.AcaoRealizada) ? (ReportarProblemaAdminResponse)x.ReportarProblema : null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
@@ -862,7 +859,7 @@ namespace BuscaMissa.Services.v1
                 {
                     QuantidadesIgrejas = context.Igrejas.AsNoTracking().Count(x => x.Ativo),
                     QuantidadeMissas = context.Missas.Include(x => x.Igreja).AsNoTracking().Count(x => x.Igreja.Ativo),
-                    QuantidadeIgrejaDenunciaNaoAtendida = context.IgrejaDenuncias.AsNoTracking()
+                    QuantidadeIgrejaReportarProblemaNaoAtendida = context.IgrejaReportarProblemas.AsNoTracking()
                         .Count(x => string.IsNullOrEmpty(x.AcaoRealizada)),
                     QuantidadeSolicitacoesNaoAtendida = context.Solicitacoes.AsNoTracking().Count(x => !x.Resolvido),
                     QuantidadeDeUsuarios =
@@ -917,7 +914,7 @@ namespace BuscaMissa.Services.v1
                         .Where(x => x.IgrejaId == igrejaId)
                         .ExecuteDeleteAsync();
 
-                    await context.IgrejaDenuncias
+                    await context.IgrejaReportarProblemas
                         .Where(x => x.IgrejaId == igrejaId)
                         .ExecuteDeleteAsync();
 
