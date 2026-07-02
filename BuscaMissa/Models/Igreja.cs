@@ -27,7 +27,7 @@ namespace BuscaMissa.Models
         public Endereco Endereco { get; set; } = null!;
 
         public Contato? Contato {get; set;}
-        public IgrejaDenuncia? Denuncia {get; set;}
+        public IgrejaReportarProblema? ReportarProblema {get; set;}
 
         public ICollection<RedeSocial>? RedesSociais { get; set; }
 

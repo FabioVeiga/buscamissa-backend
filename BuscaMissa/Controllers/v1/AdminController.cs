@@ -24,7 +24,7 @@ namespace BuscaMissa.Controllers.v1
     public class AdminController(
         ILogger<AdminController> logger, UsuarioService usuarioService, IgrejaService igrejaService,
         ImagemService imagemService, RedeSociaisService redeSociaisService, ContatoService contatoService,
-        IgrejaDenunciaService igrejaDenunciaService, EmailService emailService, SolicitacaoService solicitacaoService,
+        IgrejaReportarProblemaService igrejaReportarProblemaService, EmailService emailService, SolicitacaoService solicitacaoService,
         ControleService controleService,
         ViaCepService viaCepService,
         IConfiguration configuration,
@@ -404,25 +404,25 @@ namespace BuscaMissa.Controllers.v1
         }
 
         [HttpPut]
-        [Route("igreja/denunciar/{id}")]
+        [Route("igreja/reportar-problema/{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> DenunciarIgreja(int id, [FromBody] DenunciarIgrejaAdminRequest request)
+        public async Task<ActionResult> ResolverProblemaReportado(int id, [FromBody] ReportarProblemaAdminRequest request)
         {
             try
             {
                 if (!ModelState.IsValid) return BadRequest();
-                var model = await igrejaDenunciaService.BuscarPorIdAsync(id);
-                if (model == null) return NotFound(new ApiResponse<dynamic>("Denuncia não encontrada"));
+                var model = await igrejaReportarProblemaService.BuscarPorIdAsync(id);
+                if (model == null) return NotFound(new ApiResponse<dynamic>("Problema reportado não encontrado"));
                 model.AcaoRealizada = request.Solucao;
-                var response = await igrejaDenunciaService.SolucaoAsync(model);
-                if (request.EnviarEmailDenunciador)
+                var response = await igrejaReportarProblemaService.SolucaoAsync(model);
+                if (request.EnviarEmail)
                 {
                     var responseEmail = await emailService.EnviarEmail(
-                        [model.EmailDenunciador],
-                        $"Resposta da denuncia - {model.Igreja.Nome}",
-                        Contant.EmailDenuncia
-                        .Replace("{nomeDenunciador}", model.NomeDenunciador)
-                        .Replace("{denuncia}", model.Descricao)
+                        [model.Email],
+                        $"Resposta ao problema reportado - {model.Igreja.Nome}",
+                        Contant.EmailReportarProblema
+                        .Replace("{nome}", model.Nome)
+                        .Replace("{descricao}", model.Descricao)
                         .Replace("{solução}", request.Solucao)
                         .Replace("{ano}", DataHoraHelper.Ano())
                         );

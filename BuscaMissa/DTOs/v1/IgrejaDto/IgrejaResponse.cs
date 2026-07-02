@@ -16,7 +16,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
         public string? Paroco { get; set; }
         public string? ImagemUrl { get; set; }
         public bool Ativo { get; set; }
-        public DenunciarIgrejaAdminResponse? Denuncia { get; set; }
+        public ReportarProblemaAdminResponse? ReportarProblema { get; set; }
         public DateTime Criacao { get; set; }
         public DateTime Alteracao { get; set; }
         public StatusConfiancaEnum StatusConfianca { get; set; }
@@ -44,7 +44,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Criacao = igreja.Criacao,
                 Alteracao = igreja.Alteracao,
                 Usuario = igreja.Usuario is null ? null : (UsuarioDtoResponse)igreja.Usuario,
-                Denuncia = igreja.Denuncia is null ? null : string.IsNullOrEmpty(igreja.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)igreja.Denuncia : null,
+                ReportarProblema = igreja.ReportarProblema is null ? null : string.IsNullOrEmpty(igreja.ReportarProblema.AcaoRealizada) ? (ReportarProblemaAdminResponse)igreja.ReportarProblema : null,
                 Missas = igreja.Missas is null ? Array.Empty<MissaResponse>() : igreja.Missas.Select(m => (MissaResponse)m).ToList(),
                 RedesSociais = igreja.RedesSociais is null ? Array.Empty<IgrejaRedesSociaisResponse>() : igreja.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
                 Endereco = igreja.Endereco is null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)igreja.Endereco,

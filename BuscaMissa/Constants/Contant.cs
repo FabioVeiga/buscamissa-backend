@@ -4,14 +4,14 @@ namespace BuscaMissa.Constants
 {
     public static class Contant
     {
-        public static readonly string EmailDenuncia = EmailHtmlGenerator.GerarLayout(
-            "Ação Tomada Sobre Sua Denúncia",
-            @"<p>Olá, {nomeDenunciador}.</p>
-              <p>Você realizou uma denúncia com a seguinte descrição:</p>
+        public static readonly string EmailReportarProblema = EmailHtmlGenerator.GerarLayout(
+            "Ação Tomada Sobre o Problema Reportado",
+            @"<p>Olá, {nome}.</p>
+              <p>Você reportou um problema com a seguinte descrição:</p>
               <div class=""church-details"">
-                  <p>{denuncia}</p>
+                  <p>{descricao}</p>
               </div>
-              <p>Gostaríamos de informar que tomamos a seguinte ação com base em sua denúncia:</p>
+              <p>Gostaríamos de informar que tomamos a seguinte ação com base no problema reportado:</p>
               <div class=""church-details"">
                   <p>{solução}</p>
               </div>

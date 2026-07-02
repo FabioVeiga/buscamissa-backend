@@ -87,12 +87,12 @@ public class IgrejaService(
         {
             try
             {
+                // Endpoint público (site) — não inclui ReportarProblema, dado de uso exclusivo do painel administrativo.
                 var query = context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Usuario)
                 .Include(Igreja => Igreja.Contato)
                 .Include(Igreja => Igreja.RedesSociais)
-                .Include(x => x.Denuncia)
                 .AsNoTracking()
                 .Where(x =>
                     x.Endereco.Uf == filtro.Uf.ToUpper()
@@ -147,7 +147,7 @@ public class IgrejaService(
                     }).ToList(),
                     Contato = x.Contato == null ? null : (IgrejaContatoResponse)x.Contato,
                     RedesSociais = x.RedesSociais == null ? Array.Empty<IgrejaRedesSociaisResponse>() : x.RedesSociais.Select(r => (IgrejaRedesSociaisResponse)r).ToList(),
-                    Denuncia = x.Denuncia == null ? null : string.IsNullOrEmpty(x.Denuncia.AcaoRealizada) ? (DenunciarIgrejaAdminResponse)x.Denuncia : null
+                    ReportarProblema = null
                 });
 
                 var resultado = await aux.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
