@@ -70,7 +70,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -86,7 +86,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -114,7 +114,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -144,7 +144,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -175,7 +175,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -196,7 +196,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -218,7 +218,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -238,7 +238,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
         // Diagnóstico do endpoint proximas-missas — retorna contagens intermediárias
@@ -309,7 +309,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -343,7 +343,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -382,7 +382,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
 
@@ -400,7 +400,7 @@ namespace BuscaMissa.Controllers.v2
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
             }
         }
     }

@@ -21,7 +21,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, BuscaMissa.Constants.Constants.MensagemErroInterno);
             }
         }
 
@@ -36,7 +36,7 @@ namespace BuscaMissa.Controllers.v1
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, BuscaMissa.Constants.Constants.MensagemErroInterno);
             }
         }
     }
