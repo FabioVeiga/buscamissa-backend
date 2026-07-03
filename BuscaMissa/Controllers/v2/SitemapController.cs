@@ -14,7 +14,7 @@ public class SitemapController(
     IgrejaService igrejaService,
     IConfiguration configuration) : ControllerBase
 {
-    private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
+    private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? BuscaMissa.Constants.Constants.FrontendBaseUrlDefault;
 
     [HttpGet("/sitemap.xml")]
     public async Task<IActionResult> Sitemap()

@@ -6,7 +6,7 @@ namespace BuscaMissa.Context
 {
     public class DatabaseSeeder
     {
-        private static readonly string emailAdmin = "suporte@buscamissa.com.br";
+        private static readonly string emailAdmin = BuscaMissa.Constants.Constants.EmailSuporte;
         private static readonly string nomeAdmin = "Busca Missa - Administrador";
 
         public static void Seed(ApplicationDbContext context, string senhaAdmin)

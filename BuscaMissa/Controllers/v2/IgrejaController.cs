@@ -31,7 +31,7 @@ namespace BuscaMissa.Controllers.v2
         IConfiguration configuration)
     : ControllerBase
     {
-        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
+        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? BuscaMissa.Constants.Constants.FrontendBaseUrlDefault;
 
         // Item 7 (v2): retorna 409 Conflict quando NomeUnico já existe, com dados da igreja existente
         [HttpPost]

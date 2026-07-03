@@ -35,7 +35,7 @@ namespace BuscaMissa.Controllers.v1
         ) : ControllerBase
     {
         private readonly ControleService _controleService = controleService;
-        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
+        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? BuscaMissa.Constants.Constants.FrontendBaseUrlDefault;
 
         #region Usuario
         [HttpGet]
