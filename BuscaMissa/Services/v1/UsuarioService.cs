@@ -80,6 +80,8 @@ namespace BuscaMissa.Services.v1
                         new(ClaimTypes.Role, usuario.Perfil.ToString()),
                     ]),
                     Expires = expiracao,
+                    Issuer = _configuration["Jwt:Issuer"] ?? "BuscaMissa",
+                    Audience = _configuration["Jwt:Audience"] ?? "BuscaMissaApi",
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
                 };
                 var token = tokenHandler.CreateToken(tokenDescriptor);

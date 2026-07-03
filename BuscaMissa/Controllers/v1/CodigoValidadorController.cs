@@ -66,7 +66,6 @@ namespace BuscaMissa.Controllers.v1
                         .Replace("{token}", codigo.CodigoToken.ToString())
                         .Replace("{ano}", DataHoraHelper.Ano())
                     );
-                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                     if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
                     return Ok(new ApiResponse<dynamic>(new
                     {

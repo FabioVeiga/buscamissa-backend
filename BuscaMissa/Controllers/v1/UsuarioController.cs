@@ -4,6 +4,7 @@ using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Helpers;
 using BuscaMissa.Services.v1;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BuscaMissa.Controllers.v1
@@ -11,7 +12,7 @@ namespace BuscaMissa.Controllers.v1
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class UsuarioController(ILogger<UsuarioController> logger, UsuarioService usuarioService, ControleService controleService,
-    CodigoValidacaoService codigoValidacaoService, EmailService emailService, IConfiguration configuration)
+    CodigoValidacaoService codigoValidacaoService, EmailService emailService)
     : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger = logger;
@@ -19,31 +20,23 @@ namespace BuscaMissa.Controllers.v1
         private readonly ControleService _controleService = controleService;
         private readonly CodigoValidacaoService _codigoValidacaoService = codigoValidacaoService;
         private readonly EmailService _emailService = emailService;
-        private readonly IConfiguration _configuration = configuration;
-        private const string EmailAdmin = "suporte@buscamissa.com.br";
 
         [HttpPost]
         [Route("autenticar")]
         [AllowAnonymous]
+        [EnableRateLimiting("autenticacao")]
         public async Task<IActionResult> Autenticar([FromBody] LoginRequest request)
         {
             try
             {
-                if (!ModelState.IsValid) BadRequest();
+                if (!ModelState.IsValid) return BadRequest(ModelState);
                 var usuario = await _usuarioService.BuscarPorEmailAsync(request.Email);
                 if (usuario == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não existe!" }));
                 if (usuario.Bloqueado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário bloqueado!" }));
 
-                bool autenticado;
-                if (string.Equals(request.Email, EmailAdmin, StringComparison.OrdinalIgnoreCase))
-                {
-                    var senhaAdmin = _configuration["SenhaAdmin"];
-                    autenticado = !string.IsNullOrEmpty(senhaAdmin) && request.Senha == senhaAdmin;
-                }
-                else
-                {
-                    autenticado = _usuarioService.Autenticar(request, usuario);
-                }
+                // Admin autentica pelo mesmo caminho dos demais usuários (senha com hash BCrypt,
+                // semeada por DatabaseSeeder). Sem comparação de senha em texto plano.
+                var autenticado = _usuarioService.Autenticar(request, usuario);
 
                 if (!autenticado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "E-mail ou Senha invalido!" }));
                 var usuarioResponse = _usuarioService.GerarTokenAsync(usuario);
@@ -64,7 +57,7 @@ namespace BuscaMissa.Controllers.v1
         {
             try
             {
-                if (!ModelState.IsValid) BadRequest();
+                if (!ModelState.IsValid) return BadRequest(ModelState);
                 var controle = await _controleService.BuscarPorIdAsync(request.ControleId);
                 if (controle == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Controle não encontrada!" }));
                 if (controle.Status == Enums.StatusEnum.Finalizado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Igreja já ativada!" }));
@@ -95,7 +88,6 @@ namespace BuscaMissa.Controllers.v1
                         .Replace("{token}", codigoValidador.CodigoToken.ToString())
                         .Replace("{ano}", DataHoraHelper.Ano())
                     );
-                Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 if (string.IsNullOrEmpty(responseEmail)) return BadRequest(new ApiResponse<dynamic>(new { mensagemInterno = "Problema no envio do email" }));
 
                 return Ok(new ApiResponse<dynamic>(new

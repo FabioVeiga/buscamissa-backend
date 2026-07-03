@@ -94,7 +94,7 @@ namespace BuscaMissa.Controllers.v1
         {
             try
             {
-                if (!ModelState.IsValid) BadRequest();
+                if (!ModelState.IsValid) return BadRequest(ModelState);
                 var temUsuario = await usuarioService.BuscarPorEmailAsync(request.Email);
                 if (temUsuario is not null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Email já cadastrado!" }));
 
@@ -428,7 +428,6 @@ namespace BuscaMissa.Controllers.v1
                         .Replace("{solução}", request.Solucao)
                         .Replace("{ano}", DataHoraHelper.Ano())
                         );
-                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
                 return Ok(response);
             }
@@ -491,7 +490,6 @@ namespace BuscaMissa.Controllers.v1
                         .Replace("{respostaSolicitacao}", model.Resposta)
                         .Replace("{ano}", DataHoraHelper.Ano())
                         );
-                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
                 return Ok();
             }
