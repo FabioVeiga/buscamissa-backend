@@ -276,6 +276,13 @@ namespace BuscaMissa.Services.v1
                     var contato = CriarContato(item);
                     if (contato != null) igreja.Contato = contato;
 
+                    if (item.RedesSociais is { Count: > 0 })
+                    {
+                        igreja.RedesSociais = item.RedesSociais
+                            .Select(r => (RedeSocial)r)
+                            .ToList();
+                    }
+
                     context.Igrejas.Add(igreja);
                     await context.SaveChangesAsync();
                     chaves.Add(chaveNegocio); // evita reinserir a mesma igreja dentro do lote
