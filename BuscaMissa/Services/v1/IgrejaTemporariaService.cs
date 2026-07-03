@@ -2,6 +2,7 @@ using BuscaMissa.Context;
 using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.DTOs.MissaDto;
+using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,7 +39,7 @@ namespace BuscaMissa.Services.v1
                 {
                     Id = igrejaId,
                     Nome = igreja!.Nome,
-                    ImagemUrl = model.ImagemUrl,
+                    ImagemUrl = CacheBusterHelper.AdicionarCacheBuster(model.ImagemUrl, igreja.Alteracao),
                     Paroco = model.Paroco,
                     MissasTemporaria = [.. missasTemp.Select(item => (MissaResponse)item)],
                     Endereco = (EnderecoIgrejaResponse)igreja.Endereco
