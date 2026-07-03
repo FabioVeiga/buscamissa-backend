@@ -76,6 +76,10 @@ public class ProximasMissasService(
                 var missaResponse = (MissaResponse)candidata.Missa;
                 ConfiancaCalculator.PreencherConfianca(missaResponse, igreja.Alteracao);
 
+                var imagemUrl = igreja.ImagemUrl is null
+                    ? null
+                    : imagemService.ObterUrlAzureBlob($"igreja/{igreja.ImagemUrl}");
+
                 resultado.Add(new ProximaMissaDto
                 {
                     IgrejaId = igreja.Id,
@@ -84,9 +88,7 @@ public class ProximasMissasService(
                     Uf = igreja.Endereco.Uf,
                     CidadeSlug = igreja.Endereco.CidadeSlug ?? string.Empty,
                     Bairro = igreja.Endereco.Bairro,
-                    ImagemUrl = igreja.ImagemUrl is null
-                        ? null
-                        : imagemService.ObterUrlAzureBlob($"igreja/{igreja.ImagemUrl}"),
+                    ImagemUrl = CacheBusterHelper.AdicionarCacheBuster(imagemUrl, igreja.Alteracao),
                     Latitude = igreja.Endereco.Latitude,
                     Longitude = igreja.Endereco.Longitude,
                     Missa = missaResponse,

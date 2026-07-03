@@ -2,6 +2,7 @@ using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.DTOs.MissaDto;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Enums;
+using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Services;
 
@@ -38,7 +39,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 NomeUnico = igreja.NomeUnico,
                 Slug = igreja.Slug,
                 Paroco = igreja.Paroco,
-                ImagemUrl = igreja.ImagemUrl ?? string.Empty,
+                ImagemUrl = CacheBusterHelper.AdicionarCacheBuster(igreja.ImagemUrl, igreja.Alteracao),
                 Ativo = igreja.Ativo,
                 EmailCriacaoEnviado = false,
                 Criacao = igreja.Criacao,
@@ -50,7 +51,7 @@ namespace BuscaMissa.DTOs.IgrejaDto
                 Endereco = igreja.Endereco is null ? new EnderecoIgrejaResponse() : (EnderecoIgrejaResponse)igreja.Endereco,
                 Contato = igreja.Contato is null ? null : (IgrejaContatoResponse)igreja.Contato
             };
-           
+
             return modelo;
         }
     }
