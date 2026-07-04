@@ -14,6 +14,9 @@ public static class Constants
     public const string FrontendBaseUrlDefault = "https://buscamissa.com.br";
     // E-mail de suporte exibido ao usuário e usado como conta admin.
     public const string EmailSuporte = "suporte@buscamissa.com.br";
+    // Nome do secret no Key Vault que guarda a senha canônica do Admin (usado no login
+    // via SenhaHelper/DatabaseSeeder e re-sincronizado quando o Admin troca a própria senha).
+    public const string SecretNameSenhaAdmin = "SenhaAdmin";
 
     // Mensagem genérica para erros 500 — nunca retornar ex.Message ao cliente
     // (vaza detalhes internos). O erro completo vai para o log (Serilog).
