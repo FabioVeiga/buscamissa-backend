@@ -38,13 +38,13 @@ public class EngajamentoIgrejaController(
         catch (ApplicationException ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status400BadRequest, response);
         }
         catch (Exception ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
        
@@ -69,13 +69,13 @@ public class EngajamentoIgrejaController(
         catch (ApplicationException ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status400BadRequest, response);
         }
         catch (Exception ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
     }
@@ -101,13 +101,13 @@ public class EngajamentoIgrejaController(
         catch (ApplicationException ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status400BadRequest, response);
         }
         catch (Exception ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
         
@@ -129,13 +129,13 @@ public class EngajamentoIgrejaController(
         catch (ApplicationException ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status400BadRequest, response);
         }
         catch (Exception ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
     }
@@ -160,13 +160,13 @@ public class EngajamentoIgrejaController(
         catch (ApplicationException ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status400BadRequest, response);
         }
         catch (Exception ex)
         {
             logger.LogError("{Ex}", ex);
-            var response = new ApiResponse<dynamic>(ex.Message);
+            var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
             return StatusCode(StatusCodes.Status500InternalServerError, response);
         }
     }

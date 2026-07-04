@@ -41,7 +41,7 @@ public class ConfiabilidadeController(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro ao confirmar horários IgrejaId={IgrejaId}", igrejaId);
-            return StatusCode(500, new ApiResponse<string>(ex.Message));
+            return StatusCode(500, new ApiResponse<string>(BuscaMissa.Constants.Constants.MensagemErroInterno));
         }
     }
 
@@ -64,7 +64,7 @@ public class ConfiabilidadeController(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro ao obter resumo de confirmações IgrejaId={IgrejaId}", igrejaId);
-            return StatusCode(500, new ApiResponse<string>(ex.Message));
+            return StatusCode(500, new ApiResponse<string>(BuscaMissa.Constants.Constants.MensagemErroInterno));
         }
     }
 }

@@ -2,8 +2,6 @@ namespace BuscaMissa.Helpers
 {
     public static class SenhaHelper
     {
-        static readonly string salt = BCrypt.Net.BCrypt.GenerateSalt();
-
         public static string GerarSenhaTemporariaString()
         {
             return new Random().Next(100000, 999999).ToString();
@@ -15,7 +13,9 @@ namespace BuscaMissa.Helpers
         }
 
         public static string Encriptar(string input){
-            return BCrypt.Net.BCrypt.HashPassword(input, salt);
+            // Gera um salt aleatório por hash (embutido no resultado). Nunca reutilizar
+            // um salt fixo/estático — isso enfraquece o BCrypt.
+            return BCrypt.Net.BCrypt.HashPassword(input);
         }
         
         public static bool Validar(string senhaDigitada, string senhaDB){
