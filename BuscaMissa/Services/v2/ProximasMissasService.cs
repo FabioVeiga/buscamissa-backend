@@ -47,6 +47,19 @@ public class ProximasMissasService(
             var janelaDe = agora;
             var janelaAte = agora.AddHours(request.Horas);
 
+            // Bounding box: pré-filtra no banco para ~centenas de igrejas dentro da
+            // caixa, em vez de trazer toda a base e calcular distância em C# (3.H).
+            // A caixa é um super-conjunto do círculo; o filtro de distância abaixo
+            // refina de caixa → círculo.
+            var latRad = lat * Math.PI / 180.0;
+            var deltaLat = raio / 111.0;
+            var cosLat = Math.Cos(latRad);
+            var deltaLng = Math.Abs(cosLat) < 1e-9 ? 180.0 : raio / (111.0 * Math.Abs(cosLat));
+            var minLat = (decimal)(lat - deltaLat);
+            var maxLat = (decimal)(lat + deltaLat);
+            var minLng = (decimal)(lng - deltaLng);
+            var maxLng = (decimal)(lng + deltaLng);
+
             var igrejas = await context.Igrejas
                 .Include(x => x.Endereco)
                 .Include(x => x.Missas)
@@ -54,7 +67,11 @@ public class ProximasMissasService(
                 .Where(x =>
                     x.Ativo &&
                     x.Endereco.Latitude != null &&
-                    x.Endereco.Longitude != null)
+                    x.Endereco.Longitude != null &&
+                    x.Endereco.Latitude >= minLat &&
+                    x.Endereco.Latitude <= maxLat &&
+                    x.Endereco.Longitude >= minLng &&
+                    x.Endereco.Longitude <= maxLng)
                 .ToListAsync();
 
             var resultado = new List<ProximaMissaDto>();

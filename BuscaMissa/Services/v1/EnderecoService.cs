@@ -2,13 +2,20 @@ using BuscaMissa.Context;
 using BuscaMissa.DTOs.EnderecoDto;
 using BuscaMissa.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BuscaMissa.Services.v1
 {
-    public class EnderecoService(ApplicationDbContext context, ILogger<EnderecoService> logger)
+    public class EnderecoService(ApplicationDbContext context, ILogger<EnderecoService> logger, IMemoryCache cache)
     {
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<EnderecoService> _logger = logger;
+        private readonly IMemoryCache _cache = cache;
+
+        // Dados de endereços mudam pouco (só ao cadastrar/editar igreja); TTL curto
+        // evita reagrupar toda a base a cada carregamento da home (3.I).
+        private const string CacheKeyOrganizarEnderecos = "enderecos:organizados";
+        private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
 
         public async Task<Endereco> InserirAsync(EnderecoIgrejaRequest request)
         {
@@ -63,12 +70,16 @@ namespace BuscaMissa.Services.v1
         {
             try
             {
+            if (_cache.TryGetValue(CacheKeyOrganizarEnderecos,
+                    out Dictionary<string, Dictionary<string, List<string>>>? cached) && cached is not null)
+                return cached;
+
             var enderecos = await _context.Enderecos
                 .AsNoTracking()
                 .Where(x => x.Igreja.Ativo)
                 .ToListAsync();
 
-            return enderecos
+            var organizado = enderecos
                 .GroupBy(e => e.Uf)
                 .ToDictionary(
                 ufGroup => ufGroup.Key,
@@ -83,6 +94,9 @@ namespace BuscaMissa.Services.v1
                         .ToList()
                     )
                 );
+
+            _cache.Set(CacheKeyOrganizarEnderecos, organizado, CacheTtl);
+            return organizado;
             }
             catch (Exception ex)
             {
