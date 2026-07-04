@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Azure.Security.KeyVault.Secrets;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs.PaginacaoDto;
 using BuscaMissa.DTOs.UsuarioDto;
@@ -11,11 +12,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BuscaMissa.Services.v1
 {
-    public class UsuarioService(ApplicationDbContext context, ILogger<UsuarioService> logger, IConfiguration configuration)
+    public class UsuarioService(ApplicationDbContext context, ILogger<UsuarioService> logger, IConfiguration configuration, SecretClient secretClient)
     {
         private readonly ApplicationDbContext _context = context;
         private readonly ILogger<UsuarioService> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
+        private readonly SecretClient _secretClient = secretClient;
 
         public async Task<Usuario> InserirAsync(CriacaoUsuarioRequest request)
         {
@@ -48,6 +50,33 @@ namespace BuscaMissa.Services.v1
             if(!SenhaHelper.Validar(request.Senha, usuario.Senha))
                 return false;
             return true;
+        }
+
+        // Retorna false quando a senha atual informada não confere (uso pelo próprio usuário).
+        public async Task<bool> TrocarSenhaAsync(Usuario usuario, string senhaAtual, string novaSenha)
+        {
+            if (!SenhaHelper.Validar(senhaAtual, usuario.Senha))
+                return false;
+
+            await AtualizarSenhaAsync(usuario, novaSenha);
+            return true;
+        }
+
+        // Reset administrativo: não exige a senha atual (uso restrito ao perfil Admin).
+        public async Task ResetarSenhaAsync(Usuario usuario, string novaSenha)
+        {
+            await AtualizarSenhaAsync(usuario, novaSenha);
+        }
+
+        private async Task AtualizarSenhaAsync(Usuario usuario, string novaSenha)
+        {
+            usuario.Senha = SenhaHelper.Encriptar(novaSenha);
+            await EditarAsync(usuario);
+
+            // A senha do Admin também vive como secret no Key Vault (fonte usada pelo
+            // DatabaseSeeder na primeira criação do usuário); mantém os dois sincronizados.
+            if (usuario.Email.Equals(Constants.Constants.EmailSuporte, StringComparison.OrdinalIgnoreCase))
+                await _secretClient.SetSecretAsync(Constants.Constants.SecretNameSenhaAdmin, novaSenha);
         }
 
         public async Task<Usuario?> BuscarPorCodigo(int id)
@@ -111,7 +140,8 @@ namespace BuscaMissa.Services.v1
                 AceitarPromocao = x.AceitarPromocao,
                 AceitarTermo = x.AceitarTermo,
                 Bloqueado = x.Bloqueado,
-                MotivoBloqueio = x.MotivoBloqueio
+                MotivoBloqueio = x.MotivoBloqueio,
+                TotalIgrejas = x.Igrejas.Count
             })
             .AsNoTracking()
             .AsQueryable();
@@ -122,11 +152,32 @@ namespace BuscaMissa.Services.v1
                 query = query.Where(x => x.Email.Contains(filtro.Email));
             if(filtro.Bloqueado.HasValue)
                 query = query.Where(x => x.Bloqueado == filtro.Bloqueado.Value);
+            if(filtro.Perfil.HasValue)
+                query = query.Where(x => x.Perfil == filtro.Perfil.Value);
+            if(filtro.CriacaoInicio.HasValue)
+                query = query.Where(x => x.Criacao >= filtro.CriacaoInicio.Value);
+            if(filtro.CriacaoFim.HasValue)
+                query = query.Where(x => x.Criacao <= filtro.CriacaoFim.Value);
 
             var resultado = await query.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
             return resultado;
         }
-    
+
+        public async Task<List<IgrejaResumoResponse>> BuscarIgrejasDoUsuarioAsync(int usuarioId)
+        {
+            return await _context.Igrejas
+                .Where(x => x.UsuarioId == usuarioId)
+                .Select(x => new IgrejaResumoResponse
+                {
+                    Id = x.Id,
+                    Nome = x.Nome,
+                    Uf = x.Endereco.Uf,
+                    Localidade = x.Endereco.Localidade
+                })
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
     }
 }
 
