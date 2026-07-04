@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.SettingsDto;
@@ -42,6 +43,7 @@ builder.Configuration.AddAzureKeyVault(
     new Uri(keyVaultUri),
     new DefaultAzureCredential()
 );
+builder.Services.AddSingleton(new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential()));
 
 var secret = builder.Configuration["SecretApp"];
 var key = Encoding.ASCII.GetBytes(secret!);

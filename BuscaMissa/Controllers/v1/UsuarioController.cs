@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BuscaMissa.Constants;
 using BuscaMissa.DTOs;
 using BuscaMissa.DTOs.UsuarioDto;
@@ -97,6 +98,31 @@ namespace BuscaMissa.Controllers.v1
                     codigoValidador = codigoValidador.CodigoToken
 #endif
                 }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpPut]
+        [Route("trocar-senha")]
+        [Authorize]
+        public async Task<IActionResult> TrocarSenha([FromBody] TrocarSenhaRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                var usuario = await _usuarioService.BuscarPorEmailAsync(email!);
+                if (usuario == null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Usuário não existe!" }));
+
+                var alterado = await _usuarioService.TrocarSenhaAsync(usuario, request.SenhaAtual, request.NovaSenha);
+                if (!alterado) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Senha atual inválida!" }));
+
+                return Ok(new ApiResponse<dynamic>(new { mensagemTela = "Senha alterada com sucesso!" }));
             }
             catch (Exception ex)
             {

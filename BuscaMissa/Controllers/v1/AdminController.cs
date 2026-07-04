@@ -135,6 +135,46 @@ namespace BuscaMissa.Controllers.v1
             }
         }
 
+        [HttpGet]
+        [Route("usuario/{id}/igrejas")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BuscarIgrejasDoUsuarioAsync(int id)
+        {
+            try
+            {
+                var igrejas = await usuarioService.BuscarIgrejasDoUsuarioAsync(id);
+                return Ok(new ApiResponse<dynamic>(new { total = igrejas.Count, igrejas }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpPut]
+        [Route("usuario/resetar-senha/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetarSenhaAsync(int id, [FromBody] ResetarSenhaRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+                var model = await usuarioService.BuscarPorCodigo(id);
+                if (model == null) return NotFound(new ApiResponse<dynamic>("Usuário não encontrado"));
+
+                await usuarioService.ResetarSenhaAsync(model, request.NovaSenha);
+                return Ok(new ApiResponse<dynamic>(new { mensagemTela = "Senha resetada com sucesso!" }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         #endregion
 
         #region Igreja

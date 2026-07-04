@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using BuscaMissa.DTOs.UsuarioDto;
 using BuscaMissa.Enums;
 
@@ -8,6 +9,9 @@ namespace BuscaMissa.Models
     {
         [Key]
         public int Id { get; set; }
+        // Preenchido só na projeção de listagem (BuscarPorFiltroAsync); não é coluna do banco.
+        [NotMapped]
+        public int TotalIgrejas { get; set; }
         [Required]
         public string Nome { get; set; } = null!;
         [Required]
