@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Azure.Identity;
 using BuscaMissa.Context;
 using BuscaMissa.DTOs;
@@ -151,19 +152,67 @@ builder.Services.AddAuthentication(x =>
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(x =>
     {
-        x.RequireHttpsMetadata = false;
+        x.RequireHttpsMetadata = !env.Equals("Development", StringComparison.OrdinalIgnoreCase);
         x.SaveToken = true;
+        // Flag para ligar a validação de Issuer/Audience. Manter FALSE até que o token "App"
+        // hardcoded no frontend seja rotacionado por um novo token que contenha os claims
+        // iss/aud (item 1.1 da auditoria). Ligar antes disso derruba o site em produção.
+        var validarIssuerAudience = bool.TryParse(builder.Configuration["Jwt:ValidarIssuerAudience"], out var v) && v;
         x.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateIssuer = validarIssuerAudience,
+            ValidateAudience = validarIssuerAudience,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "BuscaMissa",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "BuscaMissaApi"
         };
     });
 
 // Adicionar autorização
 builder.Services.AddAuthorization();
+
+// Rate limiting (proteção contra brute force e scraping)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Limite global: por IP, 100 requisições por minuto
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var chave = httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+        return RateLimitPartition.GetFixedWindowLimiter(chave, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 100,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    // Política estrita para autenticação: 5 tentativas por minuto por IP
+    options.AddPolicy("autenticacao", httpContext =>
+    {
+        var chave = httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+        return RateLimitPartition.GetFixedWindowLimiter(chave, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    // Política para escrita anônima (confirmações/denúncias): 20 por minuto por IP
+    options.AddPolicy("escrita-anonima", httpContext =>
+    {
+        var chave = httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+        return RateLimitPartition.GetFixedWindowLimiter(chave, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+});
 
 // Adicionar controladores e serviços do Swagger, se necessário
 builder.Services.AddControllers();
@@ -197,9 +246,11 @@ if (!env.Equals("Production", StringComparison.OrdinalIgnoreCase))
 app.UseHttpsRedirection();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseRouting();
 app.UseCors("AllowLocalhost");
+app.UseRateLimiter();
 
 using (var scope = app.Services.CreateScope())
 {

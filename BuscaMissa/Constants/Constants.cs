@@ -8,4 +8,14 @@ public static class Constants
     public static string BuscaMissaSiteUrl = "https://buscamissa.com.br/";
     public static string BuscaMissaInstagramUrl = "https://www.instagram.com/buscamissa";
     public static string BuscaMissaFacebookUrl = "https://www.facebook.com/buscamissa";
+
+    // Fallback do FrontendBaseUrl quando a configuração não define (usado por
+    // AdminController, IgrejaController v2 e SitemapController).
+    public const string FrontendBaseUrlDefault = "https://buscamissa.com.br";
+    // E-mail de suporte exibido ao usuário e usado como conta admin.
+    public const string EmailSuporte = "suporte@buscamissa.com.br";
+
+    // Mensagem genérica para erros 500 — nunca retornar ex.Message ao cliente
+    // (vaza detalhes internos). O erro completo vai para o log (Serilog).
+    public const string MensagemErroInterno = "Ocorreu um erro ao processar a requisição. Tente novamente mais tarde.";
 }

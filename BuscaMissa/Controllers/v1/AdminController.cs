@@ -35,7 +35,7 @@ namespace BuscaMissa.Controllers.v1
         ) : ControllerBase
     {
         private readonly ControleService _controleService = controleService;
-        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? "https://buscamissa.com.br";
+        private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? BuscaMissa.Constants.Constants.FrontendBaseUrlDefault;
 
         #region Usuario
         [HttpGet]
@@ -58,7 +58,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -82,7 +82,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -94,7 +94,7 @@ namespace BuscaMissa.Controllers.v1
         {
             try
             {
-                if (!ModelState.IsValid) BadRequest();
+                if (!ModelState.IsValid) return BadRequest(ModelState);
                 var temUsuario = await usuarioService.BuscarPorEmailAsync(request.Email);
                 if (temUsuario is not null) return BadRequest(new ApiResponse<dynamic>(new { mensagemTela = "Email já cadastrado!" }));
 
@@ -107,7 +107,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -130,7 +130,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -169,7 +169,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -259,7 +259,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -315,7 +315,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -339,7 +339,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -358,7 +358,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -376,7 +376,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -394,7 +394,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -412,7 +412,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -440,14 +440,13 @@ namespace BuscaMissa.Controllers.v1
                         .Replace("{solução}", request.Solucao)
                         .Replace("{ano}", DataHoraHelper.Ano())
                         );
-                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -467,7 +466,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -503,14 +502,13 @@ namespace BuscaMissa.Controllers.v1
                         .Replace("{respostaSolicitacao}", model.Resposta)
                         .Replace("{ano}", DataHoraHelper.Ano())
                         );
-                    Console.WriteLine(@"Email enviado: {responseEmail}" ?? "Email não enviado!");
                 }
                 return Ok();
             }
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -529,7 +527,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -555,7 +553,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -577,7 +575,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -603,7 +601,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -629,7 +627,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
@@ -662,7 +660,7 @@ namespace BuscaMissa.Controllers.v1
             catch (Exception ex)
             {
                 logger.LogError("{Ex}", ex);
-                var response = new ApiResponse<dynamic>(ex.Message);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }

@@ -26,7 +26,6 @@ namespace BuscaMissa.Services.v1
             {
                 _logger.LogError("Erro ao enviar email: {Errors}", response);
             }
-            System.Console.WriteLine(html);
 
             return response.MessageId;
         }
@@ -51,7 +50,7 @@ namespace BuscaMissa.Services.v1
             var response = await _mailerSendEmailClient.SendEmailAsync(parameters, cancellationToken);
             if (response is { Errors.Count: > 0 })
             {
-                Console.WriteLine(response);
+                _logger.LogError("Erro ao enviar email: {Errors}", response);
             }
 
             return response.MessageId;
@@ -71,7 +70,7 @@ namespace BuscaMissa.Services.v1
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError("{Ex}", ex);
                 throw;
             }
         }
