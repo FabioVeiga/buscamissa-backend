@@ -1,3 +1,4 @@
+using BuscaMissa.DTOs.IgrejaDto;
 using BuscaMissa.Enums;
 
 namespace BuscaMissa.DTOs.v1.IgrejaDto;
@@ -38,6 +39,9 @@ public class ImportacaoIgrejaItemRequest
     // Coordenadas (geocodificadas) — localizam o ponto mesmo sem CEP
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
+
+    // Redes sociais da paróquia (opcional) — mesma validação/normalização do PUT admin
+    public IList<RedeSolcialIgrejaRequest>? RedesSociais { get; set; }
 }
 
 public class ImportacaoMissaRequest

@@ -185,11 +185,23 @@ namespace BuscaMissa.Controllers.v1
                 var igreja = await igrejaService.BuscarPorIdAsync(request.Id);
                 if (igreja is null) return NotFound(new ApiResponse<dynamic>(new { messagemAplicacao = "Igreja não encontrada!" }));
 
-                if (!string.IsNullOrEmpty(request.Imagem))
+                // Tratar alteração de imagem
+                if (request.Imagem != null)
                 {
-                    igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
-                    imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
+                    if (string.IsNullOrEmpty(request.Imagem))
+                    {
+                        // Imagem foi removida explicitamente
+                        igreja.ImagemUrl = null;
+                        // TODO: deletar arquivo do Azure se necessário
+                    }
+                    else
+                    {
+                        // Nova imagem foi carregada
+                        igreja.ImagemUrl = $"{igreja.Id}{ImageHelper.BuscarExtensao(request.Imagem)}";
+                        imagemService.UploadAzure(request.Imagem, "igreja", igreja.ImagemUrl);
+                    }
                 }
+                // Se Imagem for null, não faz nada (mantém a imagem existente)
 
                 if (request.RedeSociais is not null)
                 {
