@@ -1,7 +1,6 @@
 namespace BuscaMissa.DTOs.MetricasDto;
 
-public record DashboardMetricasResponse(
-    TotaisSistemaResponse Totais,
+public record RankingsResponse(
     IList<RankingIgrejaResponse> MaisVisualizadas,
     IList<RankingIgrejaResponse> MaisFavoritadas,
     IList<RankingIgrejaResponse> MaisCompartilhadas,

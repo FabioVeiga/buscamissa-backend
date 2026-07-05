@@ -439,15 +439,17 @@ namespace BuscaMissa.Controllers.v1
             }
         }
 
+        // Etapa 8: endpoint único da tela de Indicadores (Cards + Rankings + Período + DataConsulta),
+        // evitando múltiplas chamadas do frontend.
         [HttpGet]
-        [Route("metricas/dashboard")]
+        [Route("indicadores")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> ObterDashboardMetricas()
+        public async Task<ActionResult> ObterIndicadores([FromQuery] DateOnly? dataInicial, [FromQuery] DateOnly? dataFinal)
         {
             try
             {
-                var dashboard = await servicoConsultaMetricas.ObterDashboardAsync();
-                return Ok(new ApiResponse<dynamic>(dashboard));
+                var indicadores = await servicoConsultaMetricas.ObterIndicadoresAsync(dataInicial: dataInicial, dataFinal: dataFinal);
+                return Ok(new ApiResponse<dynamic>(indicadores));
             }
             catch (Exception ex)
             {

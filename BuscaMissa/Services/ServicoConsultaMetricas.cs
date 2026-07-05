@@ -48,31 +48,41 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
         return rows.Select(x => new MetricaResumoResponse(x.TipoMetrica, x.Quantidade)).ToList();
     }
 
-    public async Task<IList<RankingItemResponse>> ObterRankingMaisVisualizadasAsync(int top = 10, int dias = 30)
-        => await ObterRankingAsync(TipoMetricaEnum.VisualizacaoIgreja, top, dias);
+    public async Task<IList<RankingItemResponse>> ObterRankingMaisVisualizadasAsync(
+        int top = 10, DateOnly? dataInicio = null, DateOnly? dataFim = null)
+        => await ObterRankingAsync(TipoMetricaEnum.VisualizacaoIgreja, top, dataInicio, dataFim);
 
-    public async Task<IList<RankingItemResponse>> ObterRankingMaisFavoritadasAsync(int top = 10, int dias = 30)
-        => await ObterRankingAsync(TipoMetricaEnum.Favorito, top, dias);
+    public async Task<IList<RankingItemResponse>> ObterRankingMaisFavoritadasAsync(
+        int top = 10, DateOnly? dataInicio = null, DateOnly? dataFim = null)
+        => await ObterRankingAsync(TipoMetricaEnum.Favorito, top, dataInicio, dataFim);
 
-    public async Task<IList<RankingItemResponse>> ObterRankingMaisCompartilhadasAsync(int top = 10, int dias = 30)
-        => await ObterRankingAsync(TipoMetricaEnum.Compartilhamento, top, dias);
+    public async Task<IList<RankingItemResponse>> ObterRankingMaisCompartilhadasAsync(
+        int top = 10, DateOnly? dataInicio = null, DateOnly? dataFim = null)
+        => await ObterRankingAsync(TipoMetricaEnum.Compartilhamento, top, dataInicio, dataFim);
 
-    public async Task<IList<RankingItemResponse>> ObterRankingMaisRotasAbertasAsync(int top = 10, int dias = 30)
-        => await ObterRankingAsync(TipoMetricaEnum.CliqueRota, top, dias);
+    public async Task<IList<RankingItemResponse>> ObterRankingMaisRotasAbertasAsync(
+        int top = 10, DateOnly? dataInicio = null, DateOnly? dataFim = null)
+        => await ObterRankingAsync(TipoMetricaEnum.CliqueRota, top, dataInicio, dataFim);
 
+    // Sem DataInicial/DataFinal informados, considera todo o histórico (sem filtro de data).
     private async Task<IList<RankingItemResponse>> ObterRankingAsync(
-        TipoMetricaEnum tipoMetrica, int top, int dias)
+        TipoMetricaEnum tipoMetrica, int top, DateOnly? dataInicio, DateOnly? dataFim)
     {
-        var dataInicio = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-dias);
-
-        // Projeção com tipo anônimo para compatibilidade com EF Core/MySQL:
-        // records com construtor parametrizado não são suportados na tradução SQL.
-        var rows = await context.MetricasDiarias
+        var query = context.MetricasDiarias
             .AsNoTracking()
             .Where(x =>
                 x.TipoEntidade == TipoEntidadeMetricaEnum.Igreja &&
-                x.TipoMetrica == tipoMetrica &&
-                x.Data >= dataInicio)
+                x.TipoMetrica == tipoMetrica);
+
+        if (dataInicio is not null)
+            query = query.Where(x => x.Data >= dataInicio);
+
+        if (dataFim is not null)
+            query = query.Where(x => x.Data <= dataFim);
+
+        // Projeção com tipo anônimo para compatibilidade com EF Core/MySQL:
+        // records com construtor parametrizado não são suportados na tradução SQL.
+        var rows = await query
             .GroupBy(x => x.EntidadeId)
             .Select(g => new { EntidadeId = g.Key, Quantidade = g.Sum(x => x.Quantidade) })
             .OrderByDescending(x => x.Quantidade)
@@ -82,32 +92,51 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
         return rows.Select(x => new RankingItemResponse(x.EntidadeId, x.Quantidade)).ToList();
     }
 
-    /// <summary>Resolve o ranking (Id + Quantidade) para o formato exibível no dashboard, com o nome da igreja.</summary>
+    /// <summary>Resolve o ranking (Id + Quantidade) para o formato exibível no dashboard, com nome/cidade/UF da igreja.</summary>
     private async Task<IList<RankingIgrejaResponse>> ObterRankingIgrejasAsync(
-        TipoMetricaEnum tipoMetrica, int top, int dias)
+        TipoMetricaEnum tipoMetrica, int top, DateOnly? dataInicio, DateOnly? dataFim)
     {
-        var ranking = await ObterRankingAsync(tipoMetrica, top, dias);
+        var ranking = await ObterRankingAsync(tipoMetrica, top, dataInicio, dataFim);
         if (ranking.Count == 0) return new List<RankingIgrejaResponse>();
 
         var ids = ranking.Select(x => x.EntidadeId).ToList();
-        var nomes = await context.Igrejas
+        var igrejas = await context.Igrejas
+            .Include(x => x.Endereco)
             .AsNoTracking()
             .Where(x => ids.Contains(x.Id))
-            .ToDictionaryAsync(x => x.Id, x => x.Nome);
+            .ToDictionaryAsync(x => x.Id, x => new { x.Nome, Cidade = x.Endereco.Localidade, x.Endereco.Uf });
 
+        // Ordenação: quantidade decrescente; em empate, por nome (regra da Etapa 2).
         return ranking
-            .Select(x => new RankingIgrejaResponse(x.EntidadeId, nomes.GetValueOrDefault(x.EntidadeId, "—"), x.Quantidade))
+            .Select(x =>
+            {
+                var dados = igrejas.GetValueOrDefault(x.EntidadeId);
+                return new RankingIgrejaResponse(
+                    x.EntidadeId,
+                    dados?.Nome ?? "—",
+                    dados?.Cidade ?? "—",
+                    dados?.Uf ?? "—",
+                    x.Quantidade);
+            })
+            .OrderByDescending(x => x.Quantidade)
+            .ThenBy(x => x.Nome)
             .ToList();
     }
 
-    /// <summary>Totais gerais do sistema (todas as igrejas) nos últimos 30 dias.</summary>
-    public async Task<TotaisSistemaResponse> ObterTotaisSistemaUltimos30DiasAsync()
+    /// <summary>Totais gerais do sistema (todas as igrejas). Sem datas informadas, considera todo o histórico.</summary>
+    public async Task<TotaisSistemaResponse> ObterTotaisSistemaAsync(DateOnly? dataInicio = null, DateOnly? dataFim = null)
     {
-        var dataInicio = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
-
-        var totais = await context.MetricasDiarias
+        var query = context.MetricasDiarias
             .AsNoTracking()
-            .Where(x => x.TipoEntidade == TipoEntidadeMetricaEnum.Igreja && x.Data >= dataInicio)
+            .Where(x => x.TipoEntidade == TipoEntidadeMetricaEnum.Igreja);
+
+        if (dataInicio is not null)
+            query = query.Where(x => x.Data >= dataInicio);
+
+        if (dataFim is not null)
+            query = query.Where(x => x.Data <= dataFim);
+
+        var totais = await query
             .GroupBy(x => x.TipoMetrica)
             .Select(g => new { Tipo = g.Key, Total = g.Sum(x => x.Quantidade) })
             .ToListAsync();
@@ -120,16 +149,23 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
             Obter(TipoMetricaEnum.Compartilhamento));
     }
 
-    /// <summary>Dados completos da tela de Indicadores: totais do sistema + 4 rankings de igrejas.</summary>
-    public async Task<DashboardMetricasResponse> ObterDashboardAsync(int top = 10, int dias = 30)
+    /// <summary>
+    /// Payload único da tela de Indicadores (Cards + Rankings + Período + DataConsulta) — Etapa 8:
+    /// substitui múltiplas chamadas por uma única consulta ao backend.
+    /// DataInicial/DataFinal são opcionais — se ausentes, considera todo o histórico (Etapa 1).
+    /// </summary>
+    public async Task<IndicadoresResponse> ObterIndicadoresAsync(
+        int top = 10, DateOnly? dataInicial = null, DateOnly? dataFinal = null)
     {
-        var totais = await ObterTotaisSistemaUltimos30DiasAsync();
-        var maisVisualizadas = await ObterRankingIgrejasAsync(TipoMetricaEnum.VisualizacaoIgreja, top, dias);
-        var maisFavoritadas = await ObterRankingIgrejasAsync(TipoMetricaEnum.Favorito, top, dias);
-        var maisCompartilhadas = await ObterRankingIgrejasAsync(TipoMetricaEnum.Compartilhamento, top, dias);
-        var maisRotasAbertas = await ObterRankingIgrejasAsync(TipoMetricaEnum.CliqueRota, top, dias);
+        var cards = await ObterTotaisSistemaAsync(dataInicial, dataFinal);
+        var maisVisualizadas = await ObterRankingIgrejasAsync(TipoMetricaEnum.VisualizacaoIgreja, top, dataInicial, dataFinal);
+        var maisFavoritadas = await ObterRankingIgrejasAsync(TipoMetricaEnum.Favorito, top, dataInicial, dataFinal);
+        var maisCompartilhadas = await ObterRankingIgrejasAsync(TipoMetricaEnum.Compartilhamento, top, dataInicial, dataFinal);
+        var maisRotasAbertas = await ObterRankingIgrejasAsync(TipoMetricaEnum.CliqueRota, top, dataInicial, dataFinal);
 
-        return new DashboardMetricasResponse(
-            totais, maisVisualizadas, maisFavoritadas, maisCompartilhadas, maisRotasAbertas);
+        var rankings = new RankingsResponse(maisVisualizadas, maisFavoritadas, maisCompartilhadas, maisRotasAbertas);
+        var periodo = new PeriodoResponse(dataInicial, dataFinal);
+
+        return new IndicadoresResponse(cards, rankings, periodo, DateTime.UtcNow);
     }
 }
