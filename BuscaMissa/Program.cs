@@ -63,6 +63,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     })
 );
 
+builder.Services.AddMemoryCache(); // cache de dados quentes (ex.: obter-enderecos) — 3.I
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<ViaCepService>();
 builder.Services.AddHttpClient<BuscaMissa.Services.GeocodingService>();
