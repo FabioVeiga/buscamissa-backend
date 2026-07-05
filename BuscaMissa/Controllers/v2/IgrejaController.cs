@@ -160,6 +160,25 @@ namespace BuscaMissa.Controllers.v2
             _ => null
         };
 
+        // Backfill sob demanda de Slug/CidadeSlug para igrejas que nasceram sem esses campos
+        // (ex: criadas via CriarIgrejaAsync antes da correção, ou registros legados).
+        // Reaproveita a mesma rotina idempotente executada no startup, sem exigir restart do processo.
+        [HttpPost("backfill-slugs")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult BackfillSlugs()
+        {
+            try
+            {
+                SlugBackfillService.Executar(dbContext);
+                return Ok(new ApiResponse<dynamic>(new { messagemAplicacao = "Backfill de slugs executado." }));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno));
+            }
+        }
+
         // Endpoint admin: busca completa por Id, sem filtrar por Ativo (uso no painel administrativo)
         [HttpGet("admin/{id:int}")]
         [Authorize(Roles = "Admin")]
