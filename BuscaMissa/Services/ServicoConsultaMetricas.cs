@@ -1,6 +1,7 @@
 using BuscaMissa.Context;
 using BuscaMissa.DTOs.MetricasDto;
 using BuscaMissa.Enums;
+using BuscaMissa.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace BuscaMissa.Services;
@@ -33,7 +34,7 @@ public class ServicoConsultaMetricas(ApplicationDbContext context)
     public async Task<IList<MetricaResumoResponse>> ObterMetricasUltimos30DiasAsync(
         TipoEntidadeMetricaEnum tipoEntidade, int entidadeId)
     {
-        var dataInicio = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
+        var dataInicio = DataHoraHelper.HojeBrasil().AddDays(-30);
 
         var rows = await context.MetricasDiarias
             .AsNoTracking()

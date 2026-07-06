@@ -1,4 +1,5 @@
 using BuscaMissa.Enums;
+using BuscaMissa.Helpers;
 using BuscaMissa.Models;
 using BuscaMissa.Repositorios;
 
@@ -15,7 +16,7 @@ public class ServicoMetricas(
     {
         try
         {
-            var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+            var hoje = DataHoraHelper.HojeBrasil();
 
             var metrica = await repositorio.ObterAsync(tipoEntidade, entidadeId, tipoMetrica, hoje);
 
