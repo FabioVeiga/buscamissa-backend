@@ -4,6 +4,31 @@ namespace BuscaMissa.Helpers
 {
     public static class DataHoraHelper
     {
+        // Fuso horário padrão do Brasil — Windows e Linux têm IDs diferentes.
+        // Brasil não observa mais horário de verão (desde 2019), então é fixo em UTC-3.
+        public static readonly TimeZoneInfo FusoBrasilia = CarregarFusoBrasilia();
+
+        private static TimeZoneInfo CarregarFusoBrasilia()
+        {
+            foreach (var id in new[] { "E. South America Standard Time", "America/Sao_Paulo" })
+            {
+                try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+                catch { /* tenta o próximo */ }
+            }
+            return TimeZoneInfo.Utc; // fallback improvável — UTC-0 melhor do que exceção
+        }
+
+        /// <summary>Hora atual no fuso do Brasil, a partir de DateTime.UtcNow.</summary>
+        public static DateTime AgoraBrasil() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, FusoBrasilia);
+
+        /// <summary>
+        /// Dia de hoje no fuso do Brasil. Usar sempre que "hoje" for atribuído a um
+        /// registro (ex: agregação diária de métricas) — DateOnly.FromDateTime(DateTime.UtcNow)
+        /// vira o dia ~3h antes da meia-noite real no Brasil (ex: 21h de domingo já é
+        /// segunda em UTC).
+        /// </summary>
+        public static DateOnly HojeBrasil() => DateOnly.FromDateTime(AgoraBrasil());
+
         public static string Formatar(DateTime dateTime)
         {
             return dateTime.ToString("dd/MM/yyyy HH:mm");

@@ -13,19 +13,6 @@ public class ProximasMissasService(
     ImagemService imagemService,
     ILogger<ProximasMissasService> logger)
 {
-    // Fuso horário padrão do Brasil — Windows e Linux têm IDs diferentes
-    private static readonly TimeZoneInfo FusoBrasilia = CarregarFusoBrasilia();
-
-    private static TimeZoneInfo CarregarFusoBrasilia()
-    {
-        foreach (var id in new[] { "E. South America Standard Time", "America/Sao_Paulo" })
-        {
-            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
-            catch { /* tenta o próximo */ }
-        }
-        return TimeZoneInfo.Utc; // fallback improvável — UTC-0 melhor do que exceção
-    }
-
     // Coords SP metro usadas quando usuário não fornece localização
     private const double FallbackLat = -23.5505;
     private const double FallbackLng = -46.6333;
@@ -43,7 +30,7 @@ public class ProximasMissasService(
 
         try
         {
-            var agora = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, FusoBrasilia);
+            var agora = DataHoraHelper.AgoraBrasil();
             var janelaDe = agora;
             var janelaAte = agora.AddHours(request.Horas);
 
