@@ -721,19 +721,28 @@ namespace BuscaMissa.Services.v1
                     model.Endereco.CidadeSlug = IgrejaHelper.CriarCidadeSlug(model.Endereco.Localidade);
                 }
 
-                model.NomeUnico = await GerarSlugUnicoAsync(
-                    IgrejaHelper.CriarNomeUnico(model),
-                    model.Endereco.Bairro,
-                    model.Endereco.Logradouro,
-                    model.Id);
+                // NomeUnico/Slug só são gerados uma vez (na criação ou no backfill). Regenerar a cada
+                // edição quebraria links já compartilhados/enviados por e-mail sempre que o nome da
+                // igreja mudasse (ex: correção de digitação passava a apontar para uma URL diferente).
+                if (string.IsNullOrWhiteSpace(model.NomeUnico))
+                {
+                    model.NomeUnico = await GerarSlugUnicoAsync(
+                        IgrejaHelper.CriarNomeUnico(model),
+                        model.Endereco.Bairro,
+                        model.Endereco.Logradouro,
+                        model.Id);
+                }
 
-                model.Slug = await GerarSlugLocalUnicoAsync(
-                    IgrejaHelper.CriarSlugLocal(model.Nome),
-                    model.Endereco.Bairro,
-                    model.Endereco.Logradouro,
-                    model.Endereco.Uf,
-                    model.Endereco.CidadeSlug,
-                    model.Id);
+                if (string.IsNullOrWhiteSpace(model.Slug))
+                {
+                    model.Slug = await GerarSlugLocalUnicoAsync(
+                        IgrejaHelper.CriarSlugLocal(model.Nome),
+                        model.Endereco.Bairro,
+                        model.Endereco.Logradouro,
+                        model.Endereco.Uf,
+                        model.Endereco.CidadeSlug,
+                        model.Id);
+                }
 
                 var listExcluir = model.Missas.Where(x => !request.Missas.Any(y => y.Id == x.Id)).ToList();
                 await RemoverMissaAsync(listExcluir);
