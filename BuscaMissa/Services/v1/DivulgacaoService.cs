@@ -100,13 +100,13 @@ public class DivulgacaoService(
         return modo switch
         {
             ModoDivulgacaoEnum.SemContatoEmail => query
-                .Where(x => x.Contato != null && x.Contato.EmailContato != null)
+                .Where(x => x.Contato != null && !string.IsNullOrWhiteSpace(x.Contato.EmailContato))
                 .Where(x => !context.EmailEventosIgreja.Any(e =>
                     e.IgrejaId == x.Id && e.Canal == CanalContatoEnum.Email && e.Enviado)),
 
             ModoDivulgacaoEnum.SemEmailAlteracaoPendente => query
                 .Where(x => x.Alteracao > x.Criacao)
-                .Where(x => x.Contato != null && x.Contato.EmailContato != null)
+                .Where(x => x.Contato != null && !string.IsNullOrWhiteSpace(x.Contato.EmailContato))
                 .Where(x => !context.EmailEventosIgreja.Any(e =>
                     e.IgrejaId == x.Id &&
                     e.Tipo == TipoEmailEventoIgrejaEnum.Alteracao &&
