@@ -9,6 +9,8 @@ namespace BuscaMissa.DTOs.ControleDto
         public DateTime DataCriacao { get; set; }
         public string Tipo { get; set; } = default!;
         public int? IgrejaId { get; set; }
+        public string? UsuarioNome { get; set; }
+        public string? UsuarioEmail { get; set; }
 
         // Nulo para criação (não há "antes" — a igreja ainda não existe publicamente).
         public DadosComparacaoResponse? DadosAtuais { get; set; }
