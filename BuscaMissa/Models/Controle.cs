@@ -10,5 +10,6 @@ namespace BuscaMissa.Models
         public StatusEnum Status { get; set; }
         public int? IgrejaId { get; set; }
         public Igreja? Igreja { get; set; }
+        public DateTime DataCriacao { get; set; } = DateTime.Now;
     }
 }
