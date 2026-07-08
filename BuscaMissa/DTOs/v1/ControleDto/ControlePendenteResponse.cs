@@ -14,6 +14,11 @@ namespace BuscaMissa.DTOs.ControleDto
         public string? Cidade { get; set; }
         public string? Uf { get; set; }
 
+        // Nulo em criações ainda não aprovadas — o contribuidor só é vinculado à
+        // igreja quando o Admin aprova (ver AprovacaoService.AprovarAsync).
+        public string? UsuarioNome { get; set; }
+        public string? UsuarioEmail { get; set; }
+
         // "Criacao" ou "Alteracao" — derivado do Status.
         public string Tipo { get; set; } = default!;
     }

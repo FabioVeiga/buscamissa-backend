@@ -40,6 +40,8 @@ public class AprovacaoService(
             var query = context.Controles
                 .Include(x => x.Igreja)
                 .ThenInclude(x => x!.Endereco)
+                .Include(x => x.Igreja)
+                .ThenInclude(x => x!.Usuario)
                 .AsNoTracking()
                 .AsQueryable();
 
@@ -63,6 +65,8 @@ public class AprovacaoService(
                     Cidade = x.Igreja.Endereco.Localidade,
                     Uf = x.Igreja.Endereco.Uf,
                     Tipo = ObterTipo(x.Status),
+                    UsuarioNome = x.Igreja.Usuario != null ? x.Igreja.Usuario.Nome : null,
+                    UsuarioEmail = x.Igreja.Usuario != null ? x.Igreja.Usuario.Email : null,
                 })
                 .ToListAsync();
 
@@ -83,6 +87,8 @@ public class AprovacaoService(
             .ThenInclude(x => x!.Endereco)
             .Include(x => x.Igreja)
             .ThenInclude(x => x!.Missas)
+            .Include(x => x.Igreja)
+            .ThenInclude(x => x!.Usuario)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == controleId);
 
@@ -96,6 +102,8 @@ public class AprovacaoService(
             DataCriacao = controle.DataCriacao,
             Tipo = tipo,
             IgrejaId = controle.IgrejaId,
+            UsuarioNome = controle.Igreja.Usuario?.Nome,
+            UsuarioEmail = controle.Igreja.Usuario?.Email,
         };
 
         if (tipo == "Criacao")
