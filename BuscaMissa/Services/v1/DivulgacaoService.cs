@@ -127,6 +127,16 @@ public class DivulgacaoService(
         };
     }
 
+    private string ConstruirLinkPagina(Igreja igreja) => string.Concat(
+        FrontendBaseUrl,
+        "/paroquia/",
+        igreja.Endereco.Uf.ToLower(),
+        "/",
+        igreja.Endereco.CidadeSlug,
+        "/",
+        igreja.Slug
+    );
+
     public async Task<bool> EnviarEmailAsync(Igreja igreja, bool criacao)
     {
         var emailContato = igreja.Contato?.EmailContato;
@@ -141,15 +151,7 @@ public class DivulgacaoService(
             if (string.IsNullOrWhiteSpace(emailContato))
                 return false;
 
-            var url = string.Concat(
-                FrontendBaseUrl,
-                "/paroquia/",
-                igreja.Endereco.Uf.ToLower(),
-                "/",
-                igreja.Endereco.CidadeSlug,
-                "/",
-                igreja.Slug
-            );
+            var url = ConstruirLinkPagina(igreja);
 
             if (criacao)
             {
@@ -259,6 +261,68 @@ public class DivulgacaoService(
         }
     }
 
+    /// <summary>
+    /// Mesmo e-mail de contato em várias igrejas (diocese, secretaria paroquial etc.) —
+    /// envia um único e-mail com a lista de todas, mas registra um EmailEventoIgreja por
+    /// igreja (mesma DataEnvio), pra não quebrar os filtros/contadores que são por igreja.
+    /// </summary>
+    private async Task<bool> EnviarEmailMultiploAsync(IList<Igreja> igrejas, bool criacao)
+    {
+        var emailContato = igrejas[0].Contato?.EmailContato;
+        var tipoEvento = criacao ? TipoEmailEventoIgrejaEnum.Criacao : TipoEmailEventoIgrejaEnum.Alteracao;
+        var nomesGrupo = string.Join(", ", igrejas.Select(x => x.Nome));
+
+        var assunto = criacao
+            ? $"#Busca Missa - Cadastro de {igrejas.Count} igrejas"
+            : $"#Busca Missa - Atualização das informações de {igrejas.Count} igrejas";
+
+        var itens = igrejas
+            .Select(igreja => (igreja.Nome, ConstruirLinkPagina(igreja)))
+            .ToList();
+
+        var html = EmailHtmlGenerator.GerarHtmlEmailMultiplasIgrejas(itens, criacao);
+
+        bool enviado;
+        try
+        {
+            var responseEmail = await emailService.EnviarEmail([emailContato!], assunto, html);
+            enviado = !string.IsNullOrWhiteSpace(responseEmail);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro ao enviar e-mail consolidado para {Email} ({Total} igrejas)", emailContato, igrejas.Count);
+            enviado = false;
+        }
+
+        foreach (var igreja in igrejas)
+        {
+            try
+            {
+                await emailEventoIgrejaService.InserirAsync(new CriarEmailEventoIgrejaRequest
+                {
+                    IgrejaId = igreja.Id,
+                    Tipo = tipoEvento,
+                    Assunto = assunto,
+                    EmailDestino = emailContato,
+                    NomeDestino = igreja.Nome,
+                    Html = html,
+                    Ativo = true,
+                    Enviado = enviado,
+                    DataEnvio = enviado ? DateTime.UtcNow : null,
+                    Observacao = enviado
+                        ? $"E-mail consolidado enviado junto com: {nomesGrupo}."
+                        : "Tentativa de envio de e-mail consolidado realizada, porém o serviço de e-mail não retornou confirmação."
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Erro ao registrar evento de e-mail consolidado. IgrejaId: {IgrejaId}", igreja.Id);
+            }
+        }
+
+        return enviado;
+    }
+
     public async Task<EnviarEmailLoteResponse> EnviarEmailLoteAsync(EnviarEmailLoteRequest request)
     {
         var criacao = request.Tipo.Contains("criacao", StringComparison.OrdinalIgnoreCase);
@@ -274,32 +338,45 @@ public class DivulgacaoService(
             TotalSolicitado = request.IgrejaIds.Count
         };
 
-        foreach (var igreja in igrejas)
+        var semEmail = igrejas.Where(x => string.IsNullOrWhiteSpace(x.Contato?.EmailContato)).ToList();
+        foreach (var igreja in semEmail)
         {
-            if (string.IsNullOrWhiteSpace(igreja.Contato?.EmailContato))
+            response.Falhas.Add(new EnvioLoteFalhaResponse
             {
-                response.Falhas.Add(new EnvioLoteFalhaResponse
-                {
-                    IgrejaId = igreja.Id,
-                    Nome = igreja.Nome,
-                    Motivo = "Igreja não possui e-mail de contato cadastrado."
-                });
-                continue;
-            }
+                IgrejaId = igreja.Id,
+                Nome = igreja.Nome,
+                Motivo = "Igreja não possui e-mail de contato cadastrado."
+            });
+        }
 
-            var enviado = await EnviarEmailAsync(igreja, criacao);
+        // Mesmo e-mail cadastrado em várias igrejas do lote → um único e-mail consolidado
+        // em vez de um por igreja (evita spam pro mesmo contato, ex: diocese/secretaria).
+        var grupos = igrejas
+            .Where(x => !string.IsNullOrWhiteSpace(x.Contato?.EmailContato))
+            .GroupBy(x => x.Contato!.EmailContato!.Trim().ToLowerInvariant());
+
+        foreach (var grupo in grupos)
+        {
+            var igrejasDoGrupo = grupo.ToList();
+            var enviado = igrejasDoGrupo.Count > 1
+                ? await EnviarEmailMultiploAsync(igrejasDoGrupo, criacao)
+                : await EnviarEmailAsync(igrejasDoGrupo[0], criacao);
+
             if (enviado)
             {
-                response.TotalEnviado++;
+                response.TotalEnviado += igrejasDoGrupo.Count;
             }
             else
             {
-                response.Falhas.Add(new EnvioLoteFalhaResponse
+                foreach (var igreja in igrejasDoGrupo)
                 {
-                    IgrejaId = igreja.Id,
-                    Nome = igreja.Nome,
-                    Motivo = "Falha ao enviar e-mail. Veja os logs para mais detalhes."
-                });
+                    response.Falhas.Add(new EnvioLoteFalhaResponse
+                    {
+                        IgrejaId = igreja.Id,
+                        Nome = igreja.Nome,
+                        Motivo = "Falha ao enviar e-mail. Veja os logs para mais detalhes."
+                    });
+                }
             }
         }
 
