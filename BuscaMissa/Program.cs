@@ -75,6 +75,7 @@ builder.Services.AddScoped<IgrejaService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ImagemService>();
 builder.Services.AddScoped<IgrejaTemporariaService>();
+builder.Services.AddScoped<AprovacaoService>();
 builder.Services.AddScoped<ContatoService>();
 builder.Services.AddScoped<IgrejaReportarProblemaService>();
 builder.Services.AddScoped<SolicitacaoService>();

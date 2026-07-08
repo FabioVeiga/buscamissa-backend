@@ -66,11 +66,15 @@ namespace BuscaMissa.Services.v1
             }
         }
 
-        public async Task<Dictionary<string, Dictionary<string, List<string>>>> OrganizarEnderecosAsync()
+        // ignorarCache: usado pelo Admin ao ajustar dados de igreja e precisar ver o
+        // resultado imediatamente, sem esperar o TTL de 10 minutos. O cache é
+        // recalculado e reescrito normalmente, só não é lido nessa chamada.
+        public async Task<Dictionary<string, Dictionary<string, List<string>>>> OrganizarEnderecosAsync(bool ignorarCache = false)
         {
             try
             {
-            if (_cache.TryGetValue(CacheKeyOrganizarEnderecos,
+            if (!ignorarCache &&
+                _cache.TryGetValue(CacheKeyOrganizarEnderecos,
                     out Dictionary<string, Dictionary<string, List<string>>>? cached) && cached is not null)
                 return cached;
 
