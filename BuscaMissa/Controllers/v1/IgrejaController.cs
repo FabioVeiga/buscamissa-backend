@@ -277,11 +277,11 @@ namespace BuscaMissa.Controllers.v1
         [HttpGet]
         [Route("v2/obter-enderecos")]
         [Authorize(Roles = "App, Admin")]
-        public async Task<ActionResult> ObterDadosDeBuscaAsync()
-        {   
+        public async Task<ActionResult> ObterDadosDeBuscaAsync([FromQuery] bool ignorarCache = false)
+        {
             try
             {
-                var resultado = await enderecoService.OrganizarEnderecosAsync();
+                var resultado = await enderecoService.OrganizarEnderecosAsync(ignorarCache);
                 return Ok(new ApiResponse<dynamic>(resultado));
             }
             catch (Exception ex)
