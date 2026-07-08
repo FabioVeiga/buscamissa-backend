@@ -14,8 +14,8 @@ namespace BuscaMissa.Models
         [Required]
         public string Logradouro { get; set; } = default!;
         public string? Complemento { get; set; }
-        [Required]
-        public string Bairro { get; set; } = default!;
+        // Opcional — nem todo endereço tem bairro (áreas rurais, cidades pequenas).
+        public string? Bairro { get; set; }
         [Required]
         public string Localidade { get; set; } = default!;
         // Slug da cidade para URLs e busca (ex: "sao-jose-dos-campos"). Persistido e indexado.
