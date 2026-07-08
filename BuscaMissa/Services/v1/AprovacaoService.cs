@@ -110,7 +110,7 @@ public class AprovacaoService(
                 Endereco = (EnderecoIgrejaResponse)controle.Igreja.Endereco,
                 Missas = controle.Igreja.Missas.Select(m => new MissaComparacaoItem
                 {
-                    DiaSemana = m.DiaSemana.ToString(),
+                    DiaSemana = m.DiaSemana,
                     Horario = m.Horario.ToString(@"hh\:mm"),
                     Observacao = m.Observacao,
                 }).ToList(),
@@ -127,7 +127,7 @@ public class AprovacaoService(
             ImagemUrl = controle.Igreja.ImagemUrl,
             Missas = controle.Igreja.Missas.Select(m => new MissaComparacaoItem
             {
-                DiaSemana = m.DiaSemana.ToString(),
+                DiaSemana = m.DiaSemana,
                 Horario = m.Horario.ToString(@"hh\:mm"),
                 Observacao = m.Observacao,
             }).ToList(),
@@ -149,7 +149,7 @@ public class AprovacaoService(
             ImagemUrl = temporaria?.ImagemUrl,
             Missas = missasTemp.Select(m => new MissaComparacaoItem
             {
-                DiaSemana = m.DiaSemana.ToString(),
+                DiaSemana = m.DiaSemana,
                 Horario = m.Horario.ToString(@"hh\:mm"),
                 Observacao = m.Observacao,
             }).ToList(),
