@@ -10,8 +10,8 @@ namespace BuscaMissa.DTOs.EnderecoDto
         public string Logradouro { get; set; } = default!;
         [NoProfanity]
         public string? Complemento { get; set; }
-        [Required]
-        public string Bairro { get; set; } = default!;
+        // Opcional — nem todo endereço tem bairro (áreas rurais, cidades pequenas).
+        public string? Bairro { get; set; }
         [Required]
         public string Localidade { get; set; } = default!;
         [Required]
