@@ -74,6 +74,51 @@ namespace BuscaMissa.DTOs.v1.EmailHtmlGenerator
             return htmlBuilder.ToString();
         }
 
+        // Mesmo e-mail de contato cadastrado em várias igrejas (ex: diocese, secretaria
+        // paroquial) — um único e-mail com a lista de igrejas, em vez de um por igreja.
+        public static string GerarHtmlEmailMultiplasIgrejas(
+            IList<(string NomeIgreja, string LinkPaginaIgreja)> igrejas, bool criacao)
+        {
+            var introducao = criacao
+                ? "As igrejas abaixo foram cadastradas no Busca Missa, plataforma gratuita que ajuda os fiéis a encontrarem igrejas e horários de missas."
+                : "As informações das igrejas abaixo foram atualizadas no Busca Missa.";
+
+            var chamada = criacao
+                ? "Pedimos apenas um minuto da sua atenção para verificar se as informações de cada uma estão corretas:"
+                : "Para garantir que os fiéis encontrem sempre os horários corretos, pedimos que confira os dados de cada uma:";
+
+            var itensHtml = new StringBuilder();
+            foreach (var igreja in igrejas)
+            {
+                itensHtml.Append($@"
+                                <div class=""church-details"">
+                                    <p><strong>{igreja.NomeIgreja}</strong></p>
+                                    <div class=""button-container"" style=""margin: 10px 0;"">
+                                        <a href=""{igreja.LinkPaginaIgreja}"" class=""button"">👉 {(criacao ? "Conferir informações" : "Revisar informações")}</a>
+                                    </div>
+                                </div>");
+            }
+
+            var htmlBuilder = new StringBuilder();
+            htmlBuilder.Append(GetHtmlHeader());
+            htmlBuilder.Append($@"
+                    <tr>
+                        <td class=""content"">
+                            <h2>Olá!</h2>
+                            <p>{introducao}</p>
+                            <p>{chamada}</p>
+                            {itensHtml}
+                            <p>Caso seja necessário, você poderá solicitar qualquer alteração de forma simples e gratuita.</p>
+                            <p>Muito obrigado por nos ajudar a manter os dados sempre atualizados!</p>
+                            <p>Deus abençoe.</p>
+                            <p>Equipe Busca Missa</p>
+                        </td>
+                    </tr>");
+            htmlBuilder.Append(GetHtmlFooter());
+
+            return htmlBuilder.ToString();
+        }
+
         // Método auxiliar para formatar o endereço
         private static string FormatarEndereco(string logradouro, int? numero, string bairro, string localidade, string estado)
         {
