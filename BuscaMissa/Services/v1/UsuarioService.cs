@@ -159,6 +159,13 @@ namespace BuscaMissa.Services.v1
             if(filtro.CriacaoFim.HasValue)
                 query = query.Where(x => x.Criacao <= filtro.CriacaoFim.Value);
 
+            query = filtro.OrdenarPor?.Trim().ToLowerInvariant() switch
+            {
+                "email" => filtro.OrdemDecrescente ? query.OrderByDescending(x => x.Email) : query.OrderBy(x => x.Email),
+                "criacao" => filtro.OrdemDecrescente ? query.OrderByDescending(x => x.Criacao) : query.OrderBy(x => x.Criacao),
+                _ => filtro.OrdemDecrescente ? query.OrderByDescending(x => x.Nome) : query.OrderBy(x => x.Nome),
+            };
+
             var resultado = await query.PaginacaoAsync(filtro.Paginacao.PageIndex, filtro.Paginacao.PageSize);
             return resultado;
         }
