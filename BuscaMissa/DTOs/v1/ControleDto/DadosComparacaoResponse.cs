@@ -1,4 +1,5 @@
 using BuscaMissa.DTOs.EnderecoDto;
+using BuscaMissa.Enums;
 
 namespace BuscaMissa.DTOs.ControleDto
 {
@@ -15,7 +16,8 @@ namespace BuscaMissa.DTOs.ControleDto
 
     public class MissaComparacaoItem
     {
-        public string DiaSemana { get; set; } = default!;
+        // Numérico (mesmo valor de DiaDaSemanaEnum) — o frontend já converte para label.
+        public DiaDaSemanaEnum DiaSemana { get; set; }
         public string Horario { get; set; } = default!;
         public string? Observacao { get; set; }
     }
