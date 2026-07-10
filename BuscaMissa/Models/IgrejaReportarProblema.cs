@@ -16,6 +16,7 @@ namespace BuscaMissa.Models
         public string Email { get; set; } = default!;
         public int IgrejaId { get; set; }
         public Igreja Igreja { get; set; } = null!;
+        public DateTime DataCriacao { get; set; } = DateTime.Now;
 
         public static explicit operator  IgrejaReportarProblema(ReportarProblemaRequest request){
             return new IgrejaReportarProblema{
