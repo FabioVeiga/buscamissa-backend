@@ -495,6 +495,24 @@ namespace BuscaMissa.Controllers.v1
 
 
         [HttpGet]
+        [Route("igreja/reportar-problema")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> BuscarProblemasReportados([FromQuery] FiltroReportarProblemaRequest filtro)
+        {
+            try
+            {
+                var resultado = await igrejaReportarProblemaService.BuscarPorFiltroAsync(filtro);
+                return Ok(new ApiResponse<dynamic>(resultado));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{Ex}", ex);
+                var response = new ApiResponse<dynamic>(BuscaMissa.Constants.Constants.MensagemErroInterno);
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpGet]
         [Route("igreja/buscar-por-filtro")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> BuscarPorFiltro([FromQuery] FiltroIgrejaAdminRequest filtro)
