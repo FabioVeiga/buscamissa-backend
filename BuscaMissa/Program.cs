@@ -94,7 +94,6 @@ builder.Services.AddScoped<BuscaMissa.Services.ServicoConsultaMetricas>();
 
 
 builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("SettingCodigoValidacao"));
-builder.Services.AddMailerSendEmailClient(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddMailerSendEmailClient(options =>
 {
     options.ApiUrl = builder.Configuration["MailerSend:ApiUrl"];
@@ -176,6 +175,20 @@ builder.Services.AddAuthentication(x =>
 // Adicionar autorização
 builder.Services.AddAuthorization();
 
+// Atrás do Cloudflare/App Service, RemoteIpAddress é o IP do proxy — o rate limiter
+// particionaria todos os usuários juntos. Resolve o IP real na ordem:
+// CF-Connecting-IP (Cloudflare) > X-Forwarded-For (primeiro IP) > RemoteIpAddress.
+static string ObterIpCliente(HttpContext contexto)
+{
+    var cfIp = contexto.Request.Headers["CF-Connecting-IP"].FirstOrDefault();
+    if (!string.IsNullOrWhiteSpace(cfIp)) return cfIp.Trim();
+
+    var xff = contexto.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+    if (!string.IsNullOrWhiteSpace(xff)) return xff.Split(',')[0].Trim();
+
+    return contexto.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+}
+
 // Rate limiting (proteção contra brute force e scraping)
 builder.Services.AddRateLimiter(options =>
 {
@@ -184,7 +197,7 @@ builder.Services.AddRateLimiter(options =>
     // Limite global: por IP, 100 requisições por minuto
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
-        var chave = httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+        var chave = ObterIpCliente(httpContext);
         return RateLimitPartition.GetFixedWindowLimiter(chave, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 100,
@@ -196,7 +209,7 @@ builder.Services.AddRateLimiter(options =>
     // Política estrita para autenticação: 5 tentativas por minuto por IP
     options.AddPolicy("autenticacao", httpContext =>
     {
-        var chave = httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+        var chave = ObterIpCliente(httpContext);
         return RateLimitPartition.GetFixedWindowLimiter(chave, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 5,
@@ -208,7 +221,7 @@ builder.Services.AddRateLimiter(options =>
     // Política para escrita anônima (confirmações/denúncias): 20 por minuto por IP
     options.AddPolicy("escrita-anonima", httpContext =>
     {
-        var chave = httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido";
+        var chave = ObterIpCliente(httpContext);
         return RateLimitPartition.GetFixedWindowLimiter(chave, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 20,
@@ -221,15 +234,21 @@ builder.Services.AddRateLimiter(options =>
 // Adicionar controladores e serviços do Swagger, se necessário
 builder.Services.AddControllers();
 
-builder.Services.Configure<SettingCodigoValidacao>(builder.Configuration.GetSection("MailerSendEmailSetting"));
 builder.Services.Configure<AzureBlobStorage>(builder.Configuration.GetSection("AzureBlobStorage"));
 
-// Adicione o serviço CORS
+// CORS por ambiente: produção só aceita os domínios do site; demais ambientes
+// aceitam também os localhosts de desenvolvimento.
+var origensProducao = new[] { "https://buscamissa.com.br", "https://www.buscamissa.com.br" };
+var origensDev = new[] { "http://localhost:4200", "http://localhost:5173" };
+var origensPermitidas = env.Equals("Production", StringComparison.OrdinalIgnoreCase)
+    ? origensProducao
+    : origensProducao.Concat(origensDev).ToArray();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost", policy =>
+    options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://localhost:5173")
+        policy.WithOrigins(origensPermitidas)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -253,7 +272,7 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseRouting();
-app.UseCors("AllowLocalhost");
+app.UseCors("Frontend");
 app.UseRateLimiter();
 
 using (var scope = app.Services.CreateScope())
