@@ -17,6 +17,7 @@ public class SitemapController(
     private string FrontendBaseUrl => configuration["FrontendBaseUrl"] ?? BuscaMissa.Constants.Constants.FrontendBaseUrlDefault;
 
     [HttpGet("/sitemap.xml")]
+    [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
     public async Task<IActionResult> Sitemap()
     {
         try

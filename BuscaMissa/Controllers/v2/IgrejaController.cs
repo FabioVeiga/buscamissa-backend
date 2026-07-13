@@ -201,6 +201,7 @@ namespace BuscaMissa.Controllers.v2
         // Item 2: endpoint público para busca por NomeUnico (sem autenticação, para SEO)
         // Item 5: retorna metadados de SEO junto com os dados da igreja
         [HttpGet("{nomeUnico}")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult> BuscarPorNomeUnicoAsync(string nomeUnico)
         {
             try
@@ -221,6 +222,7 @@ namespace BuscaMissa.Controllers.v2
 
         // Página de cidade: lista paróquias + SEO (alvo "missa em {cidade}")
         [HttpGet("cidade/{uf}/{cidadeSlug}")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult> BuscarPorCidadeAsync(string uf, string cidadeSlug)
         {
             try
@@ -243,6 +245,7 @@ namespace BuscaMissa.Controllers.v2
 
         // Paróquia individual pela URL canônica nova
         [HttpGet("paroquia/{uf}/{cidadeSlug}/{slug}")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult> BuscarPorCidadeESlugAsync(string uf, string cidadeSlug, string slug)
         {
             try
